@@ -1,0 +1,21 @@
+{
+  "name": "provider-registry-react-ts-client",
+  "version": "0.1.0",
+  "description": "Common Fate Provider Registry client for react",
+  "main": "index.js",
+  "scripts": {
+    "clienttypegen": "orval --config ./registry.orval.config.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "openapi-types": ">=7",
+    "orval": "^6.7.1"
+  },
+  "dependencies": {
+    "axios": "^1.2.2",
+    "swr": "^2.0.0",
+    "react": "^18"
+  }
+}
