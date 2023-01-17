@@ -1,0 +1,9 @@
+package: providerregistrysdk
+generate:
+  chi-server: true
+  client: true
+  models: true
+  embedded-spec: true
+output-options:
+  skip-prune: true
+output: pkg/providerregistrysdk/api.gen.go

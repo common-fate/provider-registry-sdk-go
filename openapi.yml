@@ -1,0 +1,328 @@
+openapi: 3.0.0
+info:
+  title: Example API
+  version: '1.0'
+  contact:
+    name: Common Fate
+    url: 'https://commonfate.io'
+  description: Example API
+servers:
+  - url: 'http://localhost:9001'
+paths:
+  /api/v1/health:
+    get:
+      summary: Healthcheck
+      responses:
+        '200':
+          $ref: '#/components/responses/HealthResponse'
+        '500':
+          $ref: '#/components/responses/HealthResponse'
+      operationId: get-health
+      description: Returns the health of the service. If any healthchecks fail the response code will be 500 (Internal Server Error).
+      tags:
+        - Public
+  '/api/v1/team/{team}/providers/{name}/{version}/register':
+    parameters:
+      - schema:
+          type: string
+        name: team
+        in: path
+        required: true
+      - schema:
+          type: string
+        name: version
+        in: path
+        required: true
+      - schema:
+          type: string
+        name: name
+        in: path
+        required: true
+    post:
+      summary: Register Provider
+      operationId: register-provider
+      responses:
+        '200':
+          $ref: '#/components/responses/RegisterProvidersResponse'
+        '400':
+          $ref: '#/components/responses/ErrorResponse'
+      tags:
+        - Team
+  '/api/v1/team/{team}/providers/{name}/{version}/complete-registration':
+    post:
+      summary: Complete Registration
+      operationId: complete-registration
+      responses:
+        '200':
+          description: OK
+      tags:
+        - Team
+    parameters:
+      - schema:
+          type: string
+        name: team
+        in: path
+        required: true
+      - schema:
+          type: string
+        name: version
+        in: path
+        required: true
+      - schema:
+          type: string
+        name: name
+        in: path
+        required: true
+  '/api/v1/team/{team}/providers/{name}/{version}':
+    parameters:
+      - schema:
+          type: string
+        name: team
+        in: path
+        required: true
+      - schema:
+          type: string
+        name: version
+        in: path
+        required: true
+      - schema:
+          type: string
+        name: name
+        in: path
+        required: true
+    get:
+      summary: Get Provider
+      operationId: get-provider
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Provider'
+      tags:
+        - Public
+  /api/v1/providers:
+    get:
+      summary: List Providers
+      tags:
+        - Public
+      responses:
+        '200':
+          $ref: '#/components/responses/ListProvidersResponse'
+        '500':
+          $ref: '#/components/responses/ErrorResponse'
+      operationId: list-all-providers
+components:
+  schemas:
+    Provider:
+      title: Provider
+      x-stoplight:
+        id: u2lvhh2c9p2n2
+      type: object
+      properties:
+        team:
+          type: string
+        name:
+          type: string
+        version:
+          type: string
+        usage:
+          type: string
+        setup:
+          $ref: '#/components/schemas/Setup'
+        lambdaAssetS3Arn:
+          type: string
+        argumentSchema:
+          $ref: '#/components/schemas/ArgumentSchema'
+      required:
+        - team
+        - name
+        - version
+        - usage
+        - setup
+        - lambdaAssetS3Arn
+        - argumentSchema
+      description: A registered provider version
+    Setup:
+      title: Setup
+      x-stoplight:
+        id: gyckslzdk6piz
+      type: object
+      properties:
+        steps:
+          type: array
+          items:
+            type: string
+        schema:
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/ConfigSchema'
+      required:
+        - steps
+        - schema
+    Usage:
+      title: Usage
+      x-stoplight:
+        id: j2716x39xk333
+      type: object
+      properties:
+        usage:
+          type: string
+      required:
+        - usage
+    S3Asset:
+      title: S3 Asset
+      x-stoplight:
+        id: faa66d2361fb2
+      type: object
+      properties:
+        path:
+          type: string
+        bucket:
+          type: string
+        region:
+          type: string
+      required:
+        - path
+        - bucket
+        - region
+    ConfigSchema:
+      title: ConfigSchema
+      x-stoplight:
+        id: igwgvqjhmbqjz
+      type: object
+      properties:
+        id:
+          type: string
+        type:
+          type: string
+          enum:
+            - STRING
+            - SECRETSTRING
+        secret:
+          type: boolean
+        optional:
+          type: boolean
+        usage:
+          type: string
+        name:
+          type: string
+      required:
+        - id
+        - type
+        - secret
+        - optional
+        - usage
+        - name
+    ArgumentSchema:
+      title: ArgumentSchema
+      x-stoplight:
+        id: 35b70d29b3eb3
+      type: object
+      additionalProperties:
+        $ref: '#/components/schemas/Argument'
+      description: 'Provider argument schema defines the arguments, titles, descriptions and UI elements for provider arguments.'
+    Argument:
+      title: Argument
+      x-stoplight:
+        id: 8z6izf547yuch
+      type: object
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        description:
+          type: string
+        ruleFormElement:
+          type: string
+          enum:
+            - INPUT
+            - MULTISELECT
+            - SELECT
+        requestFormElement:
+          type: string
+          enum:
+            - SELECT
+          description: 'Optional form element for the request form, if not provided, defaults to multiselect'
+        groups:
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/ArgumentGroup'
+      required:
+        - id
+        - title
+        - ruleFormElement
+      description: 'Define the metadata, data type and UI elements for the argument'
+    ArgumentGroup:
+      title: ArgumentGroup
+      x-stoplight:
+        id: 5a82f187c1da2
+      type: object
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        description:
+          type: string
+      required:
+        - id
+        - title
+      description: An argument group
+  requestBodies: {}
+  responses:
+    HealthResponse:
+      description: Healthcheck response body.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              healthy:
+                type: boolean
+            required:
+              - healthy
+          examples: {}
+    ErrorResponse:
+      description: An error returned from the API.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+          examples: {}
+    ListProvidersResponse:
+      description: Example response
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              providers:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Provider'
+              next:
+                type: string
+                nullable: true
+            required:
+              - providers
+              - next
+    RegisterProvidersResponse:
+      description: Example response
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              zipUploadUrl:
+                type: string
+            required:
+              - zipUploadUrl
+tags:
+  - name: Public
+  - name: Team
