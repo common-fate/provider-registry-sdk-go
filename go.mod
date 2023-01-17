@@ -1,4 +1,4 @@
-module github.com/common-fate/provider-registry-go-sdk
+module github.com/common-fate/provider-registry-sdk-go
 
 go 1.19
 
