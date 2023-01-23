@@ -21,75 +21,59 @@ import (
 	"github.com/go-chi/chi/v5"
 )
 
-// Defines values for ArgumentRequestFormElement.
+// Defines values for ConfigurationArgumentType.
 const (
-	ArgumentRequestFormElementSELECT ArgumentRequestFormElement = "SELECT"
+	SECRETSTRING ConfigurationArgumentType = "SECRETSTRING"
+	STRING       ConfigurationArgumentType = "STRING"
 )
 
-// Defines values for ArgumentRuleFormElement.
+// Defines values for TargetArgumentRequestFormElement.
 const (
-	ArgumentRuleFormElementINPUT       ArgumentRuleFormElement = "INPUT"
-	ArgumentRuleFormElementMULTISELECT ArgumentRuleFormElement = "MULTISELECT"
-	ArgumentRuleFormElementSELECT      ArgumentRuleFormElement = "SELECT"
+	TargetArgumentRequestFormElementSELECT TargetArgumentRequestFormElement = "SELECT"
 )
 
-// Defines values for ConfigSchemaType.
+// Defines values for TargetArgumentRuleFormElement.
 const (
-	SECRETSTRING ConfigSchemaType = "SECRETSTRING"
-	STRING       ConfigSchemaType = "STRING"
+	TargetArgumentRuleFormElementINPUT       TargetArgumentRuleFormElement = "INPUT"
+	TargetArgumentRuleFormElementMULTISELECT TargetArgumentRuleFormElement = "MULTISELECT"
+	TargetArgumentRuleFormElementSELECT      TargetArgumentRuleFormElement = "SELECT"
 )
 
-// Argument Define the metadata, data type and UI elements for the argument
-type Argument struct {
-	Description *string                   `json:"description,omitempty"`
-	Groups      *map[string]ArgumentGroup `json:"groups,omitempty"`
-	Id          string                    `json:"id"`
+// AuditSchema defines model for AuditSchema.
+type AuditSchema = map[string]interface{}
 
-	// RequestFormElement Optional form element for the request form, if not provided, defaults to multiselect
-	RequestFormElement *ArgumentRequestFormElement `json:"requestFormElement,omitempty"`
-	RuleFormElement    ArgumentRuleFormElement     `json:"ruleFormElement"`
-	Title              string                      `json:"title"`
+// ConfigurationArgument defines model for ConfigurationArgument.
+type ConfigurationArgument struct {
+	Id       string                    `json:"id"`
+	Name     string                    `json:"name"`
+	Optional bool                      `json:"optional"`
+	Secret   bool                      `json:"secret"`
+	Type     ConfigurationArgumentType `json:"type"`
+	Usage    string                    `json:"usage"`
 }
 
-// ArgumentRequestFormElement Optional form element for the request form, if not provided, defaults to multiselect
-type ArgumentRequestFormElement string
+// ConfigurationArgumentType defines model for ConfigurationArgument.Type.
+type ConfigurationArgumentType string
 
-// ArgumentRuleFormElement defines model for Argument.RuleFormElement.
-type ArgumentRuleFormElement string
-
-// ArgumentGroup An argument group
-type ArgumentGroup struct {
-	Description *string `json:"description,omitempty"`
-	Id          string  `json:"id"`
-	Title       string  `json:"title"`
-}
-
-// ArgumentSchema Provider argument schema defines the arguments, titles, descriptions and UI elements for provider arguments.
-type ArgumentSchema map[string]Argument
-
-// ConfigSchema defines model for ConfigSchema.
-type ConfigSchema struct {
-	Id       string           `json:"id"`
-	Name     string           `json:"name"`
-	Optional bool             `json:"optional"`
-	Secret   bool             `json:"secret"`
-	Type     ConfigSchemaType `json:"type"`
-	Usage    string           `json:"usage"`
-}
-
-// ConfigSchemaType defines model for ConfigSchema.Type.
-type ConfigSchemaType string
+// ConfigurationSchema defines model for ConfigurationSchema.
+type ConfigurationSchema map[string]ConfigurationArgument
 
 // Provider A registered provider version
 type Provider struct {
-	// ArgumentSchema Provider argument schema defines the arguments, titles, descriptions and UI elements for provider arguments.
-	ArgumentSchema   ArgumentSchema `json:"argumentSchema"`
 	LambdaAssetS3Arn string         `json:"lambdaAssetS3Arn"`
 	Name             string         `json:"name"`
-	Setup            Setup          `json:"setup"`
+	Schema           ProviderSchema `json:"schema"`
 	Team             string         `json:"team"`
-	Usage            string         `json:"usage"`
 	Version          string         `json:"version"`
+}
+
+// ProviderSchema defines model for ProviderSchema.
+type ProviderSchema struct {
+	Audit           AuditSchema         `json:"audit"`
+	Configuration   ConfigurationSchema `json:"configuration"`
+	ProviderVersion string              `json:"providerVersion"`
+	SchemaVersion   string              `json:"schemaVersion"`
+	Target          TargetSchema        `json:"target"`
 }
 
 // S3Asset defines model for S3Asset.
@@ -101,9 +85,37 @@ type S3Asset struct {
 
 // Setup defines model for Setup.
 type Setup struct {
-	Schema map[string]ConfigSchema `json:"schema"`
-	Steps  []string                `json:"steps"`
+	Schema map[string]ConfigurationArgument `json:"schema"`
+	Steps  []string                         `json:"steps"`
 }
+
+// TargetArgument Define the metadata, data type and UI elements for the argument
+type TargetArgument struct {
+	Description *string                        `json:"description,omitempty"`
+	Groups      map[string]TargetArgumentGroup `json:"groups"`
+	Id          string                         `json:"id"`
+
+	// RequestFormElement Optional form element for the request form, if not provided, defaults to multiselect
+	RequestFormElement TargetArgumentRequestFormElement `json:"requestFormElement"`
+	RuleFormElement    TargetArgumentRuleFormElement    `json:"ruleFormElement"`
+	Title              string                           `json:"title"`
+}
+
+// TargetArgumentRequestFormElement Optional form element for the request form, if not provided, defaults to multiselect
+type TargetArgumentRequestFormElement string
+
+// TargetArgumentRuleFormElement defines model for TargetArgument.RuleFormElement.
+type TargetArgumentRuleFormElement string
+
+// TargetArgumentGroup An argument group
+type TargetArgumentGroup struct {
+	Description *string `json:"description,omitempty"`
+	Id          string  `json:"id"`
+	Title       string  `json:"title"`
+}
+
+// TargetSchema defines model for TargetSchema.
+type TargetSchema map[string]TargetArgument
 
 // Usage defines model for Usage.
 type Usage struct {
@@ -212,12 +224,6 @@ type ClientInterface interface {
 
 	// GetProvider request
 	GetProvider(ctx context.Context, team string, name string, version string, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	// CompleteRegistration request
-	CompleteRegistration(ctx context.Context, team string, name string, version string, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	// RegisterProvider request
-	RegisterProvider(ctx context.Context, team string, name string, version string, reqEditors ...RequestEditorFn) (*http.Response, error)
 }
 
 func (c *Client) GetHealth(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
@@ -246,30 +252,6 @@ func (c *Client) ListAllProviders(ctx context.Context, reqEditors ...RequestEdit
 
 func (c *Client) GetProvider(ctx context.Context, team string, name string, version string, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewGetProviderRequest(c.Server, team, name, version)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) CompleteRegistration(ctx context.Context, team string, name string, version string, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewCompleteRegistrationRequest(c.Server, team, name, version)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) RegisterProvider(ctx context.Context, team string, name string, version string, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewRegisterProviderRequest(c.Server, team, name, version)
 	if err != nil {
 		return nil, err
 	}
@@ -382,102 +364,6 @@ func NewGetProviderRequest(server string, team string, name string, version stri
 	return req, nil
 }
 
-// NewCompleteRegistrationRequest generates requests for CompleteRegistration
-func NewCompleteRegistrationRequest(server string, team string, name string, version string) (*http.Request, error) {
-	var err error
-
-	var pathParam0 string
-
-	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "team", runtime.ParamLocationPath, team)
-	if err != nil {
-		return nil, err
-	}
-
-	var pathParam1 string
-
-	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "name", runtime.ParamLocationPath, name)
-	if err != nil {
-		return nil, err
-	}
-
-	var pathParam2 string
-
-	pathParam2, err = runtime.StyleParamWithLocation("simple", false, "version", runtime.ParamLocationPath, version)
-	if err != nil {
-		return nil, err
-	}
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/api/v1/team/%s/providers/%s/%s/complete-registration", pathParam0, pathParam1, pathParam2)
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("POST", queryURL.String(), nil)
-	if err != nil {
-		return nil, err
-	}
-
-	return req, nil
-}
-
-// NewRegisterProviderRequest generates requests for RegisterProvider
-func NewRegisterProviderRequest(server string, team string, name string, version string) (*http.Request, error) {
-	var err error
-
-	var pathParam0 string
-
-	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "team", runtime.ParamLocationPath, team)
-	if err != nil {
-		return nil, err
-	}
-
-	var pathParam1 string
-
-	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "name", runtime.ParamLocationPath, name)
-	if err != nil {
-		return nil, err
-	}
-
-	var pathParam2 string
-
-	pathParam2, err = runtime.StyleParamWithLocation("simple", false, "version", runtime.ParamLocationPath, version)
-	if err != nil {
-		return nil, err
-	}
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/api/v1/team/%s/providers/%s/%s/register", pathParam0, pathParam1, pathParam2)
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("POST", queryURL.String(), nil)
-	if err != nil {
-		return nil, err
-	}
-
-	return req, nil
-}
-
 func (c *Client) applyEditors(ctx context.Context, req *http.Request, additionalEditors []RequestEditorFn) error {
 	for _, r := range c.RequestEditors {
 		if err := r(ctx, req); err != nil {
@@ -529,12 +415,6 @@ type ClientWithResponsesInterface interface {
 
 	// GetProvider request
 	GetProviderWithResponse(ctx context.Context, team string, name string, version string, reqEditors ...RequestEditorFn) (*GetProviderResponse, error)
-
-	// CompleteRegistration request
-	CompleteRegistrationWithResponse(ctx context.Context, team string, name string, version string, reqEditors ...RequestEditorFn) (*CompleteRegistrationResponse, error)
-
-	// RegisterProvider request
-	RegisterProviderWithResponse(ctx context.Context, team string, name string, version string, reqEditors ...RequestEditorFn) (*RegisterProviderResponse, error)
 }
 
 type GetHealthResponse struct {
@@ -614,54 +494,6 @@ func (r GetProviderResponse) StatusCode() int {
 	return 0
 }
 
-type CompleteRegistrationResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-}
-
-// Status returns HTTPResponse.Status
-func (r CompleteRegistrationResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r CompleteRegistrationResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
-}
-
-type RegisterProviderResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-	JSON200      *struct {
-		ZipUploadUrl string `json:"zipUploadUrl"`
-	}
-	JSON400 *struct {
-		Error *string `json:"error,omitempty"`
-	}
-}
-
-// Status returns HTTPResponse.Status
-func (r RegisterProviderResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r RegisterProviderResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
-}
-
 // GetHealthWithResponse request returning *GetHealthResponse
 func (c *ClientWithResponses) GetHealthWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetHealthResponse, error) {
 	rsp, err := c.GetHealth(ctx, reqEditors...)
@@ -687,24 +519,6 @@ func (c *ClientWithResponses) GetProviderWithResponse(ctx context.Context, team 
 		return nil, err
 	}
 	return ParseGetProviderResponse(rsp)
-}
-
-// CompleteRegistrationWithResponse request returning *CompleteRegistrationResponse
-func (c *ClientWithResponses) CompleteRegistrationWithResponse(ctx context.Context, team string, name string, version string, reqEditors ...RequestEditorFn) (*CompleteRegistrationResponse, error) {
-	rsp, err := c.CompleteRegistration(ctx, team, name, version, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseCompleteRegistrationResponse(rsp)
-}
-
-// RegisterProviderWithResponse request returning *RegisterProviderResponse
-func (c *ClientWithResponses) RegisterProviderWithResponse(ctx context.Context, team string, name string, version string, reqEditors ...RequestEditorFn) (*RegisterProviderResponse, error) {
-	rsp, err := c.RegisterProvider(ctx, team, name, version, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseRegisterProviderResponse(rsp)
 }
 
 // ParseGetHealthResponse parses an HTTP response from a GetHealthWithResponse call
@@ -808,59 +622,6 @@ func ParseGetProviderResponse(rsp *http.Response) (*GetProviderResponse, error) 
 	return response, nil
 }
 
-// ParseCompleteRegistrationResponse parses an HTTP response from a CompleteRegistrationWithResponse call
-func ParseCompleteRegistrationResponse(rsp *http.Response) (*CompleteRegistrationResponse, error) {
-	bodyBytes, err := io.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &CompleteRegistrationResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	return response, nil
-}
-
-// ParseRegisterProviderResponse parses an HTTP response from a RegisterProviderWithResponse call
-func ParseRegisterProviderResponse(rsp *http.Response) (*RegisterProviderResponse, error) {
-	bodyBytes, err := io.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &RegisterProviderResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest struct {
-			ZipUploadUrl string `json:"zipUploadUrl"`
-		}
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON200 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
-		var dest struct {
-			Error *string `json:"error,omitempty"`
-		}
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON400 = &dest
-
-	}
-
-	return response, nil
-}
-
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
 	// Healthcheck
@@ -872,12 +633,6 @@ type ServerInterface interface {
 	// Get Provider
 	// (GET /api/v1/team/{team}/providers/{name}/{version})
 	GetProvider(w http.ResponseWriter, r *http.Request, team string, name string, version string)
-	// Complete Registration
-	// (POST /api/v1/team/{team}/providers/{name}/{version}/complete-registration)
-	CompleteRegistration(w http.ResponseWriter, r *http.Request, team string, name string, version string)
-	// Register Provider
-	// (POST /api/v1/team/{team}/providers/{name}/{version}/register)
-	RegisterProvider(w http.ResponseWriter, r *http.Request, team string, name string, version string)
 }
 
 // ServerInterfaceWrapper converts contexts to parameters.
@@ -954,94 +709,6 @@ func (siw *ServerInterfaceWrapper) GetProvider(w http.ResponseWriter, r *http.Re
 
 	var handler http.Handler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.GetProvider(w, r, team, name, version)
-	})
-
-	for _, middleware := range siw.HandlerMiddlewares {
-		handler = middleware(handler)
-	}
-
-	handler.ServeHTTP(w, r.WithContext(ctx))
-}
-
-// CompleteRegistration operation middleware
-func (siw *ServerInterfaceWrapper) CompleteRegistration(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
-
-	var err error
-
-	// ------------- Path parameter "team" -------------
-	var team string
-
-	err = runtime.BindStyledParameterWithLocation("simple", false, "team", runtime.ParamLocationPath, chi.URLParam(r, "team"), &team)
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "team", Err: err})
-		return
-	}
-
-	// ------------- Path parameter "name" -------------
-	var name string
-
-	err = runtime.BindStyledParameterWithLocation("simple", false, "name", runtime.ParamLocationPath, chi.URLParam(r, "name"), &name)
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "name", Err: err})
-		return
-	}
-
-	// ------------- Path parameter "version" -------------
-	var version string
-
-	err = runtime.BindStyledParameterWithLocation("simple", false, "version", runtime.ParamLocationPath, chi.URLParam(r, "version"), &version)
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "version", Err: err})
-		return
-	}
-
-	var handler http.Handler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.CompleteRegistration(w, r, team, name, version)
-	})
-
-	for _, middleware := range siw.HandlerMiddlewares {
-		handler = middleware(handler)
-	}
-
-	handler.ServeHTTP(w, r.WithContext(ctx))
-}
-
-// RegisterProvider operation middleware
-func (siw *ServerInterfaceWrapper) RegisterProvider(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
-
-	var err error
-
-	// ------------- Path parameter "team" -------------
-	var team string
-
-	err = runtime.BindStyledParameterWithLocation("simple", false, "team", runtime.ParamLocationPath, chi.URLParam(r, "team"), &team)
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "team", Err: err})
-		return
-	}
-
-	// ------------- Path parameter "name" -------------
-	var name string
-
-	err = runtime.BindStyledParameterWithLocation("simple", false, "name", runtime.ParamLocationPath, chi.URLParam(r, "name"), &name)
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "name", Err: err})
-		return
-	}
-
-	// ------------- Path parameter "version" -------------
-	var version string
-
-	err = runtime.BindStyledParameterWithLocation("simple", false, "version", runtime.ParamLocationPath, chi.URLParam(r, "version"), &version)
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "version", Err: err})
-		return
-	}
-
-	var handler http.Handler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.RegisterProvider(w, r, team, name, version)
 	})
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -1173,12 +840,6 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 	r.Group(func(r chi.Router) {
 		r.Get(options.BaseURL+"/api/v1/team/{team}/providers/{name}/{version}", wrapper.GetProvider)
 	})
-	r.Group(func(r chi.Router) {
-		r.Post(options.BaseURL+"/api/v1/team/{team}/providers/{name}/{version}/complete-registration", wrapper.CompleteRegistration)
-	})
-	r.Group(func(r chi.Router) {
-		r.Post(options.BaseURL+"/api/v1/team/{team}/providers/{name}/{version}/register", wrapper.RegisterProvider)
-	})
 
 	return r
 }
@@ -1186,30 +847,30 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"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",
+	"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",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file

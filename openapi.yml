@@ -21,58 +21,6 @@ paths:
       description: Returns the health of the service. If any healthchecks fail the response code will be 500 (Internal Server Error).
       tags:
         - Public
-  '/api/v1/team/{team}/providers/{name}/{version}/register':
-    parameters:
-      - schema:
-          type: string
-        name: team
-        in: path
-        required: true
-      - schema:
-          type: string
-        name: version
-        in: path
-        required: true
-      - schema:
-          type: string
-        name: name
-        in: path
-        required: true
-    post:
-      summary: Register Provider
-      operationId: register-provider
-      responses:
-        '200':
-          $ref: '#/components/responses/RegisterProvidersResponse'
-        '400':
-          $ref: '#/components/responses/ErrorResponse'
-      tags:
-        - Team
-  '/api/v1/team/{team}/providers/{name}/{version}/complete-registration':
-    post:
-      summary: Complete Registration
-      operationId: complete-registration
-      responses:
-        '200':
-          description: OK
-      tags:
-        - Team
-    parameters:
-      - schema:
-          type: string
-        name: team
-        in: path
-        required: true
-      - schema:
-          type: string
-        name: version
-        in: path
-        required: true
-      - schema:
-          type: string
-        name: name
-        in: path
-        required: true
   '/api/v1/team/{team}/providers/{name}/{version}':
     parameters:
       - schema:
@@ -120,6 +68,7 @@ components:
       x-stoplight:
         id: u2lvhh2c9p2n2
       type: object
+      description: A registered provider version
       properties:
         team:
           type: string
@@ -127,23 +76,16 @@ components:
           type: string
         version:
           type: string
-        usage:
-          type: string
-        setup:
-          $ref: '#/components/schemas/Setup'
         lambdaAssetS3Arn:
           type: string
-        argumentSchema:
-          $ref: '#/components/schemas/ArgumentSchema'
+        schema:
+          $ref: '#/components/schemas/ProviderSchema'
       required:
         - team
         - name
         - version
-        - usage
-        - setup
         - lambdaAssetS3Arn
-        - argumentSchema
-      description: A registered provider version
+        - schema
     Setup:
       title: Setup
       x-stoplight:
@@ -157,7 +99,7 @@ components:
         schema:
           type: object
           additionalProperties:
-            $ref: '#/components/schemas/ConfigSchema'
+            $ref: '#/components/schemas/ConfigurationArgument'
       required:
         - steps
         - schema
@@ -187,10 +129,10 @@ components:
         - path
         - bucket
         - region
-    ConfigSchema:
-      title: ConfigSchema
+    ConfigurationArgument:
+      title: ConfigurationArgument
       x-stoplight:
-        id: igwgvqjhmbqjz
+        id: 85cc1a308799b
       type: object
       properties:
         id:
@@ -215,19 +157,12 @@ components:
         - optional
         - usage
         - name
-    ArgumentSchema:
-      title: ArgumentSchema
+    TargetArgument:
+      title: TargetArgument
       x-stoplight:
-        id: 35b70d29b3eb3
+        id: 1b080aa3276c2
       type: object
-      additionalProperties:
-        $ref: '#/components/schemas/Argument'
-      description: 'Provider argument schema defines the arguments, titles, descriptions and UI elements for provider arguments.'
-    Argument:
-      title: Argument
-      x-stoplight:
-        id: 8z6izf547yuch
-      type: object
+      description: 'Define the metadata, data type and UI elements for the argument'
       properties:
         id:
           type: string
@@ -249,16 +184,17 @@ components:
         groups:
           type: object
           additionalProperties:
-            $ref: '#/components/schemas/ArgumentGroup'
+            $ref: '#/components/schemas/TargetArgumentGroup'
       required:
         - id
         - title
         - ruleFormElement
-      description: 'Define the metadata, data type and UI elements for the argument'
-    ArgumentGroup:
-      title: ArgumentGroup
+        - requestFormElement
+        - groups
+    TargetArgumentGroup:
+      title: TargetArgumentGroup
       x-stoplight:
-        id: 5a82f187c1da2
+        id: b65de9db1722a
       type: object
       properties:
         id:
@@ -271,6 +207,47 @@ components:
         - id
         - title
       description: An argument group
+    ProviderSchema:
+      title: ProviderSchema
+      x-stoplight:
+        id: d3gvj3cbsoe70
+      type: object
+      properties:
+        schemaVersion:
+          type: string
+        providerVersion:
+          type: string
+        configuration:
+          $ref: '#/components/schemas/ConfigurationSchema'
+        audit:
+          $ref: '#/components/schemas/AuditSchema'
+        target:
+          $ref: '#/components/schemas/TargetSchema'
+      required:
+        - schemaVersion
+        - providerVersion
+        - configuration
+        - audit
+        - target
+    TargetSchema:
+      title: TargetSchema
+      x-stoplight:
+        id: tk7obmea4shbx
+      type: object
+      additionalProperties:
+        $ref: '#/components/schemas/TargetArgument'
+    ConfigurationSchema:
+      title: ConfigurationSchema
+      x-stoplight:
+        id: 0ssv4v6krg6tz
+      type: object
+      additionalProperties:
+        $ref: '#/components/schemas/ConfigurationArgument'
+    AuditSchema:
+      title: AuditSchema
+      x-stoplight:
+        id: bacx4ke9fh1bo
+      type: object
   requestBodies: {}
   responses:
     HealthResponse:
