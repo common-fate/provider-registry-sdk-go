@@ -50,6 +50,69 @@ paths:
                 $ref: '#/components/schemas/Provider'
       tags:
         - Public
+  '/api/v1/team/{team}/providers/{name}/{version}/setup':
+    parameters:
+      - schema:
+          type: string
+        name: team
+        in: path
+        required: true
+      - schema:
+          type: string
+        name: version
+        in: path
+        required: true
+      - schema:
+          type: string
+        name: name
+        in: path
+        required: true
+    get:
+      summary: Get Provider Setup Docs
+      operationId: get-provider-setup-docs
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
+      tags:
+        - Public
+  '/api/v1/team/{team}/providers/{name}/{version}/usage':
+    parameters:
+      - schema:
+          type: string
+        name: team
+        in: path
+        required: true
+      - schema:
+          type: string
+        name: version
+        in: path
+        required: true
+      - schema:
+          type: string
+        name: name
+        in: path
+        required: true
+    get:
+      summary: Get Provider Usage Doc
+      operationId: get-provider-usage-doc
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
+      tags:
+        - Public
+      description: ''
   /api/v1/providers:
     get:
       summary: List Providers

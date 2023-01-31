@@ -450,6 +450,12 @@ type ClientInterface interface {
 
 	// GetProvider request
 	GetProvider(ctx context.Context, team string, name string, version string, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetProviderSetupDocs request
+	GetProviderSetupDocs(ctx context.Context, team string, name string, version string, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetProviderUsageDoc request
+	GetProviderUsageDoc(ctx context.Context, team string, name string, version string, reqEditors ...RequestEditorFn) (*http.Response, error)
 }
 
 func (c *Client) GetHealth(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
@@ -478,6 +484,30 @@ func (c *Client) ListAllProviders(ctx context.Context, reqEditors ...RequestEdit
 
 func (c *Client) GetProvider(ctx context.Context, team string, name string, version string, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewGetProviderRequest(c.Server, team, name, version)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetProviderSetupDocs(ctx context.Context, team string, name string, version string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetProviderSetupDocsRequest(c.Server, team, name, version)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetProviderUsageDoc(ctx context.Context, team string, name string, version string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetProviderUsageDocRequest(c.Server, team, name, version)
 	if err != nil {
 		return nil, err
 	}
@@ -590,6 +620,102 @@ func NewGetProviderRequest(server string, team string, name string, version stri
 	return req, nil
 }
 
+// NewGetProviderSetupDocsRequest generates requests for GetProviderSetupDocs
+func NewGetProviderSetupDocsRequest(server string, team string, name string, version string) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "team", runtime.ParamLocationPath, team)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "name", runtime.ParamLocationPath, name)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam2 string
+
+	pathParam2, err = runtime.StyleParamWithLocation("simple", false, "version", runtime.ParamLocationPath, version)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/api/v1/team/%s/providers/%s/%s/setup", pathParam0, pathParam1, pathParam2)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewGetProviderUsageDocRequest generates requests for GetProviderUsageDoc
+func NewGetProviderUsageDocRequest(server string, team string, name string, version string) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "team", runtime.ParamLocationPath, team)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "name", runtime.ParamLocationPath, name)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam2 string
+
+	pathParam2, err = runtime.StyleParamWithLocation("simple", false, "version", runtime.ParamLocationPath, version)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/api/v1/team/%s/providers/%s/%s/usage", pathParam0, pathParam1, pathParam2)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 func (c *Client) applyEditors(ctx context.Context, req *http.Request, additionalEditors []RequestEditorFn) error {
 	for _, r := range c.RequestEditors {
 		if err := r(ctx, req); err != nil {
@@ -641,6 +767,12 @@ type ClientWithResponsesInterface interface {
 
 	// GetProvider request
 	GetProviderWithResponse(ctx context.Context, team string, name string, version string, reqEditors ...RequestEditorFn) (*GetProviderResponse, error)
+
+	// GetProviderSetupDocs request
+	GetProviderSetupDocsWithResponse(ctx context.Context, team string, name string, version string, reqEditors ...RequestEditorFn) (*GetProviderSetupDocsResponse, error)
+
+	// GetProviderUsageDoc request
+	GetProviderUsageDocWithResponse(ctx context.Context, team string, name string, version string, reqEditors ...RequestEditorFn) (*GetProviderUsageDocResponse, error)
 }
 
 type GetHealthResponse struct {
@@ -720,6 +852,50 @@ func (r GetProviderResponse) StatusCode() int {
 	return 0
 }
 
+type GetProviderSetupDocsResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *[]string
+}
+
+// Status returns HTTPResponse.Status
+func (r GetProviderSetupDocsResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetProviderSetupDocsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GetProviderUsageDocResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *[]string
+}
+
+// Status returns HTTPResponse.Status
+func (r GetProviderUsageDocResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetProviderUsageDocResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 // GetHealthWithResponse request returning *GetHealthResponse
 func (c *ClientWithResponses) GetHealthWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetHealthResponse, error) {
 	rsp, err := c.GetHealth(ctx, reqEditors...)
@@ -745,6 +921,24 @@ func (c *ClientWithResponses) GetProviderWithResponse(ctx context.Context, team 
 		return nil, err
 	}
 	return ParseGetProviderResponse(rsp)
+}
+
+// GetProviderSetupDocsWithResponse request returning *GetProviderSetupDocsResponse
+func (c *ClientWithResponses) GetProviderSetupDocsWithResponse(ctx context.Context, team string, name string, version string, reqEditors ...RequestEditorFn) (*GetProviderSetupDocsResponse, error) {
+	rsp, err := c.GetProviderSetupDocs(ctx, team, name, version, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetProviderSetupDocsResponse(rsp)
+}
+
+// GetProviderUsageDocWithResponse request returning *GetProviderUsageDocResponse
+func (c *ClientWithResponses) GetProviderUsageDocWithResponse(ctx context.Context, team string, name string, version string, reqEditors ...RequestEditorFn) (*GetProviderUsageDocResponse, error) {
+	rsp, err := c.GetProviderUsageDoc(ctx, team, name, version, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetProviderUsageDocResponse(rsp)
 }
 
 // ParseGetHealthResponse parses an HTTP response from a GetHealthWithResponse call
@@ -848,6 +1042,58 @@ func ParseGetProviderResponse(rsp *http.Response) (*GetProviderResponse, error) 
 	return response, nil
 }
 
+// ParseGetProviderSetupDocsResponse parses an HTTP response from a GetProviderSetupDocsWithResponse call
+func ParseGetProviderSetupDocsResponse(rsp *http.Response) (*GetProviderSetupDocsResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetProviderSetupDocsResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest []string
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseGetProviderUsageDocResponse parses an HTTP response from a GetProviderUsageDocWithResponse call
+func ParseGetProviderUsageDocResponse(rsp *http.Response) (*GetProviderUsageDocResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetProviderUsageDocResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest []string
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
 	// Healthcheck
@@ -859,6 +1105,12 @@ type ServerInterface interface {
 	// Get Provider
 	// (GET /api/v1/team/{team}/providers/{name}/{version})
 	GetProvider(w http.ResponseWriter, r *http.Request, team string, name string, version string)
+	// Get Provider Setup Docs
+	// (GET /api/v1/team/{team}/providers/{name}/{version}/setup)
+	GetProviderSetupDocs(w http.ResponseWriter, r *http.Request, team string, name string, version string)
+	// Get Provider Usage Doc
+	// (GET /api/v1/team/{team}/providers/{name}/{version}/usage)
+	GetProviderUsageDoc(w http.ResponseWriter, r *http.Request, team string, name string, version string)
 }
 
 // ServerInterfaceWrapper converts contexts to parameters.
@@ -935,6 +1187,94 @@ func (siw *ServerInterfaceWrapper) GetProvider(w http.ResponseWriter, r *http.Re
 
 	var handler = func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.GetProvider(w, r, team, name, version)
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler(w, r.WithContext(ctx))
+}
+
+// GetProviderSetupDocs operation middleware
+func (siw *ServerInterfaceWrapper) GetProviderSetupDocs(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	var err error
+
+	// ------------- Path parameter "team" -------------
+	var team string
+
+	err = runtime.BindStyledParameter("simple", false, "team", chi.URLParam(r, "team"), &team)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "team", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "name" -------------
+	var name string
+
+	err = runtime.BindStyledParameter("simple", false, "name", chi.URLParam(r, "name"), &name)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "name", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "version" -------------
+	var version string
+
+	err = runtime.BindStyledParameter("simple", false, "version", chi.URLParam(r, "version"), &version)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "version", Err: err})
+		return
+	}
+
+	var handler = func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetProviderSetupDocs(w, r, team, name, version)
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler(w, r.WithContext(ctx))
+}
+
+// GetProviderUsageDoc operation middleware
+func (siw *ServerInterfaceWrapper) GetProviderUsageDoc(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	var err error
+
+	// ------------- Path parameter "team" -------------
+	var team string
+
+	err = runtime.BindStyledParameter("simple", false, "team", chi.URLParam(r, "team"), &team)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "team", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "name" -------------
+	var name string
+
+	err = runtime.BindStyledParameter("simple", false, "name", chi.URLParam(r, "name"), &name)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "name", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "version" -------------
+	var version string
+
+	err = runtime.BindStyledParameter("simple", false, "version", chi.URLParam(r, "version"), &version)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "version", Err: err})
+		return
+	}
+
+	var handler = func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetProviderUsageDoc(w, r, team, name, version)
 	}
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -1066,6 +1406,12 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 	r.Group(func(r chi.Router) {
 		r.Get(options.BaseURL+"/api/v1/team/{team}/providers/{name}/{version}", wrapper.GetProvider)
 	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/api/v1/team/{team}/providers/{name}/{version}/setup", wrapper.GetProviderSetupDocs)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/api/v1/team/{team}/providers/{name}/{version}/usage", wrapper.GetProviderUsageDoc)
+	})
 
 	return r
 }
@@ -1073,30 +1419,31 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"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",
+	"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",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file
