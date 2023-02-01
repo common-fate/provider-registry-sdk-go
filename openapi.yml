@@ -311,6 +311,23 @@ components:
       x-stoplight:
         id: bacx4ke9fh1bo
       type: object
+      properties:
+        resourceLoaders:
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/ResourceLoader'
+      required:
+        - resourceLoaders
+    ResourceLoader:
+      title: ResourceLoader
+      x-stoplight:
+        id: j3ehgrwrocbeh
+      type: object
+      properties:
+        title:
+          type: string
+      required:
+        - title
   requestBodies: {}
   responses:
     HealthResponse:
