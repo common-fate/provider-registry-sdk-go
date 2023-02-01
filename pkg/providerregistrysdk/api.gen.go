@@ -27,6 +27,21 @@ const (
 	STRING       ConfigurationArgumentType = "STRING"
 )
 
+// Defines values for ProviderSetupDiagnosticLogLevel.
+const (
+	ProviderSetupDiagnosticLogLevelERROR   ProviderSetupDiagnosticLogLevel = "ERROR"
+	ProviderSetupDiagnosticLogLevelINFO    ProviderSetupDiagnosticLogLevel = "INFO"
+	ProviderSetupDiagnosticLogLevelWARNING ProviderSetupDiagnosticLogLevel = "WARNING"
+)
+
+// Defines values for ProviderSetupValidationStatus.
+const (
+	ProviderSetupValidationStatusERROR      ProviderSetupValidationStatus = "ERROR"
+	ProviderSetupValidationStatusINPROGRESS ProviderSetupValidationStatus = "IN_PROGRESS"
+	ProviderSetupValidationStatusPENDING    ProviderSetupValidationStatus = "PENDING"
+	ProviderSetupValidationStatusSUCCESS    ProviderSetupValidationStatus = "SUCCESS"
+)
+
 // Defines values for TargetArgumentRequestFormElement.
 const (
 	TargetArgumentRequestFormElementSELECT TargetArgumentRequestFormElement = "SELECT"
@@ -76,6 +91,31 @@ type Provider struct {
 	Version          string         `json:"version"`
 }
 
+// ProviderConfigField defines model for ProviderConfigField.
+type ProviderConfigField struct {
+	Description string `json:"description"`
+	Id          string `json:"id"`
+
+	// Whether the config value is optional.
+	IsOptional bool `json:"isOptional"`
+
+	// Whether or not the config field is a secret (like an API key or a password)
+	IsSecret bool   `json:"isSecret"`
+	Name     string `json:"name"`
+
+	// the path to where the secret will be stored, in a secrets manager like AWS SSM Parameter Store.
+	SecretPath *string `json:"secretPath,omitempty"`
+}
+
+// ProviderConfigValue defines model for ProviderConfigValue.
+type ProviderConfigValue struct {
+	// The ID of the config field.
+	Id string `json:"id"`
+
+	// The value entered by the user.
+	Value string `json:"value"`
+}
+
 // ProviderSchema defines model for ProviderSchema.
 type ProviderSchema struct {
 	Audit           AuditSchema         `json:"audit"`
@@ -84,6 +124,52 @@ type ProviderSchema struct {
 	SchemaVersion   string              `json:"schemaVersion"`
 	Target          TargetSchema        `json:"target"`
 }
+
+// A log entry related to a provider setup validation.
+type ProviderSetupDiagnosticLog struct {
+	// The log level.
+	Level ProviderSetupDiagnosticLogLevel `json:"level"`
+
+	// The log message.
+	Msg string `json:"msg"`
+}
+
+// The log level.
+type ProviderSetupDiagnosticLogLevel string
+
+// ProviderSetupInstructions defines model for ProviderSetupInstructions.
+type ProviderSetupInstructions struct {
+	StepDetails []ProviderSetupStepDetails `json:"stepDetails"`
+}
+
+// ProviderSetupStepDetails defines model for ProviderSetupStepDetails.
+type ProviderSetupStepDetails struct {
+	ConfigFields []ProviderConfigField `json:"configFields"`
+	Instructions string                `json:"instructions"`
+	Title        string                `json:"title"`
+}
+
+// Indicates whether a setup step is complete or not.
+type ProviderSetupStepOverview struct {
+	// Whether the step has been completed.
+	Complete bool `json:"complete"`
+}
+
+// A validation against the configuration values of the Access Provider.
+type ProviderSetupValidation struct {
+	// The particular config fields validated, if any.
+	FieldsValidated []interface{} `json:"fieldsValidated"`
+
+	// The ID of the validation, such as `list-sso-users`.
+	Id   string                        `json:"id"`
+	Logs *[]ProviderSetupDiagnosticLog `json:"logs,omitempty"`
+
+	// The status of the validation.
+	Status ProviderSetupValidationStatus `json:"status"`
+}
+
+// The status of the validation.
+type ProviderSetupValidationStatus string
 
 // ResourceLoader defines model for ResourceLoader.
 type ResourceLoader struct {
@@ -1484,32 +1570,43 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"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",
+	"H4sIAAAAAAAC/+xZX2/juBH/KgTbhztAFzv2brLxm5F4U6O5jWEnuw+HoEdJY4kxJepIyokT+LsXJPXX",
+	"kmM5mwIF2pfAkajhb34znBnOvGKPRwmPIVYSj16xAJnwWIL5ZyIEF/PsiX7g8VhBrPRPkiSMekRRHvce",
+	"JY/1M+mFEBH9KxE8AaGolQNajv6hNgngEZZK0DjA262TP+HuI3gKb/UjH6QnaKIl4xEex8h8jgSoVMTg",
+	"o6XgEVIhoPFseoK3Dv4HEKbCD8AZGkGbClKXcwYkNlAF/JVSAT4e/VGsfOiggYXnheCtUE4vcrm/MeBv",
+	"qFQzwdfUByE/QIcYns03ccoYcRngkRIpOLvUO/ozu6leTRVE5sffBSzxCP+tV7pFz24lezlMXNqNCEE2",
+	"DXZK0Y7F04WmyTOJEgYFRXqXOQRUKhAfSdALTe4Txol/L1i7T1ZVqa1+nxpbJ8Nith+nPlWLPdgESJ4K",
+	"D244yS1DfJ9q0YTNakvfMtS8Jga3HLO6krvbaj2p0r5Tg7srxsHPv0nFE0aD0JiB+vrIEO/50wouluGp",
+	"y81Wlzxe0iAVxj5jEaRRZra68vrr16afxiSC1hc8sby0HVcHS/AEqPZ39skrhjiNtP6Lu/n02zV28GJy",
+	"OZ/cZf8+tByaVJIADnsN9XOyCiAVvLmYTLcK2+1MdeP9y2fPOyXD/pfziwu3yXvpcu/xqHZg2z3Ij/KX",
+	"vpTrT+uzlQjO1IvBXcSZ0etuMkAiiwjgozzKoDUIqd87Ow7FSOT6ZCwlqMVwLOLj3KuMH11iYqayZgRI",
+	"1Cowh3nQe4yEDFn5mdPUpwBZcaGCvG7spwO2DsOBd5EM4kGNfWvRrxSY3zyrNbO06LrnLFN5Wzm0ddv+",
+	"CEGFIExm98zeaE1YCohKlB+dk1KrynGmclEc9naZXKCYq6ropdZLiybIHlD0C6MrQCTWZQVawUZ/RFBC",
+	"pHziwv+1def9zmNkzogKm6A0ioSoECmOnkIQYHBlKJ4oY8gFJBUX4DuIxgVCiSISkwAEMkjHPxZosfgd",
+	"zYggESgQaKG/qVD0VnDKnKuKrGaeCqstzlX1jW5+9vSZrJ9egD8N3MeLFj/7rk29LyfU+bsLAU2vEF82",
+	"7Nmiu4PXueSmFOtfENt44m6MwFSC6EiiFb2XH6tTN36W608idP2nZLmidX721QpEZ+ZD4amavrcO9qpR",
+	"+qiYX8rIw+73veEsD0tvrVBEBHAQ/p1Zle+9Y4L6Jk1gu+o6GWXF5i2GOypz+cNg/Tj0XMnhvF+3Gag0",
+	"uaIkiLlU1LvhQVsuYzzQzic2SAAjCnwdEUiZ16SWop2U+kaDk2aGgzWwdt/Wws1r/VVe6Ey/fb3FDv4x",
+	"nn+zBc9kPr+dt1Y6kQz2C45A6grm8DGxAK20NrqbPHWj/jSOhgLWF3/BS1bs1EROY6lE6mnUsnlypILk",
+	"ChSh7Pi7jxG/qAg4dBeqbraPgRrcn42nDYQN/b0yeh9PQDX0N3R3MN1hvnnwLQEHayCzbEeeU4e+j86q",
+	"8h/G5u0axJrCU/NQTGNf3z1B6mxuyg2SHV1te11jaDoZKMjqkOY5zhe8XRUZcSGRyAWIC6F+W1G0w2Yh",
+	"/y3KCg0/5Ah+L8JWW+grgxoiAdFGriTzLGDb9CzzRD/2PJAS5Zs0STQlgMz2hT2FQ0KEol7KiKhVDjJH",
+	"ZGquJSLxRm+Qn4w2Rz9YmZQ6OkimXoiIRH8yKtVvUvLfdJkh/2ytWBgP3hmY6qG0BbVURKWyHbl910Rf",
+	"TyD/ms1vr+eTxUJfl+8vL+2v2eTb1dsZpa1+ytA4DdPtc9OKU73XSXd6I43geFR8quDckdsN3uMQwkA8",
+	"Ce65EJo9FkNzv2viclNvVetnVDp52TWj8UJflrtcOI0AJ9+i+K6i3WKILK6O1SwhZ2f+YHh2unTtrdKY",
+	"ryUV/4e6EvV2l2OycP1MNRPToSwuW+/bVrFutAQbbyXZi786S6htddgCt9oTq5/LK1jS2F4QI1DEJ4o4",
+	"SP9Fej9EYh/dTxEw0J9LtOQ2U5CydXTcvT0QPE3e3Xesa3OtZbVaY093QBMOUn3lIppYjZqE5BdUrWqU",
+	"K17onUkwL00c17f+rJ72HeTDkqRMSV1nRylTVAKz1io6gZObyeVda0EsUgY70MqoOLu/ww7+/f7mbpqJ",
+	"cN6S1THI2DZiVgnt7t/KV2HBiofu+FjHwOn2v/QJGQ7Oz7xBi6ta4zYze1z4HjJIjvbAPb5xPGN7GbjO",
+	"cHVqZp999uHCd0/PBwNSoeHnuqk7FtnuIj3qFqpW59yNgHySoftsIN7nTeo68x1713ZZhb37rFndKaEN",
+	"zk/PnocXz6vhcIi3Zj5C4yXP5zXEs8Mp0zfDlzyKeIy+EqXlp4LhEQ6VSuSop2mLeLwkCk4ox3vHLOPZ",
+	"FJdQ60+Lhis+PenbiQHEJKF4hIcn/ZM+tqnTkNMjCe2tT3t2sKefBG0NxbkZQkoTbOzSvF6Sunj24ARN",
+	"TfWYvTVTP4mWhLIsQGXzP4/7UDT7Pvf76JdprEDoyLYAsQaBzPD11xMzOACb4qaa4mtQdqJoIkBlWjvo",
+	"9/c5XrGutzMr3Tr483s+0yk1jSIiNvUBp2mu6Or1DzxLXUY9/KDX5uzWZo4ZwXXtbqhUY8ZmlQni8Uq2",
+	"z1S76lqfetdV1ZJRFdxb2iogUe9V/92WmvdetfNve6+Zd273UnENqtLMb2Oh8wS021S3Ocy8/eeO/tdQ",
+	"qt+mvT5RWTtav3jFVIvJ6svs1GfjjTLm2AF1ibYRn1rFlHORn5WU9cK7i3k42sg9mde/h0xt73Hckz9r",
+	"886V7nFWRwYgyhD+3wG6OkCRfQ85gEm3V9z7b7W/wYcswP9Z85sRn07TVsuydBn1eox7hIVcqtFFv3+K",
+	"tw8FT0Xhk/Gl8WRP7jQp24ftvwMAAP//zpzTIpAlAAA=",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file

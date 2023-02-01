@@ -328,6 +328,140 @@ components:
           type: string
       required:
         - title
+    ProviderSetupInstructions:
+      title: ProviderSetupInstructions
+      x-stoplight:
+        id: w5avwzeow2bj9
+      type: object
+      properties:
+        stepDetails:
+          type: array
+          items:
+            $ref: "#/components/schemas/ProviderSetupStepDetails"
+      required:
+        - stepDetails
+    ProviderSetupStepOverview:
+      title: ProviderSetupStepOverview
+      x-stoplight:
+        id: 1nm3rev9qez9b
+      type: object
+      description: Indicates whether a setup step is complete or not.
+      properties:
+        complete:
+          type: boolean
+          description: Whether the step has been completed.
+      required:
+        - complete
+    ProviderSetupStepDetails:
+      title: ProviderSetupStepDetails
+      x-stoplight:
+        id: w5avwzeow2bj9
+      type: object
+      properties:
+        title:
+          type: string
+        instructions:
+          type: string
+        configFields:
+          type: array
+          items:
+            $ref: "#/components/schemas/ProviderConfigField"
+      required:
+        - title
+        - instructions
+        - configFields
+    ProviderConfigField:
+      title: ProviderConfigField
+      x-stoplight:
+        id: w5avwzeow2bj9
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        isOptional:
+          type: boolean
+          description: Whether the config value is optional.
+        isSecret:
+          type: boolean
+          description: Whether or not the config field is a secret (like an API key or a password)
+        secretPath:
+          type: string
+          description: "the path to where the secret will be stored, in a secrets manager like AWS SSM Parameter Store."
+      required:
+        - id
+        - name
+        - description
+        - isOptional
+        - isSecret
+    ProviderConfigValue:
+      title: ProviderConfigValue
+      x-stoplight:
+        id: fv4rhbdwpfki9
+      type: object
+      properties:
+        id:
+          type: string
+          description: The ID of the config field.
+        value:
+          type: string
+          description: The value entered by the user.
+      required:
+        - id
+        - value
+    ProviderSetupValidation:
+      title: ProviderSetupValidation
+      x-stoplight:
+        id: 1nm3rev9qez9b
+      type: object
+      description: A validation against the configuration values of the Access Provider.
+      properties:
+        id:
+          type: string
+          description: "The ID of the validation, such as `list-sso-users`."
+        status:
+          type: string
+          enum:
+            - IN_PROGRESS
+            - SUCCESS
+            - PENDING
+            - ERROR
+          description: The status of the validation.
+        fieldsValidated:
+          type: array
+          description: "The particular config fields validated, if any."
+          items: {}
+        logs:
+          type: array
+          items:
+            $ref: "#/components/schemas/ProviderSetupDiagnosticLog"
+      required:
+        - id
+        - status
+        - fieldsValidated
+    ProviderSetupDiagnosticLog:
+      title: ProviderSetupDiagnosticLog
+      x-stoplight:
+        id: 1nm3rev9qez9b
+      type: object
+      description: A log entry related to a provider setup validation.
+      properties:
+        level:
+          type: string
+          description: The log level.
+          enum:
+            - INFO
+            - WARNING
+            - ERROR
+        msg:
+          type: string
+          description: The log message.
+      required:
+        - level
+        - msg
   requestBodies: {}
   responses:
     HealthResponse:
