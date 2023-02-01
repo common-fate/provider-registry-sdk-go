@@ -124,6 +124,26 @@ paths:
         '500':
           $ref: '#/components/responses/ErrorResponse'
       operationId: list-all-providers
+  "/api/v1/admin/providersetups/{providersetupId}/instructions":
+    get:
+      summary: Get the setup instructions for an Access Provider
+      tags:
+        - Admin
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProviderSetupInstructions"
+      operationId: admin-get-providersetup-instructions
+      description: Get the setup instructions for an Access Provider.
+    parameters:
+      - schema:
+          type: string
+        name: providersetupId
+        in: path
+        required: true
 components:
   schemas:
     Provider:
