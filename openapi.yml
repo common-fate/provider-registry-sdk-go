@@ -254,7 +254,7 @@ components:
         description:
           type: string
         resourceName:
-          type: string
+          type: string 
         ruleFormElement:
           type: string
           enum:
