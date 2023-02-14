@@ -9,18 +9,6 @@ info:
 servers:
   - url: 'http://localhost:9001'
 paths:
-  /api/v1/health:
-    get:
-      summary: Healthcheck
-      responses:
-        '200':
-          $ref: '#/components/responses/HealthResponse'
-        '500':
-          $ref: '#/components/responses/HealthResponse'
-      operationId: get-health
-      description: Returns the health of the service. If any healthchecks fail the response code will be 500 (Internal Server Error).
-      tags:
-        - Public
   '/api/v1/team/{team}/providers/{name}/{version}':
     parameters:
       - schema:
@@ -47,7 +35,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Provider'
+                $ref: '#/components/schemas/ProviderDetail'
       tags:
         - Public
   '/api/v1/team/{team}/providers/{name}/{version}/setup':
@@ -124,18 +112,18 @@ paths:
         '500':
           $ref: '#/components/responses/ErrorResponse'
       operationId: list-all-providers
-  "/api/v1/admin/providersetups/{providersetupId}/instructions":
+  '/api/v1/admin/providersetups/{providersetupId}/instructions':
     get:
       summary: Get the setup instructions for an Access Provider
       tags:
         - Admin
       responses:
-        "200":
+        '200':
           description: OK
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ProviderSetupInstructions"
+                $ref: '#/components/schemas/ProviderSetupInstructions'
       operationId: admin-get-providersetup-instructions
       description: Get the setup instructions for an Access Provider.
     parameters:
@@ -146,10 +134,10 @@ paths:
         required: true
 components:
   schemas:
-    Provider:
-      title: Provider
+    ProviderDetail:
+      title: ProviderDetail
       x-stoplight:
-        id: u2lvhh2c9p2n2
+        id: ad9be36dbe096
       type: object
       description: A registered provider version
       properties:
@@ -169,57 +157,29 @@ components:
         - version
         - lambdaAssetS3Arn
         - schema
-    Setup:
-      title: Setup
-      x-stoplight:
-        id: gyckslzdk6piz
+    Provider:
+      title: Provider
       type: object
+      description: A registered provider version
       properties:
-        steps:
-          type: array
-          items:
-            type: string
-        schema:
-          type: object
-          additionalProperties:
-            $ref: '#/components/schemas/ConfigurationArgument'
-      required:
-        - steps
-        - schema
-    Usage:
-      title: Usage
-      x-stoplight:
-        id: j2716x39xk333
-      type: object
-      properties:
-        usage:
+        team:
+          type: string
+        name:
+          type: string
+        version:
           type: string
       required:
-        - usage
-    S3Asset:
-      title: S3 Asset
+        - team
+        - name
+        - version
       x-stoplight:
-        id: faa66d2361fb2
+        id: b4d9111a1ff26
+    ConfigArgument:
+      title: ConfigArgument
+      x-stoplight:
+        id: b867e439e8b53
       type: object
       properties:
-        path:
-          type: string
-        bucket:
-          type: string
-        region:
-          type: string
-      required:
-        - path
-        - bucket
-        - region
-    ConfigurationArgument:
-      title: ConfigurationArgument
-      x-stoplight:
-        id: 85cc1a308799b
-      type: object
-      properties:
-        id:
-          type: string
         type:
           type: string
           enum:
@@ -227,19 +187,12 @@ components:
             - SECRETSTRING
         secret:
           type: boolean
-        optional:
-          type: boolean
         usage:
           type: string
-        name:
-          type: string
       required:
-        - id
         - type
         - secret
-        - optional
         - usage
-        - name
     TargetArgument:
       title: TargetArgument
       x-stoplight:
@@ -254,7 +207,7 @@ components:
         description:
           type: string
         resourceName:
-          type: string 
+          type: string
         ruleFormElement:
           type: string
           enum:
@@ -266,52 +219,26 @@ components:
           enum:
             - SELECT
           description: 'Optional form element for the request form, if not provided, defaults to multiselect'
-        groups:
-          type: object
-          additionalProperties:
-            $ref: '#/components/schemas/TargetArgumentGroup'
       required:
         - id
         - title
         - ruleFormElement
         - requestFormElement
         - groups
-    TargetArgumentGroup:
-      title: TargetArgumentGroup
-      x-stoplight:
-        id: b65de9db1722a
-      type: object
-      properties:
-        id:
-          type: string
-        title:
-          type: string
-        description:
-          type: string
-      required:
-        - id
-        - title
-      description: An argument group
     ProviderSchema:
       title: ProviderSchema
       x-stoplight:
         id: d3gvj3cbsoe70
       type: object
       properties:
-        schemaVersion:
-          type: string
-        providerVersion:
-          type: string
-        configuration:
-          $ref: '#/components/schemas/ConfigurationSchema'
+        config:
+          $ref: '#/components/schemas/ConfigSchema'
         audit:
           $ref: '#/components/schemas/AuditSchema'
         target:
           $ref: '#/components/schemas/TargetSchema'
       required:
-        - schemaVersion
-        - providerVersion
-        - configuration
+        - config
         - audit
         - target
     TargetSchema:
@@ -321,13 +248,13 @@ components:
       type: object
       additionalProperties:
         $ref: '#/components/schemas/TargetArgument'
-    ConfigurationSchema:
-      title: ConfigurationSchema
+    ConfigSchema:
+      title: ConfigSchema
       x-stoplight:
-        id: 0ssv4v6krg6tz
+        id: a4b73cf497883
       type: object
       additionalProperties:
-        $ref: '#/components/schemas/ConfigurationArgument'
+        $ref: '#/components/schemas/ConfigArgument'
     AuditSchema:
       title: AuditSchema
       x-stoplight:
@@ -338,6 +265,10 @@ components:
           type: object
           additionalProperties:
             $ref: '#/components/schemas/ResourceLoader'
+        resources:
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/Resource'
       required:
         - resourceLoaders
     ResourceLoader:
@@ -350,6 +281,74 @@ components:
           type: string
       required:
         - title
+    Resource:
+      title: Resource
+      type: object
+      x-stoplight:
+        id: b9183456d960d
+      properties:
+        type:
+          type: string
+        data:
+          type: object
+          required:
+            - id
+          properties:
+            id:
+              type: string
+      required:
+        - type
+        - data
+    DiagnosticLog:
+      title: DiagnosticLog
+      x-stoplight:
+        id: xq5uhsxpiml1y
+      type: object
+      properties:
+        level:
+          type: string
+          enum:
+            - info
+            - error
+        msg:
+          type: string
+      required:
+        - level
+        - msg
+    ConfigValidation:
+      title: ConfigValidation
+      x-stoplight:
+        id: roz5uwo0i6jrw
+      type: object
+      properties:
+        success:
+          type: boolean
+        logs:
+          type: array
+          items:
+            $ref: '#/components/schemas/DiagnosticLog'
+      required:
+        - success
+        - logs
+    DescribeResponse:
+      title: DescribeResponse
+      x-stoplight:
+        id: atffan2bx099r
+      type: object
+      properties:
+        provider:
+          $ref: '#/components/schemas/Provider'
+        config:
+          type: object
+        configValidation:
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/ConfigValidation'
+        schema:
+          $ref: '#/components/schemas/ProviderSchema'
+      required:
+        - provider
+        - config
     ProviderSetupInstructions:
       title: ProviderSetupInstructions
       x-stoplight:
@@ -359,21 +358,9 @@ components:
         stepDetails:
           type: array
           items:
-            $ref: "#/components/schemas/ProviderSetupStepDetails"
+            $ref: '#/components/schemas/ProviderSetupStepDetails'
       required:
         - stepDetails
-    ProviderSetupStepOverview:
-      title: ProviderSetupStepOverview
-      x-stoplight:
-        id: 1nm3rev9qez9b
-      type: object
-      description: Indicates whether a setup step is complete or not.
-      properties:
-        complete:
-          type: boolean
-          description: Whether the step has been completed.
-      required:
-        - complete
     ProviderSetupStepDetails:
       title: ProviderSetupStepDetails
       x-stoplight:
@@ -387,103 +374,11 @@ components:
         configFields:
           type: array
           items:
-            $ref: "#/components/schemas/ProviderConfigField"
+            $ref: '#/components/schemas/ConfigArgument'
       required:
         - title
         - instructions
         - configFields
-    ProviderConfigField:
-      title: ProviderConfigField
-      x-stoplight:
-        id: w5avwzeow2bj9
-      type: object
-      properties:
-        id:
-          type: string
-        name:
-          type: string
-        description:
-          type: string
-        isOptional:
-          type: boolean
-          description: Whether the config value is optional.
-        isSecret:
-          type: boolean
-          description: Whether or not the config field is a secret (like an API key or a password)
-        secretPath:
-          type: string
-          description: "the path to where the secret will be stored, in a secrets manager like AWS SSM Parameter Store."
-      required:
-        - id
-        - name
-        - description
-        - isOptional
-        - isSecret
-    ProviderConfigValue:
-      title: ProviderConfigValue
-      x-stoplight:
-        id: fv4rhbdwpfki9
-      type: object
-      properties:
-        id:
-          type: string
-          description: The ID of the config field.
-        value:
-          type: string
-          description: The value entered by the user.
-      required:
-        - id
-        - value
-    ProviderSetupValidation:
-      title: ProviderSetupValidation
-      x-stoplight:
-        id: 1nm3rev9qez9b
-      type: object
-      description: A validation against the configuration values of the Access Provider.
-      properties:
-        id:
-          type: string
-          description: "The ID of the validation, such as `list-sso-users`."
-        status:
-          type: string
-          enum:
-            - IN_PROGRESS
-            - SUCCESS
-            - PENDING
-            - ERROR
-          description: The status of the validation.
-        fieldsValidated:
-          type: array
-          description: "The particular config fields validated, if any."
-          items: {}
-        logs:
-          type: array
-          items:
-            $ref: "#/components/schemas/ProviderSetupDiagnosticLog"
-      required:
-        - id
-        - status
-        - fieldsValidated
-    ProviderSetupDiagnosticLog:
-      title: ProviderSetupDiagnosticLog
-      x-stoplight:
-        id: 1nm3rev9qez9b
-      type: object
-      description: A log entry related to a provider setup validation.
-      properties:
-        level:
-          type: string
-          description: The log level.
-          enum:
-            - INFO
-            - WARNING
-            - ERROR
-        msg:
-          type: string
-          description: The log message.
-      required:
-        - level
-        - msg
   requestBodies: {}
   responses:
     HealthResponse:
@@ -518,24 +413,13 @@ components:
               providers:
                 type: array
                 items:
-                  $ref: '#/components/schemas/Provider'
+                  $ref: '#/components/schemas/ProviderDetail'
               next:
                 type: string
                 nullable: true
             required:
               - providers
               - next
-    RegisterProvidersResponse:
-      description: Example response
-      content:
-        application/json:
-          schema:
-            type: object
-            properties:
-              zipUploadUrl:
-                type: string
-            required:
-              - zipUploadUrl
 tags:
   - name: Public
   - name: Team

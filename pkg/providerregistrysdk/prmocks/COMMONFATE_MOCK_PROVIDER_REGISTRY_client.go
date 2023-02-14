@@ -55,26 +55,6 @@ func (mr *MockClientWithResponsesInterfaceMockRecorder) AdminGetProvidersetupIns
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AdminGetProvidersetupInstructionsWithResponse", reflect.TypeOf((*MockClientWithResponsesInterface)(nil).AdminGetProvidersetupInstructionsWithResponse), varargs...)
 }
 
-// GetHealthWithResponse mocks base method.
-func (m *MockClientWithResponsesInterface) GetHealthWithResponse(arg0 context.Context, arg1 ...providerregistrysdk.RequestEditorFn) (*providerregistrysdk.GetHealthResponse, error) {
-	m.ctrl.T.Helper()
-	varargs := []interface{}{arg0}
-	for _, a := range arg1 {
-		varargs = append(varargs, a)
-	}
-	ret := m.ctrl.Call(m, "GetHealthWithResponse", varargs...)
-	ret0, _ := ret[0].(*providerregistrysdk.GetHealthResponse)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetHealthWithResponse indicates an expected call of GetHealthWithResponse.
-func (mr *MockClientWithResponsesInterfaceMockRecorder) GetHealthWithResponse(arg0 interface{}, arg1 ...interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	varargs := append([]interface{}{arg0}, arg1...)
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetHealthWithResponse", reflect.TypeOf((*MockClientWithResponsesInterface)(nil).GetHealthWithResponse), varargs...)
-}
-
 // GetProviderSetupDocsWithResponse mocks base method.
 func (m *MockClientWithResponsesInterface) GetProviderSetupDocsWithResponse(arg0 context.Context, arg1, arg2, arg3 string, arg4 ...providerregistrysdk.RequestEditorFn) (*providerregistrysdk.GetProviderSetupDocsResponse, error) {
 	m.ctrl.T.Helper()

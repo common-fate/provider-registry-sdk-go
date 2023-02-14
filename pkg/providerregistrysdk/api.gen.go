@@ -21,25 +21,16 @@ import (
 	"github.com/go-chi/chi/v5"
 )
 
-// Defines values for ConfigurationArgumentType.
+// Defines values for ConfigArgumentType.
 const (
-	SECRETSTRING ConfigurationArgumentType = "SECRETSTRING"
-	STRING       ConfigurationArgumentType = "STRING"
+	SECRETSTRING ConfigArgumentType = "SECRETSTRING"
+	STRING       ConfigArgumentType = "STRING"
 )
 
-// Defines values for ProviderSetupDiagnosticLogLevel.
+// Defines values for DiagnosticLogLevel.
 const (
-	ProviderSetupDiagnosticLogLevelERROR   ProviderSetupDiagnosticLogLevel = "ERROR"
-	ProviderSetupDiagnosticLogLevelINFO    ProviderSetupDiagnosticLogLevel = "INFO"
-	ProviderSetupDiagnosticLogLevelWARNING ProviderSetupDiagnosticLogLevel = "WARNING"
-)
-
-// Defines values for ProviderSetupValidationStatus.
-const (
-	ProviderSetupValidationStatusERROR      ProviderSetupValidationStatus = "ERROR"
-	ProviderSetupValidationStatusINPROGRESS ProviderSetupValidationStatus = "IN_PROGRESS"
-	ProviderSetupValidationStatusPENDING    ProviderSetupValidationStatus = "PENDING"
-	ProviderSetupValidationStatusSUCCESS    ProviderSetupValidationStatus = "SUCCESS"
+	Error DiagnosticLogLevel = "error"
+	Info  DiagnosticLogLevel = "info"
 )
 
 // Defines values for TargetArgumentRequestFormElement.
@@ -57,6 +48,7 @@ const (
 // AuditSchema defines model for AuditSchema.
 type AuditSchema struct {
 	ResourceLoaders AuditSchema_ResourceLoaders `json:"resourceLoaders"`
+	Resources       *AuditSchema_Resources      `json:"resources,omitempty"`
 }
 
 // AuditSchema_ResourceLoaders defines model for AuditSchema.ResourceLoaders.
@@ -64,26 +56,65 @@ type AuditSchema_ResourceLoaders struct {
 	AdditionalProperties map[string]ResourceLoader `json:"-"`
 }
 
-// ConfigurationArgument defines model for ConfigurationArgument.
-type ConfigurationArgument struct {
-	Id       string                    `json:"id"`
-	Name     string                    `json:"name"`
-	Optional bool                      `json:"optional"`
-	Secret   bool                      `json:"secret"`
-	Type     ConfigurationArgumentType `json:"type"`
-	Usage    string                    `json:"usage"`
+// AuditSchema_Resources defines model for AuditSchema.Resources.
+type AuditSchema_Resources struct {
+	AdditionalProperties map[string]Resource `json:"-"`
 }
 
-// ConfigurationArgumentType defines model for ConfigurationArgument.Type.
-type ConfigurationArgumentType string
-
-// ConfigurationSchema defines model for ConfigurationSchema.
-type ConfigurationSchema struct {
-	AdditionalProperties map[string]ConfigurationArgument `json:"-"`
+// ConfigArgument defines model for ConfigArgument.
+type ConfigArgument struct {
+	Secret bool               `json:"secret"`
+	Type   ConfigArgumentType `json:"type"`
+	Usage  string             `json:"usage"`
 }
+
+// ConfigArgumentType defines model for ConfigArgument.Type.
+type ConfigArgumentType string
+
+// ConfigSchema defines model for ConfigSchema.
+type ConfigSchema struct {
+	AdditionalProperties map[string]ConfigArgument `json:"-"`
+}
+
+// ConfigValidation defines model for ConfigValidation.
+type ConfigValidation struct {
+	Logs    []DiagnosticLog `json:"logs"`
+	Success bool            `json:"success"`
+}
+
+// DescribeResponse defines model for DescribeResponse.
+type DescribeResponse struct {
+	Config           map[string]interface{}             `json:"config"`
+	ConfigValidation *DescribeResponse_ConfigValidation `json:"configValidation,omitempty"`
+
+	// A registered provider version
+	Provider Provider        `json:"provider"`
+	Schema   *ProviderSchema `json:"schema,omitempty"`
+}
+
+// DescribeResponse_ConfigValidation defines model for DescribeResponse.ConfigValidation.
+type DescribeResponse_ConfigValidation struct {
+	AdditionalProperties map[string]ConfigValidation `json:"-"`
+}
+
+// DiagnosticLog defines model for DiagnosticLog.
+type DiagnosticLog struct {
+	Level DiagnosticLogLevel `json:"level"`
+	Msg   string             `json:"msg"`
+}
+
+// DiagnosticLogLevel defines model for DiagnosticLog.Level.
+type DiagnosticLogLevel string
 
 // A registered provider version
 type Provider struct {
+	Name    string `json:"name"`
+	Team    string `json:"team"`
+	Version string `json:"version"`
+}
+
+// A registered provider version
+type ProviderDetail struct {
 	LambdaAssetS3Arn string         `json:"lambdaAssetS3Arn"`
 	Name             string         `json:"name"`
 	Schema           ProviderSchema `json:"schema"`
@@ -91,51 +122,12 @@ type Provider struct {
 	Version          string         `json:"version"`
 }
 
-// ProviderConfigField defines model for ProviderConfigField.
-type ProviderConfigField struct {
-	Description string `json:"description"`
-	Id          string `json:"id"`
-
-	// Whether the config value is optional.
-	IsOptional bool `json:"isOptional"`
-
-	// Whether or not the config field is a secret (like an API key or a password)
-	IsSecret bool   `json:"isSecret"`
-	Name     string `json:"name"`
-
-	// the path to where the secret will be stored, in a secrets manager like AWS SSM Parameter Store.
-	SecretPath *string `json:"secretPath,omitempty"`
-}
-
-// ProviderConfigValue defines model for ProviderConfigValue.
-type ProviderConfigValue struct {
-	// The ID of the config field.
-	Id string `json:"id"`
-
-	// The value entered by the user.
-	Value string `json:"value"`
-}
-
 // ProviderSchema defines model for ProviderSchema.
 type ProviderSchema struct {
-	Audit           AuditSchema         `json:"audit"`
-	Configuration   ConfigurationSchema `json:"configuration"`
-	ProviderVersion string              `json:"providerVersion"`
-	SchemaVersion   string              `json:"schemaVersion"`
-	Target          TargetSchema        `json:"target"`
+	Audit  AuditSchema  `json:"audit"`
+	Config ConfigSchema `json:"config"`
+	Target TargetSchema `json:"target"`
 }
-
-// A log entry related to a provider setup validation.
-type ProviderSetupDiagnosticLog struct {
-	// The log level.
-	Level ProviderSetupDiagnosticLogLevel `json:"level"`
-
-	// The log message.
-	Msg string `json:"msg"`
-}
-
-// The log level.
-type ProviderSetupDiagnosticLogLevel string
 
 // ProviderSetupInstructions defines model for ProviderSetupInstructions.
 type ProviderSetupInstructions struct {
@@ -144,61 +136,28 @@ type ProviderSetupInstructions struct {
 
 // ProviderSetupStepDetails defines model for ProviderSetupStepDetails.
 type ProviderSetupStepDetails struct {
-	ConfigFields []ProviderConfigField `json:"configFields"`
-	Instructions string                `json:"instructions"`
-	Title        string                `json:"title"`
+	ConfigFields []ConfigArgument `json:"configFields"`
+	Instructions string           `json:"instructions"`
+	Title        string           `json:"title"`
 }
 
-// Indicates whether a setup step is complete or not.
-type ProviderSetupStepOverview struct {
-	// Whether the step has been completed.
-	Complete bool `json:"complete"`
+// Resource defines model for Resource.
+type Resource struct {
+	Data struct {
+		Id string `json:"id"`
+	} `json:"data"`
+	Type string `json:"type"`
 }
-
-// A validation against the configuration values of the Access Provider.
-type ProviderSetupValidation struct {
-	// The particular config fields validated, if any.
-	FieldsValidated []interface{} `json:"fieldsValidated"`
-
-	// The ID of the validation, such as `list-sso-users`.
-	Id   string                        `json:"id"`
-	Logs *[]ProviderSetupDiagnosticLog `json:"logs,omitempty"`
-
-	// The status of the validation.
-	Status ProviderSetupValidationStatus `json:"status"`
-}
-
-// The status of the validation.
-type ProviderSetupValidationStatus string
 
 // ResourceLoader defines model for ResourceLoader.
 type ResourceLoader struct {
 	Title string `json:"title"`
 }
 
-// S3Asset defines model for S3Asset.
-type S3Asset struct {
-	Bucket string `json:"bucket"`
-	Path   string `json:"path"`
-	Region string `json:"region"`
-}
-
-// Setup defines model for Setup.
-type Setup struct {
-	Schema Setup_Schema `json:"schema"`
-	Steps  []string     `json:"steps"`
-}
-
-// Setup_Schema defines model for Setup.Schema.
-type Setup_Schema struct {
-	AdditionalProperties map[string]ConfigurationArgument `json:"-"`
-}
-
 // Define the metadata, data type and UI elements for the argument
 type TargetArgument struct {
-	Description *string               `json:"description,omitempty"`
-	Groups      TargetArgument_Groups `json:"groups"`
-	Id          string                `json:"id"`
+	Description *string `json:"description,omitempty"`
+	Id          string  `json:"id"`
 
 	// Optional form element for the request form, if not provided, defaults to multiselect
 	RequestFormElement TargetArgumentRequestFormElement `json:"requestFormElement"`
@@ -207,32 +166,15 @@ type TargetArgument struct {
 	Title              string                           `json:"title"`
 }
 
-// TargetArgument_Groups defines model for TargetArgument.Groups.
-type TargetArgument_Groups struct {
-	AdditionalProperties map[string]TargetArgumentGroup `json:"-"`
-}
-
 // Optional form element for the request form, if not provided, defaults to multiselect
 type TargetArgumentRequestFormElement string
 
 // TargetArgumentRuleFormElement defines model for TargetArgument.RuleFormElement.
 type TargetArgumentRuleFormElement string
 
-// An argument group
-type TargetArgumentGroup struct {
-	Description *string `json:"description,omitempty"`
-	Id          string  `json:"id"`
-	Title       string  `json:"title"`
-}
-
 // TargetSchema defines model for TargetSchema.
 type TargetSchema struct {
 	AdditionalProperties map[string]TargetArgument `json:"-"`
-}
-
-// Usage defines model for Usage.
-type Usage struct {
-	Usage string `json:"usage"`
 }
 
 // ErrorResponse defines model for ErrorResponse.
@@ -247,13 +189,8 @@ type HealthResponse struct {
 
 // ListProvidersResponse defines model for ListProvidersResponse.
 type ListProvidersResponse struct {
-	Next      *string    `json:"next"`
-	Providers []Provider `json:"providers"`
-}
-
-// RegisterProvidersResponse defines model for RegisterProvidersResponse.
-type RegisterProvidersResponse struct {
-	ZipUploadUrl string `json:"zipUploadUrl"`
+	Next      *string          `json:"next"`
+	Providers []ProviderDetail `json:"providers"`
 }
 
 // Getter for additional properties for AuditSchema_ResourceLoaders. Returns the specified
@@ -309,25 +246,25 @@ func (a AuditSchema_ResourceLoaders) MarshalJSON() ([]byte, error) {
 	return json.Marshal(object)
 }
 
-// Getter for additional properties for ConfigurationSchema. Returns the specified
+// Getter for additional properties for AuditSchema_Resources. Returns the specified
 // element and whether it was found
-func (a ConfigurationSchema) Get(fieldName string) (value ConfigurationArgument, found bool) {
+func (a AuditSchema_Resources) Get(fieldName string) (value Resource, found bool) {
 	if a.AdditionalProperties != nil {
 		value, found = a.AdditionalProperties[fieldName]
 	}
 	return
 }
 
-// Setter for additional properties for ConfigurationSchema
-func (a *ConfigurationSchema) Set(fieldName string, value ConfigurationArgument) {
+// Setter for additional properties for AuditSchema_Resources
+func (a *AuditSchema_Resources) Set(fieldName string, value Resource) {
 	if a.AdditionalProperties == nil {
-		a.AdditionalProperties = make(map[string]ConfigurationArgument)
+		a.AdditionalProperties = make(map[string]Resource)
 	}
 	a.AdditionalProperties[fieldName] = value
 }
 
-// Override default JSON handling for ConfigurationSchema to handle AdditionalProperties
-func (a *ConfigurationSchema) UnmarshalJSON(b []byte) error {
+// Override default JSON handling for AuditSchema_Resources to handle AdditionalProperties
+func (a *AuditSchema_Resources) UnmarshalJSON(b []byte) error {
 	object := make(map[string]json.RawMessage)
 	err := json.Unmarshal(b, &object)
 	if err != nil {
@@ -335,9 +272,9 @@ func (a *ConfigurationSchema) UnmarshalJSON(b []byte) error {
 	}
 
 	if len(object) != 0 {
-		a.AdditionalProperties = make(map[string]ConfigurationArgument)
+		a.AdditionalProperties = make(map[string]Resource)
 		for fieldName, fieldBuf := range object {
-			var fieldVal ConfigurationArgument
+			var fieldVal Resource
 			err := json.Unmarshal(fieldBuf, &fieldVal)
 			if err != nil {
 				return fmt.Errorf("error unmarshaling field %s: %w", fieldName, err)
@@ -348,8 +285,8 @@ func (a *ConfigurationSchema) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
-// Override default JSON handling for ConfigurationSchema to handle AdditionalProperties
-func (a ConfigurationSchema) MarshalJSON() ([]byte, error) {
+// Override default JSON handling for AuditSchema_Resources to handle AdditionalProperties
+func (a AuditSchema_Resources) MarshalJSON() ([]byte, error) {
 	var err error
 	object := make(map[string]json.RawMessage)
 
@@ -362,25 +299,25 @@ func (a ConfigurationSchema) MarshalJSON() ([]byte, error) {
 	return json.Marshal(object)
 }
 
-// Getter for additional properties for Setup_Schema. Returns the specified
+// Getter for additional properties for ConfigSchema. Returns the specified
 // element and whether it was found
-func (a Setup_Schema) Get(fieldName string) (value ConfigurationArgument, found bool) {
+func (a ConfigSchema) Get(fieldName string) (value ConfigArgument, found bool) {
 	if a.AdditionalProperties != nil {
 		value, found = a.AdditionalProperties[fieldName]
 	}
 	return
 }
 
-// Setter for additional properties for Setup_Schema
-func (a *Setup_Schema) Set(fieldName string, value ConfigurationArgument) {
+// Setter for additional properties for ConfigSchema
+func (a *ConfigSchema) Set(fieldName string, value ConfigArgument) {
 	if a.AdditionalProperties == nil {
-		a.AdditionalProperties = make(map[string]ConfigurationArgument)
+		a.AdditionalProperties = make(map[string]ConfigArgument)
 	}
 	a.AdditionalProperties[fieldName] = value
 }
 
-// Override default JSON handling for Setup_Schema to handle AdditionalProperties
-func (a *Setup_Schema) UnmarshalJSON(b []byte) error {
+// Override default JSON handling for ConfigSchema to handle AdditionalProperties
+func (a *ConfigSchema) UnmarshalJSON(b []byte) error {
 	object := make(map[string]json.RawMessage)
 	err := json.Unmarshal(b, &object)
 	if err != nil {
@@ -388,9 +325,9 @@ func (a *Setup_Schema) UnmarshalJSON(b []byte) error {
 	}
 
 	if len(object) != 0 {
-		a.AdditionalProperties = make(map[string]ConfigurationArgument)
+		a.AdditionalProperties = make(map[string]ConfigArgument)
 		for fieldName, fieldBuf := range object {
-			var fieldVal ConfigurationArgument
+			var fieldVal ConfigArgument
 			err := json.Unmarshal(fieldBuf, &fieldVal)
 			if err != nil {
 				return fmt.Errorf("error unmarshaling field %s: %w", fieldName, err)
@@ -401,8 +338,8 @@ func (a *Setup_Schema) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
-// Override default JSON handling for Setup_Schema to handle AdditionalProperties
-func (a Setup_Schema) MarshalJSON() ([]byte, error) {
+// Override default JSON handling for ConfigSchema to handle AdditionalProperties
+func (a ConfigSchema) MarshalJSON() ([]byte, error) {
 	var err error
 	object := make(map[string]json.RawMessage)
 
@@ -415,25 +352,25 @@ func (a Setup_Schema) MarshalJSON() ([]byte, error) {
 	return json.Marshal(object)
 }
 
-// Getter for additional properties for TargetArgument_Groups. Returns the specified
+// Getter for additional properties for DescribeResponse_ConfigValidation. Returns the specified
 // element and whether it was found
-func (a TargetArgument_Groups) Get(fieldName string) (value TargetArgumentGroup, found bool) {
+func (a DescribeResponse_ConfigValidation) Get(fieldName string) (value ConfigValidation, found bool) {
 	if a.AdditionalProperties != nil {
 		value, found = a.AdditionalProperties[fieldName]
 	}
 	return
 }
 
-// Setter for additional properties for TargetArgument_Groups
-func (a *TargetArgument_Groups) Set(fieldName string, value TargetArgumentGroup) {
+// Setter for additional properties for DescribeResponse_ConfigValidation
+func (a *DescribeResponse_ConfigValidation) Set(fieldName string, value ConfigValidation) {
 	if a.AdditionalProperties == nil {
-		a.AdditionalProperties = make(map[string]TargetArgumentGroup)
+		a.AdditionalProperties = make(map[string]ConfigValidation)
 	}
 	a.AdditionalProperties[fieldName] = value
 }
 
-// Override default JSON handling for TargetArgument_Groups to handle AdditionalProperties
-func (a *TargetArgument_Groups) UnmarshalJSON(b []byte) error {
+// Override default JSON handling for DescribeResponse_ConfigValidation to handle AdditionalProperties
+func (a *DescribeResponse_ConfigValidation) UnmarshalJSON(b []byte) error {
 	object := make(map[string]json.RawMessage)
 	err := json.Unmarshal(b, &object)
 	if err != nil {
@@ -441,9 +378,9 @@ func (a *TargetArgument_Groups) UnmarshalJSON(b []byte) error {
 	}
 
 	if len(object) != 0 {
-		a.AdditionalProperties = make(map[string]TargetArgumentGroup)
+		a.AdditionalProperties = make(map[string]ConfigValidation)
 		for fieldName, fieldBuf := range object {
-			var fieldVal TargetArgumentGroup
+			var fieldVal ConfigValidation
 			err := json.Unmarshal(fieldBuf, &fieldVal)
 			if err != nil {
 				return fmt.Errorf("error unmarshaling field %s: %w", fieldName, err)
@@ -454,8 +391,8 @@ func (a *TargetArgument_Groups) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
-// Override default JSON handling for TargetArgument_Groups to handle AdditionalProperties
-func (a TargetArgument_Groups) MarshalJSON() ([]byte, error) {
+// Override default JSON handling for DescribeResponse_ConfigValidation to handle AdditionalProperties
+func (a DescribeResponse_ConfigValidation) MarshalJSON() ([]byte, error) {
 	var err error
 	object := make(map[string]json.RawMessage)
 
@@ -597,9 +534,6 @@ type ClientInterface interface {
 	// AdminGetProvidersetupInstructions request
 	AdminGetProvidersetupInstructions(ctx context.Context, providersetupId string, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// GetHealth request
-	GetHealth(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
-
 	// ListAllProviders request
 	ListAllProviders(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -615,18 +549,6 @@ type ClientInterface interface {
 
 func (c *Client) AdminGetProvidersetupInstructions(ctx context.Context, providersetupId string, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewAdminGetProvidersetupInstructionsRequest(c.Server, providersetupId)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) GetHealth(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewGetHealthRequest(c.Server)
 	if err != nil {
 		return nil, err
 	}
@@ -702,33 +624,6 @@ func NewAdminGetProvidersetupInstructionsRequest(server string, providersetupId 
 	}
 
 	operationPath := fmt.Sprintf("/api/v1/admin/providersetups/%s/instructions", pathParam0)
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("GET", queryURL.String(), nil)
-	if err != nil {
-		return nil, err
-	}
-
-	return req, nil
-}
-
-// NewGetHealthRequest generates requests for GetHealth
-func NewGetHealthRequest(server string) (*http.Request, error) {
-	var err error
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/api/v1/health")
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -963,9 +858,6 @@ type ClientWithResponsesInterface interface {
 	// AdminGetProvidersetupInstructions request
 	AdminGetProvidersetupInstructionsWithResponse(ctx context.Context, providersetupId string, reqEditors ...RequestEditorFn) (*AdminGetProvidersetupInstructionsResponse, error)
 
-	// GetHealth request
-	GetHealthWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetHealthResponse, error)
-
 	// ListAllProviders request
 	ListAllProvidersWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*ListAllProvidersResponse, error)
 
@@ -1001,39 +893,12 @@ func (r AdminGetProvidersetupInstructionsResponse) StatusCode() int {
 	return 0
 }
 
-type GetHealthResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-	JSON200      *struct {
-		Healthy bool `json:"healthy"`
-	}
-	JSON500 *struct {
-		Healthy bool `json:"healthy"`
-	}
-}
-
-// Status returns HTTPResponse.Status
-func (r GetHealthResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r GetHealthResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
-}
-
 type ListAllProvidersResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *struct {
-		Next      *string    `json:"next"`
-		Providers []Provider `json:"providers"`
+		Next      *string          `json:"next"`
+		Providers []ProviderDetail `json:"providers"`
 	}
 	JSON500 *struct {
 		Error *string `json:"error,omitempty"`
@@ -1059,7 +924,7 @@ func (r ListAllProvidersResponse) StatusCode() int {
 type GetProviderResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON200      *Provider
+	JSON200      *ProviderDetail
 }
 
 // Status returns HTTPResponse.Status
@@ -1131,15 +996,6 @@ func (c *ClientWithResponses) AdminGetProvidersetupInstructionsWithResponse(ctx 
 	return ParseAdminGetProvidersetupInstructionsResponse(rsp)
 }
 
-// GetHealthWithResponse request returning *GetHealthResponse
-func (c *ClientWithResponses) GetHealthWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetHealthResponse, error) {
-	rsp, err := c.GetHealth(ctx, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseGetHealthResponse(rsp)
-}
-
 // ListAllProvidersWithResponse request returning *ListAllProvidersResponse
 func (c *ClientWithResponses) ListAllProvidersWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*ListAllProvidersResponse, error) {
 	rsp, err := c.ListAllProviders(ctx, reqEditors...)
@@ -1202,43 +1058,6 @@ func ParseAdminGetProvidersetupInstructionsResponse(rsp *http.Response) (*AdminG
 	return response, nil
 }
 
-// ParseGetHealthResponse parses an HTTP response from a GetHealthWithResponse call
-func ParseGetHealthResponse(rsp *http.Response) (*GetHealthResponse, error) {
-	bodyBytes, err := ioutil.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &GetHealthResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest struct {
-			Healthy bool `json:"healthy"`
-		}
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON200 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
-		var dest struct {
-			Healthy bool `json:"healthy"`
-		}
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON500 = &dest
-
-	}
-
-	return response, nil
-}
-
 // ParseListAllProvidersResponse parses an HTTP response from a ListAllProvidersWithResponse call
 func ParseListAllProvidersResponse(rsp *http.Response) (*ListAllProvidersResponse, error) {
 	bodyBytes, err := ioutil.ReadAll(rsp.Body)
@@ -1255,8 +1074,8 @@ func ParseListAllProvidersResponse(rsp *http.Response) (*ListAllProvidersRespons
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest struct {
-			Next      *string    `json:"next"`
-			Providers []Provider `json:"providers"`
+			Next      *string          `json:"next"`
+			Providers []ProviderDetail `json:"providers"`
 		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
@@ -1292,7 +1111,7 @@ func ParseGetProviderResponse(rsp *http.Response) (*GetProviderResponse, error) 
 
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest Provider
+		var dest ProviderDetail
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -1360,9 +1179,6 @@ type ServerInterface interface {
 	// Get the setup instructions for an Access Provider
 	// (GET /api/v1/admin/providersetups/{providersetupId}/instructions)
 	AdminGetProvidersetupInstructions(w http.ResponseWriter, r *http.Request, providersetupId string)
-	// Healthcheck
-	// (GET /api/v1/health)
-	GetHealth(w http.ResponseWriter, r *http.Request)
 	// List Providers
 	// (GET /api/v1/providers)
 	ListAllProviders(w http.ResponseWriter, r *http.Request)
@@ -1403,21 +1219,6 @@ func (siw *ServerInterfaceWrapper) AdminGetProvidersetupInstructions(w http.Resp
 
 	var handler = func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.AdminGetProvidersetupInstructions(w, r, providersetupId)
-	}
-
-	for _, middleware := range siw.HandlerMiddlewares {
-		handler = middleware(handler)
-	}
-
-	handler(w, r.WithContext(ctx))
-}
-
-// GetHealth operation middleware
-func (siw *ServerInterfaceWrapper) GetHealth(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
-
-	var handler = func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.GetHealth(w, r)
 	}
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -1691,9 +1492,6 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 		r.Get(options.BaseURL+"/api/v1/admin/providersetups/{providersetupId}/instructions", wrapper.AdminGetProvidersetupInstructions)
 	})
 	r.Group(func(r chi.Router) {
-		r.Get(options.BaseURL+"/api/v1/health", wrapper.GetHealth)
-	})
-	r.Group(func(r chi.Router) {
 		r.Get(options.BaseURL+"/api/v1/providers", wrapper.ListAllProviders)
 	})
 	r.Group(func(r chi.Router) {
@@ -1712,44 +1510,34 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"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",
+	"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",
+	"Fn8GAAD//6O9JKN0HQAA",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file

@@ -6,5 +6,5 @@
 # Generating the SDK
 
 ```
-go generate
+go generate ./...
 ```
