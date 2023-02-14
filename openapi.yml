@@ -141,7 +141,7 @@ components:
       type: object
       description: A registered provider version
       properties:
-        team:
+        publisher:
           type: string
         name:
           type: string
@@ -152,7 +152,7 @@ components:
         schema:
           $ref: '#/components/schemas/ProviderSchema'
       required:
-        - team
+        - publisher
         - name
         - version
         - lambdaAssetS3Arn
@@ -161,19 +161,19 @@ components:
       title: Provider
       type: object
       description: A registered provider version
+      x-stoplight:
+        id: b4d9111a1ff26
       properties:
-        team:
+        publisher:
           type: string
         name:
           type: string
         version:
           type: string
       required:
-        - team
+        - publisher
         - name
         - version
-      x-stoplight:
-        id: b4d9111a1ff26
     ConfigArgument:
       title: ConfigArgument
       x-stoplight:
