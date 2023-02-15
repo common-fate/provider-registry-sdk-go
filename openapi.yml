@@ -241,13 +241,25 @@ components:
         - config
         - audit
         - target
+    TargetMode:
+      title: TargetMode
+      x-stoplight:
+        id: o2oindupo85hh
+      type: object
+      properties:
+        schema:
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/TargetArgument'
+      required:
+        - schema
     TargetSchema:
       title: TargetSchema
       x-stoplight:
         id: tk7obmea4shbx
       type: object
       additionalProperties:
-        $ref: '#/components/schemas/TargetArgument'
+        $ref: '#/components/schemas/TargetMode'
     ConfigSchema:
       title: ConfigSchema
       x-stoplight:
