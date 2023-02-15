@@ -149,6 +149,8 @@ components:
           type: string
         lambdaAssetS3Arn:
           type: string
+        cfnTemplateS3Arn:
+          type: string
         schema:
           $ref: '#/components/schemas/ProviderSchema'
       required:
@@ -156,6 +158,7 @@ components:
         - name
         - version
         - lambdaAssetS3Arn
+        - cfnTemplateS3Arn
         - schema
     Provider:
       title: Provider
