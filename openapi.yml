@@ -417,6 +417,8 @@ components:
             properties:
               error:
                 type: string
+            required:
+              - error
           examples: {}
     ListProvidersResponse:
       description: Example response
