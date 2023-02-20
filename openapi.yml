@@ -36,6 +36,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ProviderDetail'
+        '404':
+          $ref: '#/components/responses/ErrorResponse'
+        '500':
+          $ref: '#/components/responses/ErrorResponse'
       tags:
         - Public
   '/api/v1/team/{team}/providers/{name}/{version}/setup':
