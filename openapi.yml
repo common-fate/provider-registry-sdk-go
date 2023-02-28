@@ -215,23 +215,9 @@ components:
           type: string
         resourceName:
           type: string
-        ruleFormElement:
-          type: string
-          enum:
-            - INPUT
-            - MULTISELECT
-            - SELECT
-        requestFormElement:
-          type: string
-          enum:
-            - SELECT
-          description: 'Optional form element for the request form, if not provided, defaults to multiselect'
       required:
         - id
         - title
-        - ruleFormElement
-        - requestFormElement
-        - groups
     ProviderSchema:
       title: ProviderSchema
       x-stoplight:
@@ -334,21 +320,6 @@ components:
       required:
         - level
         - msg
-    ConfigValidation:
-      title: ConfigValidation
-      x-stoplight:
-        id: roz5uwo0i6jrw
-      type: object
-      properties:
-        success:
-          type: boolean
-        logs:
-          type: array
-          items:
-            $ref: '#/components/schemas/DiagnosticLog'
-      required:
-        - success
-        - logs
     DescribeResponse:
       title: DescribeResponse
       x-stoplight:
@@ -359,15 +330,20 @@ components:
           $ref: '#/components/schemas/Provider'
         config:
           type: object
-        configValidation:
-          type: object
-          additionalProperties:
-            $ref: '#/components/schemas/ConfigValidation'
+        healthy:
+          type: boolean
+        diagnostics:
+          type: array
+          items:
+            $ref: '#/components/schemas/DiagnosticLog'
         schema:
           $ref: '#/components/schemas/ProviderSchema'
       required:
         - provider
         - config
+        - healthy
+        - diagnostics
+        - schema
     ProviderSetupInstructions:
       title: ProviderSetupInstructions
       x-stoplight:

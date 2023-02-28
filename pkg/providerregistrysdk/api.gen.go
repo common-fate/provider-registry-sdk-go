@@ -33,18 +33,6 @@ const (
 	Info  DiagnosticLogLevel = "info"
 )
 
-// Defines values for TargetArgumentRequestFormElement.
-const (
-	TargetArgumentRequestFormElementSELECT TargetArgumentRequestFormElement = "SELECT"
-)
-
-// Defines values for TargetArgumentRuleFormElement.
-const (
-	TargetArgumentRuleFormElementINPUT       TargetArgumentRuleFormElement = "INPUT"
-	TargetArgumentRuleFormElementMULTISELECT TargetArgumentRuleFormElement = "MULTISELECT"
-	TargetArgumentRuleFormElementSELECT      TargetArgumentRuleFormElement = "SELECT"
-)
-
 // AuditSchema defines model for AuditSchema.
 type AuditSchema struct {
 	ResourceLoaders AuditSchema_ResourceLoaders `json:"resourceLoaders"`
@@ -76,25 +64,15 @@ type ConfigSchema struct {
 	AdditionalProperties map[string]ConfigArgument `json:"-"`
 }
 
-// ConfigValidation defines model for ConfigValidation.
-type ConfigValidation struct {
-	Logs    []DiagnosticLog `json:"logs"`
-	Success bool            `json:"success"`
-}
-
 // DescribeResponse defines model for DescribeResponse.
 type DescribeResponse struct {
-	Config           map[string]interface{}             `json:"config"`
-	ConfigValidation *DescribeResponse_ConfigValidation `json:"configValidation,omitempty"`
+	Config      map[string]interface{} `json:"config"`
+	Diagnostics []DiagnosticLog        `json:"diagnostics"`
+	Healthy     bool                   `json:"healthy"`
 
 	// A registered provider version
-	Provider Provider        `json:"provider"`
-	Schema   *ProviderSchema `json:"schema,omitempty"`
-}
-
-// DescribeResponse_ConfigValidation defines model for DescribeResponse.ConfigValidation.
-type DescribeResponse_ConfigValidation struct {
-	AdditionalProperties map[string]ConfigValidation `json:"-"`
+	Provider Provider       `json:"provider"`
+	Schema   ProviderSchema `json:"schema"`
 }
 
 // DiagnosticLog defines model for DiagnosticLog.
@@ -157,21 +135,11 @@ type ResourceLoader struct {
 
 // Define the metadata, data type and UI elements for the argument
 type TargetArgument struct {
-	Description *string `json:"description,omitempty"`
-	Id          string  `json:"id"`
-
-	// Optional form element for the request form, if not provided, defaults to multiselect
-	RequestFormElement TargetArgumentRequestFormElement `json:"requestFormElement"`
-	ResourceName       *string                          `json:"resourceName,omitempty"`
-	RuleFormElement    TargetArgumentRuleFormElement    `json:"ruleFormElement"`
-	Title              string                           `json:"title"`
+	Description  *string `json:"description,omitempty"`
+	Id           string  `json:"id"`
+	ResourceName *string `json:"resourceName,omitempty"`
+	Title        string  `json:"title"`
 }
-
-// Optional form element for the request form, if not provided, defaults to multiselect
-type TargetArgumentRequestFormElement string
-
-// TargetArgumentRuleFormElement defines model for TargetArgument.RuleFormElement.
-type TargetArgumentRuleFormElement string
 
 // TargetMode defines model for TargetMode.
 type TargetMode struct {
@@ -351,59 +319,6 @@ func (a *ConfigSchema) UnmarshalJSON(b []byte) error {
 
 // Override default JSON handling for ConfigSchema to handle AdditionalProperties
 func (a ConfigSchema) MarshalJSON() ([]byte, error) {
-	var err error
-	object := make(map[string]json.RawMessage)
-
-	for fieldName, field := range a.AdditionalProperties {
-		object[fieldName], err = json.Marshal(field)
-		if err != nil {
-			return nil, fmt.Errorf("error marshaling '%s': %w", fieldName, err)
-		}
-	}
-	return json.Marshal(object)
-}
-
-// Getter for additional properties for DescribeResponse_ConfigValidation. Returns the specified
-// element and whether it was found
-func (a DescribeResponse_ConfigValidation) Get(fieldName string) (value ConfigValidation, found bool) {
-	if a.AdditionalProperties != nil {
-		value, found = a.AdditionalProperties[fieldName]
-	}
-	return
-}
-
-// Setter for additional properties for DescribeResponse_ConfigValidation
-func (a *DescribeResponse_ConfigValidation) Set(fieldName string, value ConfigValidation) {
-	if a.AdditionalProperties == nil {
-		a.AdditionalProperties = make(map[string]ConfigValidation)
-	}
-	a.AdditionalProperties[fieldName] = value
-}
-
-// Override default JSON handling for DescribeResponse_ConfigValidation to handle AdditionalProperties
-func (a *DescribeResponse_ConfigValidation) UnmarshalJSON(b []byte) error {
-	object := make(map[string]json.RawMessage)
-	err := json.Unmarshal(b, &object)
-	if err != nil {
-		return err
-	}
-
-	if len(object) != 0 {
-		a.AdditionalProperties = make(map[string]ConfigValidation)
-		for fieldName, fieldBuf := range object {
-			var fieldVal ConfigValidation
-			err := json.Unmarshal(fieldBuf, &fieldVal)
-			if err != nil {
-				return fmt.Errorf("error unmarshaling field %s: %w", fieldName, err)
-			}
-			a.AdditionalProperties[fieldName] = fieldVal
-		}
-	}
-	return nil
-}
-
-// Override default JSON handling for DescribeResponse_ConfigValidation to handle AdditionalProperties
-func (a DescribeResponse_ConfigValidation) MarshalJSON() ([]byte, error) {
 	var err error
 	object := make(map[string]json.RawMessage)
 
@@ -1598,35 +1513,32 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"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",
-	"S+Ip36wlKflj/kcAAAD//+yza9AcHwAA",
+	"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",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file
