@@ -311,10 +311,7 @@ components:
       type: object
       properties:
         level:
-          type: string
-          enum:
-            - info
-            - error
+          $ref: '#/components/schemas/LogLevel'
         msg:
           type: string
       required:
@@ -374,6 +371,15 @@ components:
         - title
         - instructions
         - configFields
+    LogLevel:
+      title: LogLevel
+      x-stoplight:
+        id: r9cextojd3t67
+      type: string
+      enum:
+        - INFO
+        - ERROR
+        - WARNING
   requestBodies: {}
   responses:
     HealthResponse:
