@@ -21,20 +21,10 @@ func (p payload) Marshal() ([]byte, error) {
 }
 
 type Target struct {
-	// Mode is defines which behaviour of the provider to use, e.g SSO or Group
-	// The modes are defined by the provider schema, and each deployment is registered with its mode configuration in the database
-	Mode      string            `json:"mode"`
+	// Kind is defines which behaviour of the provider to use, e.g SSO or Group
+	// The kind are defined by the provider schema, and each deployment is registered with its kind configuration in the database
+	Kind      string            `json:"kind"`
 	Arguments map[string]string `json:"arguments"`
-}
-
-// NewDefaultModeTarget creates a target from arguments for the Default mode
-// providers will eventually support multiple modes, until then
-// All providers use the "Default" mode
-func NewDefaultModeTarget(args map[string]string) Target {
-	return Target{
-		Mode:      "Default",
-		Arguments: args,
-	}
 }
 
 type grantData struct {
