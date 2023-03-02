@@ -109,18 +109,6 @@ type ProviderSchema struct {
 	Target TargetSchema `json:"target"`
 }
 
-// ProviderSetupInstructions defines model for ProviderSetupInstructions.
-type ProviderSetupInstructions struct {
-	StepDetails []ProviderSetupStepDetails `json:"stepDetails"`
-}
-
-// ProviderSetupStepDetails defines model for ProviderSetupStepDetails.
-type ProviderSetupStepDetails struct {
-	ConfigFields []ConfigArgument `json:"configFields"`
-	Instructions string           `json:"instructions"`
-	Title        string           `json:"title"`
-}
-
 // Resource defines model for Resource.
 type Resource struct {
 	Data struct {
@@ -134,7 +122,7 @@ type ResourceLoader struct {
 	Title string `json:"title"`
 }
 
-// Define the metadata, data type and UI elements for the argument
+// Defines the metadata, data type and UI elements for the argument
 type TargetArgument struct {
 	Description  *string `json:"description,omitempty"`
 	Id           string  `json:"id"`
@@ -511,32 +499,17 @@ func WithRequestEditorFn(fn RequestEditorFn) ClientOption {
 
 // The interface specification for the client above.
 type ClientInterface interface {
-	// AdminGetProvidersetupInstructions request
-	AdminGetProvidersetupInstructions(ctx context.Context, providersetupId string, reqEditors ...RequestEditorFn) (*http.Response, error)
-
 	// ListAllProviders request
 	ListAllProviders(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// GetProvider request
-	GetProvider(ctx context.Context, team string, name string, version string, reqEditors ...RequestEditorFn) (*http.Response, error)
+	GetProvider(ctx context.Context, publisher string, name string, version string, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// GetProviderSetupDocs request
-	GetProviderSetupDocs(ctx context.Context, team string, name string, version string, reqEditors ...RequestEditorFn) (*http.Response, error)
+	GetProviderSetupDocs(ctx context.Context, publisher string, name string, version string, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// GetProviderUsageDoc request
-	GetProviderUsageDoc(ctx context.Context, team string, name string, version string, reqEditors ...RequestEditorFn) (*http.Response, error)
-}
-
-func (c *Client) AdminGetProvidersetupInstructions(ctx context.Context, providersetupId string, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewAdminGetProvidersetupInstructionsRequest(c.Server, providersetupId)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
+	GetProviderUsageDoc(ctx context.Context, publisher string, name string, version string, reqEditors ...RequestEditorFn) (*http.Response, error)
 }
 
 func (c *Client) ListAllProviders(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
@@ -551,8 +524,8 @@ func (c *Client) ListAllProviders(ctx context.Context, reqEditors ...RequestEdit
 	return c.Client.Do(req)
 }
 
-func (c *Client) GetProvider(ctx context.Context, team string, name string, version string, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewGetProviderRequest(c.Server, team, name, version)
+func (c *Client) GetProvider(ctx context.Context, publisher string, name string, version string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetProviderRequest(c.Server, publisher, name, version)
 	if err != nil {
 		return nil, err
 	}
@@ -563,8 +536,8 @@ func (c *Client) GetProvider(ctx context.Context, team string, name string, vers
 	return c.Client.Do(req)
 }
 
-func (c *Client) GetProviderSetupDocs(ctx context.Context, team string, name string, version string, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewGetProviderSetupDocsRequest(c.Server, team, name, version)
+func (c *Client) GetProviderSetupDocs(ctx context.Context, publisher string, name string, version string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetProviderSetupDocsRequest(c.Server, publisher, name, version)
 	if err != nil {
 		return nil, err
 	}
@@ -575,8 +548,8 @@ func (c *Client) GetProviderSetupDocs(ctx context.Context, team string, name str
 	return c.Client.Do(req)
 }
 
-func (c *Client) GetProviderUsageDoc(ctx context.Context, team string, name string, version string, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewGetProviderUsageDocRequest(c.Server, team, name, version)
+func (c *Client) GetProviderUsageDoc(ctx context.Context, publisher string, name string, version string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetProviderUsageDocRequest(c.Server, publisher, name, version)
 	if err != nil {
 		return nil, err
 	}
@@ -585,40 +558,6 @@ func (c *Client) GetProviderUsageDoc(ctx context.Context, team string, name stri
 		return nil, err
 	}
 	return c.Client.Do(req)
-}
-
-// NewAdminGetProvidersetupInstructionsRequest generates requests for AdminGetProvidersetupInstructions
-func NewAdminGetProvidersetupInstructionsRequest(server string, providersetupId string) (*http.Request, error) {
-	var err error
-
-	var pathParam0 string
-
-	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "providersetupId", runtime.ParamLocationPath, providersetupId)
-	if err != nil {
-		return nil, err
-	}
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/api/v1/admin/providersetups/%s/instructions", pathParam0)
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("GET", queryURL.String(), nil)
-	if err != nil {
-		return nil, err
-	}
-
-	return req, nil
 }
 
 // NewListAllProvidersRequest generates requests for ListAllProviders
@@ -630,7 +569,7 @@ func NewListAllProvidersRequest(server string) (*http.Request, error) {
 		return nil, err
 	}
 
-	operationPath := fmt.Sprintf("/api/v1/providers")
+	operationPath := fmt.Sprintf("/v1alpha1/providers")
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -649,12 +588,12 @@ func NewListAllProvidersRequest(server string) (*http.Request, error) {
 }
 
 // NewGetProviderRequest generates requests for GetProvider
-func NewGetProviderRequest(server string, team string, name string, version string) (*http.Request, error) {
+func NewGetProviderRequest(server string, publisher string, name string, version string) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
 
-	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "team", runtime.ParamLocationPath, team)
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "publisher", runtime.ParamLocationPath, publisher)
 	if err != nil {
 		return nil, err
 	}
@@ -678,7 +617,7 @@ func NewGetProviderRequest(server string, team string, name string, version stri
 		return nil, err
 	}
 
-	operationPath := fmt.Sprintf("/api/v1/team/%s/providers/%s/%s", pathParam0, pathParam1, pathParam2)
+	operationPath := fmt.Sprintf("/v1alpha1/providers/%s/%s/%s", pathParam0, pathParam1, pathParam2)
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -697,12 +636,12 @@ func NewGetProviderRequest(server string, team string, name string, version stri
 }
 
 // NewGetProviderSetupDocsRequest generates requests for GetProviderSetupDocs
-func NewGetProviderSetupDocsRequest(server string, team string, name string, version string) (*http.Request, error) {
+func NewGetProviderSetupDocsRequest(server string, publisher string, name string, version string) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
 
-	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "team", runtime.ParamLocationPath, team)
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "publisher", runtime.ParamLocationPath, publisher)
 	if err != nil {
 		return nil, err
 	}
@@ -726,7 +665,7 @@ func NewGetProviderSetupDocsRequest(server string, team string, name string, ver
 		return nil, err
 	}
 
-	operationPath := fmt.Sprintf("/api/v1/team/%s/providers/%s/%s/setup", pathParam0, pathParam1, pathParam2)
+	operationPath := fmt.Sprintf("/v1alpha1/providers/%s/%s/%s/setup", pathParam0, pathParam1, pathParam2)
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -745,12 +684,12 @@ func NewGetProviderSetupDocsRequest(server string, team string, name string, ver
 }
 
 // NewGetProviderUsageDocRequest generates requests for GetProviderUsageDoc
-func NewGetProviderUsageDocRequest(server string, team string, name string, version string) (*http.Request, error) {
+func NewGetProviderUsageDocRequest(server string, publisher string, name string, version string) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
 
-	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "team", runtime.ParamLocationPath, team)
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "publisher", runtime.ParamLocationPath, publisher)
 	if err != nil {
 		return nil, err
 	}
@@ -774,7 +713,7 @@ func NewGetProviderUsageDocRequest(server string, team string, name string, vers
 		return nil, err
 	}
 
-	operationPath := fmt.Sprintf("/api/v1/team/%s/providers/%s/%s/usage", pathParam0, pathParam1, pathParam2)
+	operationPath := fmt.Sprintf("/v1alpha1/providers/%s/%s/%s/usage", pathParam0, pathParam1, pathParam2)
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -835,42 +774,17 @@ func WithBaseURL(baseURL string) ClientOption {
 
 // ClientWithResponsesInterface is the interface specification for the client with responses above.
 type ClientWithResponsesInterface interface {
-	// AdminGetProvidersetupInstructions request
-	AdminGetProvidersetupInstructionsWithResponse(ctx context.Context, providersetupId string, reqEditors ...RequestEditorFn) (*AdminGetProvidersetupInstructionsResponse, error)
-
 	// ListAllProviders request
 	ListAllProvidersWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*ListAllProvidersResponse, error)
 
 	// GetProvider request
-	GetProviderWithResponse(ctx context.Context, team string, name string, version string, reqEditors ...RequestEditorFn) (*GetProviderResponse, error)
+	GetProviderWithResponse(ctx context.Context, publisher string, name string, version string, reqEditors ...RequestEditorFn) (*GetProviderResponse, error)
 
 	// GetProviderSetupDocs request
-	GetProviderSetupDocsWithResponse(ctx context.Context, team string, name string, version string, reqEditors ...RequestEditorFn) (*GetProviderSetupDocsResponse, error)
+	GetProviderSetupDocsWithResponse(ctx context.Context, publisher string, name string, version string, reqEditors ...RequestEditorFn) (*GetProviderSetupDocsResponse, error)
 
 	// GetProviderUsageDoc request
-	GetProviderUsageDocWithResponse(ctx context.Context, team string, name string, version string, reqEditors ...RequestEditorFn) (*GetProviderUsageDocResponse, error)
-}
-
-type AdminGetProvidersetupInstructionsResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-	JSON200      *ProviderSetupInstructions
-}
-
-// Status returns HTTPResponse.Status
-func (r AdminGetProvidersetupInstructionsResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r AdminGetProvidersetupInstructionsResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
+	GetProviderUsageDocWithResponse(ctx context.Context, publisher string, name string, version string, reqEditors ...RequestEditorFn) (*GetProviderUsageDocResponse, error)
 }
 
 type ListAllProvidersResponse struct {
@@ -973,15 +887,6 @@ func (r GetProviderUsageDocResponse) StatusCode() int {
 	return 0
 }
 
-// AdminGetProvidersetupInstructionsWithResponse request returning *AdminGetProvidersetupInstructionsResponse
-func (c *ClientWithResponses) AdminGetProvidersetupInstructionsWithResponse(ctx context.Context, providersetupId string, reqEditors ...RequestEditorFn) (*AdminGetProvidersetupInstructionsResponse, error) {
-	rsp, err := c.AdminGetProvidersetupInstructions(ctx, providersetupId, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseAdminGetProvidersetupInstructionsResponse(rsp)
-}
-
 // ListAllProvidersWithResponse request returning *ListAllProvidersResponse
 func (c *ClientWithResponses) ListAllProvidersWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*ListAllProvidersResponse, error) {
 	rsp, err := c.ListAllProviders(ctx, reqEditors...)
@@ -992,8 +897,8 @@ func (c *ClientWithResponses) ListAllProvidersWithResponse(ctx context.Context, 
 }
 
 // GetProviderWithResponse request returning *GetProviderResponse
-func (c *ClientWithResponses) GetProviderWithResponse(ctx context.Context, team string, name string, version string, reqEditors ...RequestEditorFn) (*GetProviderResponse, error) {
-	rsp, err := c.GetProvider(ctx, team, name, version, reqEditors...)
+func (c *ClientWithResponses) GetProviderWithResponse(ctx context.Context, publisher string, name string, version string, reqEditors ...RequestEditorFn) (*GetProviderResponse, error) {
+	rsp, err := c.GetProvider(ctx, publisher, name, version, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
@@ -1001,8 +906,8 @@ func (c *ClientWithResponses) GetProviderWithResponse(ctx context.Context, team 
 }
 
 // GetProviderSetupDocsWithResponse request returning *GetProviderSetupDocsResponse
-func (c *ClientWithResponses) GetProviderSetupDocsWithResponse(ctx context.Context, team string, name string, version string, reqEditors ...RequestEditorFn) (*GetProviderSetupDocsResponse, error) {
-	rsp, err := c.GetProviderSetupDocs(ctx, team, name, version, reqEditors...)
+func (c *ClientWithResponses) GetProviderSetupDocsWithResponse(ctx context.Context, publisher string, name string, version string, reqEditors ...RequestEditorFn) (*GetProviderSetupDocsResponse, error) {
+	rsp, err := c.GetProviderSetupDocs(ctx, publisher, name, version, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
@@ -1010,38 +915,12 @@ func (c *ClientWithResponses) GetProviderSetupDocsWithResponse(ctx context.Conte
 }
 
 // GetProviderUsageDocWithResponse request returning *GetProviderUsageDocResponse
-func (c *ClientWithResponses) GetProviderUsageDocWithResponse(ctx context.Context, team string, name string, version string, reqEditors ...RequestEditorFn) (*GetProviderUsageDocResponse, error) {
-	rsp, err := c.GetProviderUsageDoc(ctx, team, name, version, reqEditors...)
+func (c *ClientWithResponses) GetProviderUsageDocWithResponse(ctx context.Context, publisher string, name string, version string, reqEditors ...RequestEditorFn) (*GetProviderUsageDocResponse, error) {
+	rsp, err := c.GetProviderUsageDoc(ctx, publisher, name, version, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
 	return ParseGetProviderUsageDocResponse(rsp)
-}
-
-// ParseAdminGetProvidersetupInstructionsResponse parses an HTTP response from a AdminGetProvidersetupInstructionsWithResponse call
-func ParseAdminGetProvidersetupInstructionsResponse(rsp *http.Response) (*AdminGetProvidersetupInstructionsResponse, error) {
-	bodyBytes, err := ioutil.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &AdminGetProvidersetupInstructionsResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest ProviderSetupInstructions
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON200 = &dest
-
-	}
-
-	return response, nil
 }
 
 // ParseListAllProvidersResponse parses an HTTP response from a ListAllProvidersWithResponse call
@@ -1180,21 +1059,18 @@ func ParseGetProviderUsageDocResponse(rsp *http.Response) (*GetProviderUsageDocR
 
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
-	// Get the setup instructions for an Access Provider
-	// (GET /api/v1/admin/providersetups/{providersetupId}/instructions)
-	AdminGetProvidersetupInstructions(w http.ResponseWriter, r *http.Request, providersetupId string)
 	// List Providers
-	// (GET /api/v1/providers)
+	// (GET /v1alpha1/providers)
 	ListAllProviders(w http.ResponseWriter, r *http.Request)
 	// Get Provider
-	// (GET /api/v1/team/{team}/providers/{name}/{version})
-	GetProvider(w http.ResponseWriter, r *http.Request, team string, name string, version string)
+	// (GET /v1alpha1/providers/{publisher}/{name}/{version})
+	GetProvider(w http.ResponseWriter, r *http.Request, publisher string, name string, version string)
 	// Get Provider Setup Docs
-	// (GET /api/v1/team/{team}/providers/{name}/{version}/setup)
-	GetProviderSetupDocs(w http.ResponseWriter, r *http.Request, team string, name string, version string)
+	// (GET /v1alpha1/providers/{publisher}/{name}/{version}/setup)
+	GetProviderSetupDocs(w http.ResponseWriter, r *http.Request, publisher string, name string, version string)
 	// Get Provider Usage Doc
-	// (GET /api/v1/team/{team}/providers/{name}/{version}/usage)
-	GetProviderUsageDoc(w http.ResponseWriter, r *http.Request, team string, name string, version string)
+	// (GET /v1alpha1/providers/{publisher}/{name}/{version}/usage)
+	GetProviderUsageDoc(w http.ResponseWriter, r *http.Request, publisher string, name string, version string)
 }
 
 // ServerInterfaceWrapper converts contexts to parameters.
@@ -1205,32 +1081,6 @@ type ServerInterfaceWrapper struct {
 }
 
 type MiddlewareFunc func(http.HandlerFunc) http.HandlerFunc
-
-// AdminGetProvidersetupInstructions operation middleware
-func (siw *ServerInterfaceWrapper) AdminGetProvidersetupInstructions(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
-
-	var err error
-
-	// ------------- Path parameter "providersetupId" -------------
-	var providersetupId string
-
-	err = runtime.BindStyledParameter("simple", false, "providersetupId", chi.URLParam(r, "providersetupId"), &providersetupId)
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "providersetupId", Err: err})
-		return
-	}
-
-	var handler = func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.AdminGetProvidersetupInstructions(w, r, providersetupId)
-	}
-
-	for _, middleware := range siw.HandlerMiddlewares {
-		handler = middleware(handler)
-	}
-
-	handler(w, r.WithContext(ctx))
-}
 
 // ListAllProviders operation middleware
 func (siw *ServerInterfaceWrapper) ListAllProviders(w http.ResponseWriter, r *http.Request) {
@@ -1253,12 +1103,12 @@ func (siw *ServerInterfaceWrapper) GetProvider(w http.ResponseWriter, r *http.Re
 
 	var err error
 
-	// ------------- Path parameter "team" -------------
-	var team string
+	// ------------- Path parameter "publisher" -------------
+	var publisher string
 
-	err = runtime.BindStyledParameter("simple", false, "team", chi.URLParam(r, "team"), &team)
+	err = runtime.BindStyledParameter("simple", false, "publisher", chi.URLParam(r, "publisher"), &publisher)
 	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "team", Err: err})
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "publisher", Err: err})
 		return
 	}
 
@@ -1281,7 +1131,7 @@ func (siw *ServerInterfaceWrapper) GetProvider(w http.ResponseWriter, r *http.Re
 	}
 
 	var handler = func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.GetProvider(w, r, team, name, version)
+		siw.Handler.GetProvider(w, r, publisher, name, version)
 	}
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -1297,12 +1147,12 @@ func (siw *ServerInterfaceWrapper) GetProviderSetupDocs(w http.ResponseWriter, r
 
 	var err error
 
-	// ------------- Path parameter "team" -------------
-	var team string
+	// ------------- Path parameter "publisher" -------------
+	var publisher string
 
-	err = runtime.BindStyledParameter("simple", false, "team", chi.URLParam(r, "team"), &team)
+	err = runtime.BindStyledParameter("simple", false, "publisher", chi.URLParam(r, "publisher"), &publisher)
 	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "team", Err: err})
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "publisher", Err: err})
 		return
 	}
 
@@ -1325,7 +1175,7 @@ func (siw *ServerInterfaceWrapper) GetProviderSetupDocs(w http.ResponseWriter, r
 	}
 
 	var handler = func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.GetProviderSetupDocs(w, r, team, name, version)
+		siw.Handler.GetProviderSetupDocs(w, r, publisher, name, version)
 	}
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -1341,12 +1191,12 @@ func (siw *ServerInterfaceWrapper) GetProviderUsageDoc(w http.ResponseWriter, r 
 
 	var err error
 
-	// ------------- Path parameter "team" -------------
-	var team string
+	// ------------- Path parameter "publisher" -------------
+	var publisher string
 
-	err = runtime.BindStyledParameter("simple", false, "team", chi.URLParam(r, "team"), &team)
+	err = runtime.BindStyledParameter("simple", false, "publisher", chi.URLParam(r, "publisher"), &publisher)
 	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "team", Err: err})
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "publisher", Err: err})
 		return
 	}
 
@@ -1369,7 +1219,7 @@ func (siw *ServerInterfaceWrapper) GetProviderUsageDoc(w http.ResponseWriter, r 
 	}
 
 	var handler = func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.GetProviderUsageDoc(w, r, team, name, version)
+		siw.Handler.GetProviderUsageDoc(w, r, publisher, name, version)
 	}
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -1493,19 +1343,16 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 	}
 
 	r.Group(func(r chi.Router) {
-		r.Get(options.BaseURL+"/api/v1/admin/providersetups/{providersetupId}/instructions", wrapper.AdminGetProvidersetupInstructions)
+		r.Get(options.BaseURL+"/v1alpha1/providers", wrapper.ListAllProviders)
 	})
 	r.Group(func(r chi.Router) {
-		r.Get(options.BaseURL+"/api/v1/providers", wrapper.ListAllProviders)
+		r.Get(options.BaseURL+"/v1alpha1/providers/{publisher}/{name}/{version}", wrapper.GetProvider)
 	})
 	r.Group(func(r chi.Router) {
-		r.Get(options.BaseURL+"/api/v1/team/{team}/providers/{name}/{version}", wrapper.GetProvider)
+		r.Get(options.BaseURL+"/v1alpha1/providers/{publisher}/{name}/{version}/setup", wrapper.GetProviderSetupDocs)
 	})
 	r.Group(func(r chi.Router) {
-		r.Get(options.BaseURL+"/api/v1/team/{team}/providers/{name}/{version}/setup", wrapper.GetProviderSetupDocs)
-	})
-	r.Group(func(r chi.Router) {
-		r.Get(options.BaseURL+"/api/v1/team/{team}/providers/{name}/{version}/usage", wrapper.GetProviderUsageDoc)
+		r.Get(options.BaseURL+"/v1alpha1/providers/{publisher}/{name}/{version}/usage", wrapper.GetProviderUsageDoc)
 	})
 
 	return r
@@ -1514,33 +1361,31 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"H4sIAAAAAAAC/+xYS2/jOBL+KwJ3j9rIjp2HfTM66V5js2nDSWMOjRwoqWwxLZFqknKcMfTfB6RelEy3",
-	"5SQYDDBzMWSJrPrqqweLtUMBS1JGgUqBpjvEQaSMCtB/bjlnfFm+US8CRiVQqR5xmsYkwJIw6j0LRtU7",
-	"EUSQYPWUcpYCl6SQA0qOepCvKaApEpITukZ57iIOPzPCIUTT7+WyJ7daxvxnCCTK1boQRMBJqtShKZpR",
-	"Ry92OMiMUwidFWeJIyNwZov5Gcpd9F/AsYw+AHykBb0a8H3GYsB0D3+1so8FBbwgguCHU3Hu+Cx81eDv",
-	"iJALzjYkBC4+wAYKW72HZnGM/RjQVPIM3K4/XLWtUKpWEwmJfvg3hxWaon95Tax4hSrhVTBvQGISKxml",
-	"UMw5ft3jqFHgFqj6kHW7xUkaQ02UlloCUPhmWUjkwwHbOQiW8QDuGK4Mw2FIlGgcL1pLf2XnsiXGsLOC",
-	"7daa3q3DIr1DY9coxSKRyrEtMrpiXLT9j5Asjck60gFBQhXPONiOf8BkFQ19plV9YnRF1jO+zpIy2tqc",
-	"Cgg4SFtKVBp3CGiWKKgPj8v5/RfkoofbT8vbx/LvkyX4MoHXcLxM6K9uhaHaZjDQQd+ThOvLKxiPJnDt",
-	"X4wMEpqweotHO1DyLsiT/ITH/tUoWI0nV9fXBcQbnSY+mCWi7alAqzFIbcI1JHhNmZAk6J/tN/WeO7be",
-	"T3b3V9WyqS59awqq07zvjpLPQ1UHuRUhDdI2EbVCI572WO7pLrlaYXrubweTCS/c1WJvz1cxbCA+Zukd",
-	"W9/pdbmLErE+ni6F1GKxaVQLSz+Ltj8vskhsU5LEw6K012iMhJ/ff/6KXHS7XH5dIhf9NlveVxlf6q53",
-	"dYuAXS2fBLCV7DkcycsrrXZhBFKnM3A4rImQwCF0Krc7G+BCfXe75yJObAXHRWnmx0REwK1fK3FHuW/E",
-	"uIWuZq9Bx6KJzl6VahxOhsMhHq5W55ctOsoz+J2kBCv6CEkaYwkPoxmnVgpinPghngkB8vCiN9L7tpT/",
-	"GLdYLHP3GbFViY4TetaIcOLD6DL0YTBp+/JQO4PV8X6MG7MHyF3jEDh+VjW7JOZrOKrqUa86UHfrYlug",
-	"rmVaaDvpJAxH683zKPAFg6tBmzaQWTqnQvIsUNEvLM2LhLRw0uldrhb/YAg41u+aymxW78HtR8DLBd68",
-	"/A7s5dx/nuwT8NA20dYSfCYQh/0JsDQynZOfdEjfS+vS9qPtnV7Wkee2UR9i0rT7rUTWTfgecSGWloRU",
-	"Yo7ZRELLPadplXv1u1q7YXiNs+epMRlej8YXl+HkchC2DC1vNHuGneQvC7BSbj94zyOI1vyFs8CHSOso",
-	"Cot5B2kfajewIhT0nT8BiRU9rqN+HaXPwTR0vs0diEFtF86Kcb0WN9eCjndN6Zbwtfq5ufTdHzrretJI",
-	"QuTuc9khoR+XQ39wPcB4dH51GZwbXP6fhZaoFu+64HQAHr247p+bBrZ+5rFzRmiYpez6IjJD5eEDDNEw",
-	"8i64k84m+eOK+QngsYj8Lcr1OIPQFavGNziQTeuJPrEkYdT5jKUyP+MxmqJIylRMPYUyYXSFJZwRhg5O",
-	"RWaLOWoQt9/WLREang2UCJYCxSlBUzQ6G5wNVBZgGWl2PJwSbzP0cJgQ6tWDGlVXhbdr/Z+Hudet92Wv",
-	"0Mb4BaTOOr3LMbfohMTUmQUBCOFUZfwMaYxcz7Xmis+ZgvMFmnmY5chsTS3PB4OTRmW9z/2WUsuY6uv/",
-	"isFUliSYv77Fet0hrYVKFG02elLNMuY4AalnV993iChVymlV8zpFHd8gM+WKQV9jbbcKKQ2V51vTv9Kf",
-	"bWfcESFncbwwpng27m2U1us8+3Qzd9FFn93toXSbcCXZMcFVbC5Uxx+gp9ywVgJOvJ36zRvLvZ3iNPd2",
-	"ZebkB6kwQvLPiMBqvmoPOxeNB+OTufsAxlWIW6K35rtP+CoXnBSzrlVMc4V7r6TyTvi2JOoXVp7O1T7B",
-	"pUvPDQveXefqPn+/RWnfYPoVtgqfowE6JcJ/AqBvANTT7mMB8E0tvGHBX9X/Gp9TAPzbul/RA3xTWdk0",
-	"clPPi1mA44gJOZ0MBkOUP9U81W1gyZfCU755VKTkT/kfAQAA//+fcslKoR0AAA==",
+	"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",
+	"aa8ZAAA=",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file
