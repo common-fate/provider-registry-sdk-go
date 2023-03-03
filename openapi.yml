@@ -1,19 +1,19 @@
 openapi: 3.0.0
 info:
-  title: Example API
-  version: '1.0'
+  title: Common Fate Provider Registry
+  version: "1.0"
   contact:
     name: Common Fate
-    url: 'https://commonfate.io'
-  description: Example API
+    url: "https://api.registry.commonfate.io"
+  description: The Common Fate Provider Registry API.
 servers:
-  - url: 'http://localhost:9001'
+  - url: "http://localhost:9001"
 paths:
-  '/api/v1/team/{team}/providers/{name}/{version}':
+  "/v1alpha1/providers/{publisher}/{name}/{version}":
     parameters:
       - schema:
           type: string
-        name: team
+        name: publisher
         in: path
         required: true
       - schema:
@@ -30,23 +30,23 @@ paths:
       summary: Get Provider
       operationId: get-provider
       responses:
-        '200':
+        "200":
           description: OK
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ProviderDetail'
-        '404':
-          $ref: '#/components/responses/ErrorResponse'
-        '500':
-          $ref: '#/components/responses/ErrorResponse'
+                $ref: "#/components/schemas/ProviderDetail"
+        "404":
+          $ref: "#/components/responses/ErrorResponse"
+        "500":
+          $ref: "#/components/responses/ErrorResponse"
       tags:
         - Public
-  '/api/v1/team/{team}/providers/{name}/{version}/setup':
+  "/v1alpha1/providers/{publisher}/{name}/{version}/setup":
     parameters:
       - schema:
           type: string
-        name: team
+        name: publisher
         in: path
         required: true
       - schema:
@@ -63,7 +63,7 @@ paths:
       summary: Get Provider Setup Docs
       operationId: get-provider-setup-docs
       responses:
-        '200':
+        "200":
           description: OK
           content:
             application/json:
@@ -73,11 +73,11 @@ paths:
                   type: string
       tags:
         - Public
-  '/api/v1/team/{team}/providers/{name}/{version}/usage':
+  "/v1alpha1/providers/{publisher}/{name}/{version}/usage":
     parameters:
       - schema:
           type: string
-        name: team
+        name: publisher
         in: path
         required: true
       - schema:
@@ -94,7 +94,7 @@ paths:
       summary: Get Provider Usage Doc
       operationId: get-provider-usage-doc
       responses:
-        '200':
+        "200":
           description: OK
           content:
             application/json:
@@ -104,38 +104,18 @@ paths:
                   type: string
       tags:
         - Public
-      description: ''
-  /api/v1/providers:
+      description: ""
+  /v1alpha1/providers:
     get:
       summary: List Providers
       tags:
         - Public
       responses:
-        '200':
-          $ref: '#/components/responses/ListProvidersResponse'
-        '500':
-          $ref: '#/components/responses/ErrorResponse'
+        "200":
+          $ref: "#/components/responses/ListProvidersResponse"
+        "500":
+          $ref: "#/components/responses/ErrorResponse"
       operationId: list-all-providers
-  '/api/v1/admin/providersetups/{providersetupId}/instructions':
-    get:
-      summary: Get the setup instructions for an Access Provider
-      tags:
-        - Admin
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ProviderSetupInstructions'
-      operationId: admin-get-providersetup-instructions
-      description: Get the setup instructions for an Access Provider.
-    parameters:
-      - schema:
-          type: string
-        name: providersetupId
-        in: path
-        required: true
 components:
   schemas:
     ProviderDetail:
@@ -156,7 +136,7 @@ components:
         cfnTemplateS3Arn:
           type: string
         schema:
-          $ref: '#/components/schemas/ProviderSchema'
+          $ref: "#/components/schemas/ProviderSchema"
       required:
         - publisher
         - name
@@ -205,7 +185,7 @@ components:
       x-stoplight:
         id: 1b080aa3276c2
       type: object
-      description: 'Define the metadata, data type and UI elements for the argument'
+      description: "Defines the metadata, data type and UI elements for the argument"
       properties:
         id:
           type: string
@@ -225,9 +205,9 @@ components:
       type: object
       properties:
         config:
-          $ref: '#/components/schemas/ConfigSchema'
+          $ref: "#/components/schemas/ConfigSchema"
         audit:
-          $ref: '#/components/schemas/AuditSchema'
+          $ref: "#/components/schemas/AuditSchema"
         target:
           $ref: '#/components/schemas/TargetSchema'
         meta:
@@ -245,7 +225,7 @@ components:
         schema:
           type: object
           additionalProperties:
-            $ref: '#/components/schemas/TargetArgument'
+            $ref: "#/components/schemas/TargetArgument"
       required:
         - schema
     TargetSchema:
@@ -254,14 +234,14 @@ components:
         id: tk7obmea4shbx
       type: object
       additionalProperties:
-        $ref: '#/components/schemas/TargetMode'
+        $ref: "#/components/schemas/TargetMode"
     ConfigSchema:
       title: ConfigSchema
       x-stoplight:
         id: a4b73cf497883
       type: object
       additionalProperties:
-        $ref: '#/components/schemas/ConfigArgument'
+        $ref: "#/components/schemas/ConfigArgument"
     AuditSchema:
       title: AuditSchema
       x-stoplight:
@@ -271,11 +251,11 @@ components:
         resourceLoaders:
           type: object
           additionalProperties:
-            $ref: '#/components/schemas/ResourceLoader'
+            $ref: "#/components/schemas/ResourceLoader"
         resources:
           type: object
           additionalProperties:
-            $ref: '#/components/schemas/Resource'
+            $ref: "#/components/schemas/Resource"
       required:
         - resourceLoaders
     MetaSchema:
@@ -327,7 +307,7 @@ components:
       type: object
       properties:
         level:
-          $ref: '#/components/schemas/LogLevel'
+          $ref: "#/components/schemas/LogLevel"
         msg:
           type: string
       required:
@@ -340,7 +320,7 @@ components:
       type: object
       properties:
         provider:
-          $ref: '#/components/schemas/Provider'
+          $ref: "#/components/schemas/Provider"
         config:
           type: object
         healthy:
@@ -348,45 +328,15 @@ components:
         diagnostics:
           type: array
           items:
-            $ref: '#/components/schemas/DiagnosticLog'
+            $ref: "#/components/schemas/DiagnosticLog"
         schema:
-          $ref: '#/components/schemas/ProviderSchema'
+          $ref: "#/components/schemas/ProviderSchema"
       required:
         - provider
         - config
         - healthy
         - diagnostics
         - schema
-    ProviderSetupInstructions:
-      title: ProviderSetupInstructions
-      x-stoplight:
-        id: w5avwzeow2bj9
-      type: object
-      properties:
-        stepDetails:
-          type: array
-          items:
-            $ref: '#/components/schemas/ProviderSetupStepDetails'
-      required:
-        - stepDetails
-    ProviderSetupStepDetails:
-      title: ProviderSetupStepDetails
-      x-stoplight:
-        id: w5avwzeow2bj9
-      type: object
-      properties:
-        title:
-          type: string
-        instructions:
-          type: string
-        configFields:
-          type: array
-          items:
-            $ref: '#/components/schemas/ConfigArgument'
-      required:
-        - title
-        - instructions
-        - configFields
     LogLevel:
       title: LogLevel
       x-stoplight:
@@ -432,7 +382,7 @@ components:
               providers:
                 type: array
                 items:
-                  $ref: '#/components/schemas/ProviderDetail'
+                  $ref: "#/components/schemas/ProviderDetail"
               next:
                 type: string
                 nullable: true
