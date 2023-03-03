@@ -173,12 +173,12 @@ components:
             - string
         secret:
           type: boolean
-        usage:
+        description:
           type: string
       required:
         - type
         - secret
-        - usage
+        - description
     TargetArgument:
       title: TargetArgument
       x-stoplight:
