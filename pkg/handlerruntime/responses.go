@@ -14,8 +14,8 @@ type Resource struct {
 type LoadResourceResponse struct {
 	Resources []Resource `mapstructure:"resources"`
 
-	PendingTasks []struct {
+	Tasks []struct {
 		Name string      `mapstructure:"name"`
 		Ctx  interface{} `mapstructure:"ctx"`
-	} `mapstructure:"pendingTasks"`
+	} `mapstructure:"tasks"`
 }
