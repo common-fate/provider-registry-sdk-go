@@ -203,6 +203,10 @@ components:
         id: d3gvj3cbsoe70
       type: object
       properties:
+        $schema:
+          type: string
+        $id:
+          type: string
         config:
           $ref: "#/components/schemas/ConfigSchema"
         resources:
@@ -212,6 +216,8 @@ components:
         meta:
           $ref: "#/components/schemas/MetaSchema"
       required:
+        - $schema
+        - $id
         - config
         - resources
         - targets
