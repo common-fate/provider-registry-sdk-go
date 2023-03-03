@@ -170,8 +170,7 @@ components:
         type:
           type: string
           enum:
-            - STRING
-            - SECRETSTRING
+            - string
         secret:
           type: boolean
         usage:
@@ -185,7 +184,7 @@ components:
       x-stoplight:
         id: 1b080aa3276c2
       type: object
-      description: "Defines the metadata, data type and UI elements for the argument"
+      description: "Defines the metadata and data type for the argument"
       properties:
         id:
           type: string
@@ -193,7 +192,7 @@ components:
           type: string
         description:
           type: string
-        resourceName:
+        resource:
           type: string
       required:
         - id
@@ -206,35 +205,40 @@ components:
       properties:
         config:
           $ref: "#/components/schemas/ConfigSchema"
-        audit:
-          $ref: "#/components/schemas/AuditSchema"
-        target:
+        resources:
+          $ref: "#/components/schemas/ResourcesSchema"
+        targets:
           $ref: "#/components/schemas/TargetSchema"
         meta:
           $ref: "#/components/schemas/MetaSchema"
       required:
         - config
-        - audit
-        - target
-    TargetMode:
-      title: TargetMode
+        - resources
+        - targets
+    TargetKind:
+      title: TargetKind
       x-stoplight:
         id: o2oindupo85hh
       type: object
       properties:
-        schema:
+        type:
+          type: string
+          enum:
+            - "object"
+        properties:
           type: object
           additionalProperties:
             $ref: "#/components/schemas/TargetArgument"
       required:
-        - schema
+        - properties
+        - type
     TargetSchema:
       title: TargetSchema
       x-stoplight:
         id: tk7obmea4shbx
       type: object
       additionalProperties:
-        $ref: "#/components/schemas/TargetMode"
+        $ref: "#/components/schemas/TargetKind"
     ConfigSchema:
       title: ConfigSchema
       x-stoplight:
@@ -242,36 +246,33 @@ components:
       type: object
       additionalProperties:
         $ref: "#/components/schemas/ConfigArgument"
-    AuditSchema:
-      title: AuditSchema
+    ResourcesSchema:
+      title: ResourcesSchema
       x-stoplight:
         id: bacx4ke9fh1bo
       type: object
       properties:
-        resourceLoaders:
+        loaders:
           type: object
           additionalProperties:
             $ref: "#/components/schemas/ResourceLoader"
-        resources:
+        types:
           type: object
           additionalProperties:
             $ref: "#/components/schemas/Resource"
       required:
-        - resourceLoaders
+        - loaders
     MetaSchema:
       title: MetaSchema
       type: object
       x-stoplight:
         id: a23a6233affd6
       properties:
-        schemaVersion:
-          type: string
-        commonfateProviderCoreVersion:
+        framework:
           type: string
       required:
-        - schemaVersion
-        - commonfateProviderCoreVersion
-      description: metadata that includes schema version, commonfate provider core python library
+        - framework
+      description: Metadata about the schema
     ResourceLoader:
       title: ResourceLoader
       x-stoplight:
