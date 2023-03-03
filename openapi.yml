@@ -209,9 +209,9 @@ components:
         audit:
           $ref: "#/components/schemas/AuditSchema"
         target:
-          $ref: '#/components/schemas/TargetSchema'
+          $ref: "#/components/schemas/TargetSchema"
         meta:
-          $ref: '#/components/schemas/MetaSchema'
+          $ref: "#/components/schemas/MetaSchema"
       required:
         - config
         - audit
@@ -271,7 +271,7 @@ components:
       required:
         - schemaVersion
         - commonfateProviderCoreVersion
-      description: 'metadata that includes schema version, commonfate provider core python library'
+      description: metadata that includes schema version, commonfate provider core python library
     ResourceLoader:
       title: ResourceLoader
       x-stoplight:
