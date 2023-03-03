@@ -229,6 +229,7 @@ components:
           enum:
             - "object"
         properties:
+          x-go-type: map[string]TargetArgument
           type: object
           additionalProperties:
             $ref: "#/components/schemas/TargetArgument"
@@ -237,6 +238,7 @@ components:
         - type
     TargetSchema:
       title: TargetSchema
+      x-go-type: map[string]TargetKind
       x-stoplight:
         id: tk7obmea4shbx
       type: object
@@ -244,6 +246,7 @@ components:
         $ref: "#/components/schemas/TargetKind"
     ConfigSchema:
       title: ConfigSchema
+      x-go-type: map[string]ConfigArgument
       x-stoplight:
         id: a4b73cf497883
       type: object
@@ -257,10 +260,12 @@ components:
       properties:
         loaders:
           type: object
+          x-go-type: map[string]ResourceLoader
           additionalProperties:
             $ref: "#/components/schemas/ResourceLoader"
         types:
           type: object
+          x-go-type: map[string]Resource
           additionalProperties:
             $ref: "#/components/schemas/Resource"
       required:

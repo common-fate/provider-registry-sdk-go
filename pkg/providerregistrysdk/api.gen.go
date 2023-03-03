@@ -49,9 +49,7 @@ type ConfigArgument struct {
 type ConfigArgumentType string
 
 // ConfigSchema defines model for ConfigSchema.
-type ConfigSchema struct {
-	AdditionalProperties map[string]ConfigArgument `json:"-"`
-}
+type ConfigSchema map[string]ConfigArgument
 
 // DescribeResponse defines model for DescribeResponse.
 type DescribeResponse struct {
@@ -122,18 +120,8 @@ type ResourceLoader struct {
 
 // ResourcesSchema defines model for ResourcesSchema.
 type ResourcesSchema struct {
-	Loaders ResourcesSchema_Loaders `json:"loaders"`
-	Types   *ResourcesSchema_Types  `json:"types,omitempty"`
-}
-
-// ResourcesSchema_Loaders defines model for ResourcesSchema.Loaders.
-type ResourcesSchema_Loaders struct {
-	AdditionalProperties map[string]ResourceLoader `json:"-"`
-}
-
-// ResourcesSchema_Types defines model for ResourcesSchema.Types.
-type ResourcesSchema_Types struct {
-	AdditionalProperties map[string]Resource `json:"-"`
+	Loaders map[string]ResourceLoader `json:"loaders"`
+	Types   *map[string]Resource      `json:"types,omitempty"`
 }
 
 // Defines the metadata and data type for the argument
@@ -146,22 +134,15 @@ type TargetArgument struct {
 
 // TargetKind defines model for TargetKind.
 type TargetKind struct {
-	Properties TargetKind_Properties `json:"properties"`
-	Type       TargetKindType        `json:"type"`
-}
-
-// TargetKind_Properties defines model for TargetKind.Properties.
-type TargetKind_Properties struct {
-	AdditionalProperties map[string]TargetArgument `json:"-"`
+	Properties map[string]TargetArgument `json:"properties"`
+	Type       TargetKindType            `json:"type"`
 }
 
 // TargetKindType defines model for TargetKind.Type.
 type TargetKindType string
 
 // TargetSchema defines model for TargetSchema.
-type TargetSchema struct {
-	AdditionalProperties map[string]TargetKind `json:"-"`
-}
+type TargetSchema map[string]TargetKind
 
 // ErrorResponse defines model for ErrorResponse.
 type ErrorResponse struct {
@@ -177,271 +158,6 @@ type HealthResponse struct {
 type ListProvidersResponse struct {
 	Next      *string          `json:"next"`
 	Providers []ProviderDetail `json:"providers"`
-}
-
-// Getter for additional properties for ConfigSchema. Returns the specified
-// element and whether it was found
-func (a ConfigSchema) Get(fieldName string) (value ConfigArgument, found bool) {
-	if a.AdditionalProperties != nil {
-		value, found = a.AdditionalProperties[fieldName]
-	}
-	return
-}
-
-// Setter for additional properties for ConfigSchema
-func (a *ConfigSchema) Set(fieldName string, value ConfigArgument) {
-	if a.AdditionalProperties == nil {
-		a.AdditionalProperties = make(map[string]ConfigArgument)
-	}
-	a.AdditionalProperties[fieldName] = value
-}
-
-// Override default JSON handling for ConfigSchema to handle AdditionalProperties
-func (a *ConfigSchema) UnmarshalJSON(b []byte) error {
-	object := make(map[string]json.RawMessage)
-	err := json.Unmarshal(b, &object)
-	if err != nil {
-		return err
-	}
-
-	if len(object) != 0 {
-		a.AdditionalProperties = make(map[string]ConfigArgument)
-		for fieldName, fieldBuf := range object {
-			var fieldVal ConfigArgument
-			err := json.Unmarshal(fieldBuf, &fieldVal)
-			if err != nil {
-				return fmt.Errorf("error unmarshaling field %s: %w", fieldName, err)
-			}
-			a.AdditionalProperties[fieldName] = fieldVal
-		}
-	}
-	return nil
-}
-
-// Override default JSON handling for ConfigSchema to handle AdditionalProperties
-func (a ConfigSchema) MarshalJSON() ([]byte, error) {
-	var err error
-	object := make(map[string]json.RawMessage)
-
-	for fieldName, field := range a.AdditionalProperties {
-		object[fieldName], err = json.Marshal(field)
-		if err != nil {
-			return nil, fmt.Errorf("error marshaling '%s': %w", fieldName, err)
-		}
-	}
-	return json.Marshal(object)
-}
-
-// Getter for additional properties for ResourcesSchema_Loaders. Returns the specified
-// element and whether it was found
-func (a ResourcesSchema_Loaders) Get(fieldName string) (value ResourceLoader, found bool) {
-	if a.AdditionalProperties != nil {
-		value, found = a.AdditionalProperties[fieldName]
-	}
-	return
-}
-
-// Setter for additional properties for ResourcesSchema_Loaders
-func (a *ResourcesSchema_Loaders) Set(fieldName string, value ResourceLoader) {
-	if a.AdditionalProperties == nil {
-		a.AdditionalProperties = make(map[string]ResourceLoader)
-	}
-	a.AdditionalProperties[fieldName] = value
-}
-
-// Override default JSON handling for ResourcesSchema_Loaders to handle AdditionalProperties
-func (a *ResourcesSchema_Loaders) UnmarshalJSON(b []byte) error {
-	object := make(map[string]json.RawMessage)
-	err := json.Unmarshal(b, &object)
-	if err != nil {
-		return err
-	}
-
-	if len(object) != 0 {
-		a.AdditionalProperties = make(map[string]ResourceLoader)
-		for fieldName, fieldBuf := range object {
-			var fieldVal ResourceLoader
-			err := json.Unmarshal(fieldBuf, &fieldVal)
-			if err != nil {
-				return fmt.Errorf("error unmarshaling field %s: %w", fieldName, err)
-			}
-			a.AdditionalProperties[fieldName] = fieldVal
-		}
-	}
-	return nil
-}
-
-// Override default JSON handling for ResourcesSchema_Loaders to handle AdditionalProperties
-func (a ResourcesSchema_Loaders) MarshalJSON() ([]byte, error) {
-	var err error
-	object := make(map[string]json.RawMessage)
-
-	for fieldName, field := range a.AdditionalProperties {
-		object[fieldName], err = json.Marshal(field)
-		if err != nil {
-			return nil, fmt.Errorf("error marshaling '%s': %w", fieldName, err)
-		}
-	}
-	return json.Marshal(object)
-}
-
-// Getter for additional properties for ResourcesSchema_Types. Returns the specified
-// element and whether it was found
-func (a ResourcesSchema_Types) Get(fieldName string) (value Resource, found bool) {
-	if a.AdditionalProperties != nil {
-		value, found = a.AdditionalProperties[fieldName]
-	}
-	return
-}
-
-// Setter for additional properties for ResourcesSchema_Types
-func (a *ResourcesSchema_Types) Set(fieldName string, value Resource) {
-	if a.AdditionalProperties == nil {
-		a.AdditionalProperties = make(map[string]Resource)
-	}
-	a.AdditionalProperties[fieldName] = value
-}
-
-// Override default JSON handling for ResourcesSchema_Types to handle AdditionalProperties
-func (a *ResourcesSchema_Types) UnmarshalJSON(b []byte) error {
-	object := make(map[string]json.RawMessage)
-	err := json.Unmarshal(b, &object)
-	if err != nil {
-		return err
-	}
-
-	if len(object) != 0 {
-		a.AdditionalProperties = make(map[string]Resource)
-		for fieldName, fieldBuf := range object {
-			var fieldVal Resource
-			err := json.Unmarshal(fieldBuf, &fieldVal)
-			if err != nil {
-				return fmt.Errorf("error unmarshaling field %s: %w", fieldName, err)
-			}
-			a.AdditionalProperties[fieldName] = fieldVal
-		}
-	}
-	return nil
-}
-
-// Override default JSON handling for ResourcesSchema_Types to handle AdditionalProperties
-func (a ResourcesSchema_Types) MarshalJSON() ([]byte, error) {
-	var err error
-	object := make(map[string]json.RawMessage)
-
-	for fieldName, field := range a.AdditionalProperties {
-		object[fieldName], err = json.Marshal(field)
-		if err != nil {
-			return nil, fmt.Errorf("error marshaling '%s': %w", fieldName, err)
-		}
-	}
-	return json.Marshal(object)
-}
-
-// Getter for additional properties for TargetKind_Properties. Returns the specified
-// element and whether it was found
-func (a TargetKind_Properties) Get(fieldName string) (value TargetArgument, found bool) {
-	if a.AdditionalProperties != nil {
-		value, found = a.AdditionalProperties[fieldName]
-	}
-	return
-}
-
-// Setter for additional properties for TargetKind_Properties
-func (a *TargetKind_Properties) Set(fieldName string, value TargetArgument) {
-	if a.AdditionalProperties == nil {
-		a.AdditionalProperties = make(map[string]TargetArgument)
-	}
-	a.AdditionalProperties[fieldName] = value
-}
-
-// Override default JSON handling for TargetKind_Properties to handle AdditionalProperties
-func (a *TargetKind_Properties) UnmarshalJSON(b []byte) error {
-	object := make(map[string]json.RawMessage)
-	err := json.Unmarshal(b, &object)
-	if err != nil {
-		return err
-	}
-
-	if len(object) != 0 {
-		a.AdditionalProperties = make(map[string]TargetArgument)
-		for fieldName, fieldBuf := range object {
-			var fieldVal TargetArgument
-			err := json.Unmarshal(fieldBuf, &fieldVal)
-			if err != nil {
-				return fmt.Errorf("error unmarshaling field %s: %w", fieldName, err)
-			}
-			a.AdditionalProperties[fieldName] = fieldVal
-		}
-	}
-	return nil
-}
-
-// Override default JSON handling for TargetKind_Properties to handle AdditionalProperties
-func (a TargetKind_Properties) MarshalJSON() ([]byte, error) {
-	var err error
-	object := make(map[string]json.RawMessage)
-
-	for fieldName, field := range a.AdditionalProperties {
-		object[fieldName], err = json.Marshal(field)
-		if err != nil {
-			return nil, fmt.Errorf("error marshaling '%s': %w", fieldName, err)
-		}
-	}
-	return json.Marshal(object)
-}
-
-// Getter for additional properties for TargetSchema. Returns the specified
-// element and whether it was found
-func (a TargetSchema) Get(fieldName string) (value TargetKind, found bool) {
-	if a.AdditionalProperties != nil {
-		value, found = a.AdditionalProperties[fieldName]
-	}
-	return
-}
-
-// Setter for additional properties for TargetSchema
-func (a *TargetSchema) Set(fieldName string, value TargetKind) {
-	if a.AdditionalProperties == nil {
-		a.AdditionalProperties = make(map[string]TargetKind)
-	}
-	a.AdditionalProperties[fieldName] = value
-}
-
-// Override default JSON handling for TargetSchema to handle AdditionalProperties
-func (a *TargetSchema) UnmarshalJSON(b []byte) error {
-	object := make(map[string]json.RawMessage)
-	err := json.Unmarshal(b, &object)
-	if err != nil {
-		return err
-	}
-
-	if len(object) != 0 {
-		a.AdditionalProperties = make(map[string]TargetKind)
-		for fieldName, fieldBuf := range object {
-			var fieldVal TargetKind
-			err := json.Unmarshal(fieldBuf, &fieldVal)
-			if err != nil {
-				return fmt.Errorf("error unmarshaling field %s: %w", fieldName, err)
-			}
-			a.AdditionalProperties[fieldName] = fieldVal
-		}
-	}
-	return nil
-}
-
-// Override default JSON handling for TargetSchema to handle AdditionalProperties
-func (a TargetSchema) MarshalJSON() ([]byte, error) {
-	var err error
-	object := make(map[string]json.RawMessage)
-
-	for fieldName, field := range a.AdditionalProperties {
-		object[fieldName], err = json.Marshal(field)
-		if err != nil {
-			return nil, fmt.Errorf("error marshaling '%s': %w", fieldName, err)
-		}
-	}
-	return json.Marshal(object)
 }
 
 // RequestEditorFn  is the function signature for the RequestEditor callback function
@@ -1379,31 +1095,32 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"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",
+	"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",
+	"FG8eAEco22V/BwAA//8Zj4DRtRsAAA==",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file
