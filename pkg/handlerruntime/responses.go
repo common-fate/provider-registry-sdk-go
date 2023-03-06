@@ -1,9 +1,9 @@
 package handlerruntime
 
 type Data struct {
-	ID    string                 `mapstructure:"id"`
-	Name  string                 `mapstructure:"name"`
-	Other map[string]interface{} `mapstructure:",remain"`
+	ID    string         `mapstructure:"id"`
+	Name  string         `mapstructure:"name"`
+	Other map[string]any `mapstructure:",remain"`
 }
 
 type Resource struct {
@@ -15,7 +15,7 @@ type LoadResourceResponse struct {
 	Resources []Resource `mapstructure:"resources"`
 
 	Tasks []struct {
-		Name string      `mapstructure:"name"`
-		Ctx  interface{} `mapstructure:"ctx"`
+		Name string         `mapstructure:"name"`
+		Ctx  map[string]any `mapstructure:"ctx"`
 	} `mapstructure:"tasks"`
 }
