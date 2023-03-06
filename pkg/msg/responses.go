@@ -25,3 +25,8 @@ type PendingTask struct {
 	Task string         `json:"task"`
 	Ctx  map[string]any `json:"ctx"`
 }
+
+type GrantResponse struct {
+	AccessInstructions string         `json:"access_instructions"`
+	State              map[string]any `json:"state"`
+}
