@@ -42,7 +42,7 @@ func TestRuntime_FetchResources(t *testing.T) {
 			}
 			ctx := context.Background()
 
-			got, err := r.FetchResources(ctx, "", map[string]any{})
+			got, err := r.FetchResources(ctx, msg.LoadResources{})
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Runtime.FetchResources() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -87,7 +87,7 @@ func TestRuntime_Grant(t *testing.T) {
 			}
 			ctx := context.Background()
 
-			got, err := r.Grant(ctx, "", msg.Target{})
+			got, err := r.Grant(ctx, msg.Grant{})
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Runtime.FetchResources() error = %v, wantErr %v", err, tt.wantErr)
 				return

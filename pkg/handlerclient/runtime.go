@@ -16,8 +16,8 @@ type Client struct {
 	Executor Executor
 }
 
-func (r *Client) FetchResources(ctx context.Context, name string, contx map[string]any) (*msg.LoadResponse, error) {
-	response, err := r.Executor.Execute(ctx, msg.LoadResources{Task: name, Ctx: contx})
+func (r *Client) FetchResources(ctx context.Context, req msg.LoadResources) (*msg.LoadResponse, error) {
+	response, err := r.Executor.Execute(ctx, req)
 	if err != nil {
 		return nil, err
 	}
@@ -47,8 +47,8 @@ func (r *Client) Describe(ctx context.Context) (*providerregistrysdk.DescribeRes
 	return &dr, nil
 }
 
-func (r *Client) Grant(ctx context.Context, subject string, target msg.Target) (*msg.GrantResponse, error) {
-	response, err := r.Executor.Execute(ctx, msg.Grant{Subject: subject, Target: target})
+func (r *Client) Grant(ctx context.Context, req msg.Grant) (*msg.GrantResponse, error) {
+	response, err := r.Executor.Execute(ctx, req)
 	if err != nil {
 		return nil, err
 	}
@@ -63,7 +63,7 @@ func (r *Client) Grant(ctx context.Context, subject string, target msg.Target) (
 	return &gr, nil
 }
 
-func (r *Client) Revoke(ctx context.Context, subject string, target msg.Target) error {
-	_, err := r.Executor.Execute(ctx, msg.Revoke{Subject: subject, Target: target})
+func (r *Client) Revoke(ctx context.Context, req msg.Revoke) error {
+	_, err := r.Executor.Execute(ctx, req)
 	return err
 }
