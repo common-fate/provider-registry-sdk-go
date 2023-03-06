@@ -47,9 +47,20 @@ func (r *Client) Describe(ctx context.Context) (*providerregistrysdk.DescribeRes
 	return &dr, nil
 }
 
-func (r *Client) Grant(ctx context.Context, subject string, target msg.Target) error {
-	_, err := r.Executor.Execute(ctx, msg.Grant{Subject: subject, Target: target})
-	return err
+func (r *Client) Grant(ctx context.Context, subject string, target msg.Target) (*msg.GrantResponse, error) {
+	response, err := r.Executor.Execute(ctx, msg.Grant{Subject: subject, Target: target})
+	if err != nil {
+		return nil, err
+	}
+
+	var gr msg.GrantResponse
+
+	err = json.Unmarshal(response.Response, &gr)
+	if err != nil {
+		return nil, err
+	}
+
+	return &gr, nil
 }
 
 func (r *Client) Revoke(ctx context.Context, subject string, target msg.Target) error {

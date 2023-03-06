@@ -51,3 +51,48 @@ func TestRuntime_FetchResources(t *testing.T) {
 		})
 	}
 }
+
+func TestRuntime_Grant(t *testing.T) {
+	tests := []struct {
+		name         string
+		invokeResult *msg.Result
+		invokeErr    error
+		want         *msg.GrantResponse
+		wantErr      bool
+	}{
+		{
+			name: "ok",
+			invokeResult: &msg.Result{
+				Response: []byte(`{"access_instructions": "test", "state": {"foo": "bar"}}`),
+			},
+			want: &msg.GrantResponse{
+				AccessInstructions: "test",
+				State: map[string]any{
+					"foo": "bar",
+				},
+			},
+		},
+		{
+			name: "invalid json",
+			invokeResult: &msg.Result{
+				Response: []byte(`bad`),
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			r := &Client{
+				Executor: MockExecutor{Result: tt.invokeResult, Err: tt.invokeErr},
+			}
+			ctx := context.Background()
+
+			got, err := r.Grant(ctx, "", msg.Target{})
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Runtime.FetchResources() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			assert.Equal(t, tt.want, got)
+		})
+	}
+}
