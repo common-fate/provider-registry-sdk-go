@@ -3,6 +3,7 @@ package handlerclient
 import (
 	"context"
 	"encoding/json"
+	"io"
 	"os"
 	"os/exec"
 
@@ -10,10 +11,26 @@ import (
 )
 
 type Local struct {
-	Path string
+	// Dir specifies the working directory of the command.
+	// If Dir is the empty string, Run runs the command in the
+	// calling process's current directory.
+	Dir string
+
+	// Sterr stream to write to.
+	// If unset, os.Stderr will be used.
+	Stderr io.Writer
+
+	// Env vars to provide to the local process.
+	// If Env is nil, the new process uses the current process's environment.
+	Env []string
 }
 
 func (l Local) Execute(ctx context.Context, request msg.Request) (*msg.Result, error) {
+	stderr := l.Stderr
+	if stderr == nil {
+		stderr = os.Stderr
+	}
+
 	payload := payload{Type: request.Type(), Data: request}
 	payloadbytes, err := json.Marshal(payload)
 	if err != nil {
@@ -21,8 +38,9 @@ func (l Local) Execute(ctx context.Context, request msg.Request) (*msg.Result, e
 	}
 
 	cmd := exec.Command(".venv/bin/commonfate-provider-py", "run", string(payloadbytes))
-	cmd.Dir = l.Path
-	cmd.Env = append(cmd.Env, os.Environ()...)
+	cmd.Env = l.Env
+	cmd.Dir = l.Dir
+	cmd.Stderr = stderr
 	out, err := cmd.Output()
 	if err != nil {
 		return nil, err
