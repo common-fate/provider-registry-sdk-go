@@ -21,16 +21,23 @@ type Target struct {
 	Arguments map[string]string `json:"arguments"`
 }
 
+type AccessRequest struct {
+	ID string `json:"id"`
+}
+
 type Grant struct {
-	Subject string `json:"subject"`
-	Target  Target `json:"target"`
+	Subject string        `json:"subject"`
+	Target  Target        `json:"target"`
+	Request AccessRequest `json:"request"`
 }
 
 func (Grant) Type() RequestType { return RequestTypeGrant }
 
 type Revoke struct {
-	Subject string `json:"subject"`
-	Target  Target `json:"target"`
+	Subject string         `json:"subject"`
+	Target  Target         `json:"target"`
+	Request AccessRequest  `json:"request"`
+	State   map[string]any `json:"state"`
 }
 
 func (Revoke) Type() RequestType { return RequestTypeRevoke }
