@@ -1,15 +1,15 @@
 openapi: 3.0.0
 info:
   title: Common Fate Provider Registry
-  version: '1.0'
+  version: "1.0"
   contact:
     name: Common Fate
-    url: 'https://api.registry.commonfate.io'
+    url: "https://api.registry.commonfate.io"
   description: The Common Fate Provider Registry API.
 servers:
-  - url: 'http://localhost:9001'
+  - url: "http://localhost:9001"
 paths:
-  '/v1alpha1/providers/{publisher}/{name}/{version}':
+  "/v1alpha1/providers/{publisher}/{name}/{version}":
     parameters:
       - schema:
           type: string
@@ -30,19 +30,19 @@ paths:
       summary: Get Provider
       operationId: get-provider
       responses:
-        '200':
+        "200":
           description: OK
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ProviderDetail'
-        '404':
-          $ref: '#/components/responses/ErrorResponse'
-        '500':
-          $ref: '#/components/responses/ErrorResponse'
+                $ref: "#/components/schemas/ProviderDetail"
+        "404":
+          $ref: "#/components/responses/ErrorResponse"
+        "500":
+          $ref: "#/components/responses/ErrorResponse"
       tags:
         - Public
-  '/v1alpha1/providers/{publisher}/{name}/{version}/setup':
+  "/v1alpha1/providers/{publisher}/{name}/{version}/setup":
     parameters:
       - schema:
           type: string
@@ -63,7 +63,7 @@ paths:
       summary: Get Provider Setup Docs
       operationId: get-provider-setup-docs
       responses:
-        '200':
+        "200":
           description: OK
           content:
             application/json:
@@ -73,7 +73,7 @@ paths:
                   type: string
       tags:
         - Public
-  '/v1alpha1/providers/{publisher}/{name}/{version}/usage':
+  "/v1alpha1/providers/{publisher}/{name}/{version}/usage":
     parameters:
       - schema:
           type: string
@@ -94,7 +94,7 @@ paths:
       summary: Get Provider Usage Doc
       operationId: get-provider-usage-doc
       responses:
-        '200':
+        "200":
           description: OK
           content:
             application/json:
@@ -104,17 +104,17 @@ paths:
                   type: string
       tags:
         - Public
-      description: ''
+      description: ""
   /v1alpha1/providers:
     get:
       summary: List Providers
       tags:
         - Public
       responses:
-        '200':
-          $ref: '#/components/responses/ListProvidersResponse'
-        '500':
-          $ref: '#/components/responses/ErrorResponse'
+        "200":
+          $ref: "#/components/responses/ListProvidersResponse"
+        "500":
+          $ref: "#/components/responses/ErrorResponse"
       operationId: list-all-providers
 components:
   schemas:
@@ -136,7 +136,7 @@ components:
         cfnTemplateS3Arn:
           type: string
         schema:
-          $ref: '#/components/schemas/Schema'
+          $ref: "#/components/schemas/Schema"
       required:
         - publisher
         - name
@@ -270,7 +270,7 @@ components:
       properties:
         loaders:
           additionalProperties:
-            $ref: '#/components/schemas/Loader'
+            $ref: "#/components/schemas/Loader"
           x-go-type: map[string]Loader
           title: Loaders
           type: object
@@ -287,7 +287,7 @@ components:
       properties:
         properties:
           additionalProperties:
-            $ref: '#/components/schemas/TargetField'
+            $ref: "#/components/schemas/TargetField"
           x-go-type: map[string]TargetField
           description: the actual properties of the target.
           title: Properties
@@ -309,7 +309,7 @@ components:
           title: Description
           type: string
         resource:
-          description: 'If specified, the type of the resource the field should be populated from.'
+          description: "If specified, the type of the resource the field should be populated from."
           title: Resource
           type: string
         title:
@@ -329,19 +329,19 @@ components:
       properties:
         config:
           additionalProperties:
-            $ref: '#/components/schemas/Config'
+            $ref: "#/components/schemas/Config"
           x-go-type: map[string]Config
           title: Config
           type: object
         meta:
-          $ref: '#/components/schemas/Meta'
+          $ref: "#/components/schemas/Meta"
         provider:
-          $ref: '#/components/schemas/Provider'
+          $ref: "#/components/schemas/Provider"
         resources:
-          $ref: '#/components/schemas/Resources'
+          $ref: "#/components/schemas/Resources"
         targets:
           additionalProperties:
-            $ref: '#/components/schemas/Target'
+            $ref: "#/components/schemas/Target"
           x-go-type: map[string]Target
           title: Targets
           type: object
@@ -385,7 +385,7 @@ components:
               providers:
                 type: array
                 items:
-                  $ref: '#/components/schemas/ProviderDetail'
+                  $ref: "#/components/schemas/ProviderDetail"
               next:
                 type: string
                 nullable: true
