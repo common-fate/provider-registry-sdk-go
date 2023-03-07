@@ -15,18 +15,24 @@ import (
 )
 
 type Lambda struct {
-	FunctionARN  string
+	HandlerID    string
 	lambdaClient *lambda.Client
 }
 
-func NewLambdaRuntime(ctx context.Context, functionARN string) (*Client, error) {
+// The handler id is prefixed with cf-handler- to form the function name this is done in the cloudformation template.
+// the function, cloudwatch log group and IAM role will share this name
+func (l *Lambda) FunctionName() string {
+	return "cf-handler-" + l.HandlerID
+}
+
+func NewLambdaRuntime(ctx context.Context, handlerID string) (*Client, error) {
 	cfg, err := config.LoadDefaultConfig(ctx)
 	if err != nil {
 		return nil, err
 	}
 	lambdaClient := lambda.NewFromConfig(cfg)
 
-	l := Lambda{FunctionARN: functionARN, lambdaClient: lambdaClient}
+	l := Lambda{HandlerID: handlerID, lambdaClient: lambdaClient}
 	return &Client{Executor: l}, nil
 }
 
@@ -44,7 +50,7 @@ func (l Lambda) Execute(ctx context.Context, request msg.Request) (*msg.Result, 
 	}
 
 	res, err := l.lambdaClient.Invoke(ctx, &lambda.InvokeInput{
-		FunctionName:   aws.String(l.FunctionARN),
+		FunctionName:   aws.String(l.HandlerID),
 		InvocationType: lambdatypes.InvocationTypeRequestResponse,
 		Payload:        payloadbytes,
 		LogType:        lambdatypes.LogTypeTail,
