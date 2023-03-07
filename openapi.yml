@@ -1,15 +1,15 @@
 openapi: 3.0.0
 info:
   title: Common Fate Provider Registry
-  version: "1.0"
+  version: '1.0'
   contact:
     name: Common Fate
-    url: "https://api.registry.commonfate.io"
+    url: 'https://api.registry.commonfate.io'
   description: The Common Fate Provider Registry API.
 servers:
-  - url: "http://localhost:9001"
+  - url: 'http://localhost:9001'
 paths:
-  "/v1alpha1/providers/{publisher}/{name}/{version}":
+  '/v1alpha1/providers/{publisher}/{name}/{version}':
     parameters:
       - schema:
           type: string
@@ -30,19 +30,19 @@ paths:
       summary: Get Provider
       operationId: get-provider
       responses:
-        "200":
+        '200':
           description: OK
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ProviderDetail"
-        "404":
-          $ref: "#/components/responses/ErrorResponse"
-        "500":
-          $ref: "#/components/responses/ErrorResponse"
+                $ref: '#/components/schemas/ProviderDetail'
+        '404':
+          $ref: '#/components/responses/ErrorResponse'
+        '500':
+          $ref: '#/components/responses/ErrorResponse'
       tags:
         - Public
-  "/v1alpha1/providers/{publisher}/{name}/{version}/setup":
+  '/v1alpha1/providers/{publisher}/{name}/{version}/setup':
     parameters:
       - schema:
           type: string
@@ -63,7 +63,7 @@ paths:
       summary: Get Provider Setup Docs
       operationId: get-provider-setup-docs
       responses:
-        "200":
+        '200':
           description: OK
           content:
             application/json:
@@ -73,7 +73,7 @@ paths:
                   type: string
       tags:
         - Public
-  "/v1alpha1/providers/{publisher}/{name}/{version}/usage":
+  '/v1alpha1/providers/{publisher}/{name}/{version}/usage':
     parameters:
       - schema:
           type: string
@@ -94,7 +94,7 @@ paths:
       summary: Get Provider Usage Doc
       operationId: get-provider-usage-doc
       responses:
-        "200":
+        '200':
           description: OK
           content:
             application/json:
@@ -104,17 +104,17 @@ paths:
                   type: string
       tags:
         - Public
-      description: ""
+      description: ''
   /v1alpha1/providers:
     get:
       summary: List Providers
       tags:
         - Public
       responses:
-        "200":
-          $ref: "#/components/responses/ListProvidersResponse"
-        "500":
-          $ref: "#/components/responses/ErrorResponse"
+        '200':
+          $ref: '#/components/responses/ListProvidersResponse'
+        '500':
+          $ref: '#/components/responses/ErrorResponse'
       operationId: list-all-providers
 components:
   schemas:
@@ -136,7 +136,7 @@ components:
         cfnTemplateS3Arn:
           type: string
         schema:
-          $ref: "#/components/schemas/ProviderSchema"
+          $ref: '#/components/schemas/Schema'
       required:
         - publisher
         - name
@@ -161,154 +161,6 @@ components:
         - publisher
         - name
         - version
-    ConfigArgument:
-      title: ConfigArgument
-      x-stoplight:
-        id: b867e439e8b53
-      type: object
-      properties:
-        type:
-          type: string
-          enum:
-            - string
-        secret:
-          type: boolean
-        description:
-          type: string
-      required:
-        - type
-        - secret
-        - description
-    TargetArgument:
-      title: TargetArgument
-      x-stoplight:
-        id: 1b080aa3276c2
-      type: object
-      description: "Defines the metadata and data type for the argument"
-      properties:
-        id:
-          type: string
-        title:
-          type: string
-        description:
-          type: string
-        resource:
-          type: string
-      required:
-        - id
-        - title
-    ProviderSchema:
-      title: ProviderSchema
-      x-stoplight:
-        id: d3gvj3cbsoe70
-      type: object
-      properties:
-        $schema:
-          type: string
-        $id:
-          type: string
-        config:
-          $ref: "#/components/schemas/ConfigSchema"
-        resources:
-          $ref: "#/components/schemas/ResourcesSchema"
-        targets:
-          $ref: "#/components/schemas/TargetSchema"
-        meta:
-          $ref: "#/components/schemas/MetaSchema"
-      required:
-        - $schema
-        - $id
-    TargetKind:
-      title: TargetKind
-      x-stoplight:
-        id: o2oindupo85hh
-      type: object
-      properties:
-        type:
-          type: string
-          enum:
-            - "object"
-        properties:
-          x-go-type: map[string]TargetArgument
-          type: object
-          additionalProperties:
-            $ref: "#/components/schemas/TargetArgument"
-      required:
-        - properties
-        - type
-    TargetSchema:
-      title: TargetSchema
-      x-go-type: map[string]TargetKind
-      x-stoplight:
-        id: tk7obmea4shbx
-      type: object
-      additionalProperties:
-        $ref: "#/components/schemas/TargetKind"
-    ConfigSchema:
-      title: ConfigSchema
-      x-go-type: map[string]ConfigArgument
-      x-stoplight:
-        id: a4b73cf497883
-      type: object
-      additionalProperties:
-        $ref: "#/components/schemas/ConfigArgument"
-    ResourcesSchema:
-      title: ResourcesSchema
-      x-stoplight:
-        id: bacx4ke9fh1bo
-      type: object
-      properties:
-        loaders:
-          type: object
-          x-go-type: map[string]ResourceLoader
-          additionalProperties:
-            $ref: "#/components/schemas/ResourceLoader"
-        types:
-          type: object
-          x-go-type: map[string]Resource
-          additionalProperties:
-            $ref: "#/components/schemas/Resource"
-      required:
-        - loaders
-    MetaSchema:
-      title: MetaSchema
-      type: object
-      x-stoplight:
-        id: a23a6233affd6
-      properties:
-        framework:
-          type: string
-      required:
-        - framework
-      description: Metadata about the schema
-    ResourceLoader:
-      title: ResourceLoader
-      x-stoplight:
-        id: j3ehgrwrocbeh
-      type: object
-      properties:
-        title:
-          type: string
-      required:
-        - title
-    Resource:
-      title: Resource
-      type: object
-      x-stoplight:
-        id: b9183456d960d
-      properties:
-        type:
-          type: string
-        data:
-          type: object
-          required:
-            - id
-          properties:
-            id:
-              type: string
-      required:
-        - type
-        - data
     DiagnosticLog:
       title: DiagnosticLog
       x-stoplight:
@@ -339,7 +191,7 @@ components:
           items:
             $ref: "#/components/schemas/DiagnosticLog"
         schema:
-          $ref: "#/components/schemas/ProviderSchema"
+          $ref: "#/components/schemas/Schema"
       required:
         - provider
         - config
@@ -355,6 +207,148 @@ components:
         - INFO
         - ERROR
         - WARNING
+    Config:
+      properties:
+        description:
+          description: The usage for the config variable.
+          title: Description
+          type: string
+        secret:
+          default: false
+          title: Secret
+          type: boolean
+        type:
+          enum:
+            - string
+          title: Type
+          type: string
+      required:
+        - type
+      title: Config
+      type: object
+    Loader:
+      description: |-
+        A callable function in the provider which can
+        load resources.
+
+        Additional fields for loader configuration may be added
+        in a future specification.
+      properties:
+        title:
+          title: Title
+          type: string
+      required:
+        - title
+      title: Loader
+      type: object
+    Meta:
+      properties:
+        framework:
+          description: The Provider Developer Kit framework version which published the schema.
+          title: Framework
+          type: string
+      title: Meta
+      type: object
+    Providers:
+      properties:
+        name:
+          title: Name
+          type: string
+        publisher:
+          title: Publisher
+          type: string
+        schema_version:
+          title: Schema Version
+          type: string
+      required:
+        - publisher
+        - name
+        - schema_version
+      title: Provider
+      type: object
+    Resources:
+      properties:
+        loaders:
+          additionalProperties:
+            $ref: '#/components/schemas/Loader'
+          x-go-type: map[string]Loader
+          title: Loaders
+          type: object
+        types:
+          description: the types of resources
+          title: Types
+          type: object
+      required:
+        - loaders
+        - types
+      title: Resources
+      type: object
+    Target:
+      properties:
+        properties:
+          additionalProperties:
+            $ref: '#/components/schemas/TargetField'
+          x-go-type: map[string]TargetField
+          description: the actual properties of the target.
+          title: Properties
+          type: object
+        type:
+          description: included for compatibility with JSON Schema - all targets are currently objects.
+          enum:
+            - object
+          title: Type
+          type: string
+      required:
+        - type
+        - properties
+      title: Target
+      type: object
+    TargetField:
+      properties:
+        description:
+          title: Description
+          type: string
+        resource:
+          description: 'If specified, the type of the resource the field should be populated from.'
+          title: Resource
+          type: string
+        title:
+          title: Title
+          type: string
+        type:
+          enum:
+            - string
+          title: Type
+          type: string
+      required:
+        - type
+      title: TargetField
+      type: object
+    Schema:
+      description: The schema for a Common Fate Provider.
+      properties:
+        config:
+          additionalProperties:
+            $ref: '#/components/schemas/Config'
+          x-go-type: map[string]Config
+          title: Config
+          type: object
+        meta:
+          $ref: '#/components/schemas/Meta'
+        provider:
+          $ref: '#/components/schemas/Provider'
+        resources:
+          $ref: '#/components/schemas/Resources'
+        targets:
+          additionalProperties:
+            $ref: '#/components/schemas/Target'
+          x-go-type: map[string]Target
+          title: Targets
+          type: object
+      required:
+        - meta
+      title: Schema
+      type: object
   requestBodies: {}
   responses:
     HealthResponse:
@@ -391,7 +385,7 @@ components:
               providers:
                 type: array
                 items:
-                  $ref: "#/components/schemas/ProviderDetail"
+                  $ref: '#/components/schemas/ProviderDetail'
               next:
                 type: string
                 nullable: true

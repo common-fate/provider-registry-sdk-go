@@ -21,9 +21,9 @@ import (
 	"github.com/go-chi/chi/v5"
 )
 
-// Defines values for ConfigArgumentType.
+// Defines values for ConfigType.
 const (
-	String ConfigArgumentType = "string"
+	ConfigTypeString ConfigType = "string"
 )
 
 // Defines values for LogLevel.
@@ -33,23 +33,26 @@ const (
 	WARNING LogLevel = "WARNING"
 )
 
-// Defines values for TargetKindType.
+// Defines values for TargetType.
 const (
-	Object TargetKindType = "object"
+	Object TargetType = "object"
 )
 
-// ConfigArgument defines model for ConfigArgument.
-type ConfigArgument struct {
-	Description string             `json:"description"`
-	Secret      bool               `json:"secret"`
-	Type        ConfigArgumentType `json:"type"`
+// Defines values for TargetFieldType.
+const (
+	TargetFieldTypeString TargetFieldType = "string"
+)
+
+// Config defines model for Config.
+type Config struct {
+	// The usage for the config variable.
+	Description *string    `json:"description,omitempty"`
+	Secret      *bool      `json:"secret,omitempty"`
+	Type        ConfigType `json:"type"`
 }
 
-// ConfigArgumentType defines model for ConfigArgument.Type.
-type ConfigArgumentType string
-
-// ConfigSchema defines model for ConfigSchema.
-type ConfigSchema map[string]ConfigArgument
+// ConfigType defines model for Config.Type.
+type ConfigType string
 
 // DescribeResponse defines model for DescribeResponse.
 type DescribeResponse struct {
@@ -58,8 +61,10 @@ type DescribeResponse struct {
 	Healthy     bool                   `json:"healthy"`
 
 	// A registered provider version
-	Provider Provider       `json:"provider"`
-	Schema   ProviderSchema `json:"schema"`
+	Provider Provider `json:"provider"`
+
+	// The schema for a Common Fate Provider.
+	Schema Schema `json:"schema"`
 }
 
 // DiagnosticLog defines model for DiagnosticLog.
@@ -68,12 +73,22 @@ type DiagnosticLog struct {
 	Msg   string   `json:"msg"`
 }
 
+// A callable function in the provider which can
+// load resources.
+//
+// Additional fields for loader configuration may be added
+// in a future specification.
+type Loader struct {
+	Title string `json:"title"`
+}
+
 // LogLevel defines model for LogLevel.
 type LogLevel string
 
-// Metadata about the schema
-type MetaSchema struct {
-	Framework string `json:"framework"`
+// Meta defines model for Meta.
+type Meta struct {
+	// The Provider Developer Kit framework version which published the schema.
+	Framework *string `json:"framework,omitempty"`
 }
 
 // A registered provider version
@@ -85,64 +100,66 @@ type Provider struct {
 
 // A registered provider version
 type ProviderDetail struct {
-	CfnTemplateS3Arn string         `json:"cfnTemplateS3Arn"`
-	LambdaAssetS3Arn string         `json:"lambdaAssetS3Arn"`
-	Name             string         `json:"name"`
-	Publisher        string         `json:"publisher"`
-	Schema           ProviderSchema `json:"schema"`
-	Version          string         `json:"version"`
+	CfnTemplateS3Arn string `json:"cfnTemplateS3Arn"`
+	LambdaAssetS3Arn string `json:"lambdaAssetS3Arn"`
+	Name             string `json:"name"`
+	Publisher        string `json:"publisher"`
+
+	// The schema for a Common Fate Provider.
+	Schema  Schema `json:"schema"`
+	Version string `json:"version"`
 }
 
-// ProviderSchema defines model for ProviderSchema.
-type ProviderSchema struct {
-	Id     string        `json:"$id"`
-	Schema string        `json:"$schema"`
-	Config *ConfigSchema `json:"config,omitempty"`
-
-	// Metadata about the schema
-	Meta      *MetaSchema      `json:"meta,omitempty"`
-	Resources *ResourcesSchema `json:"resources,omitempty"`
-	Targets   *TargetSchema    `json:"targets,omitempty"`
+// Providers defines model for Providers.
+type Providers struct {
+	Name          string `json:"name"`
+	Publisher     string `json:"publisher"`
+	SchemaVersion string `json:"schema_version"`
 }
 
-// Resource defines model for Resource.
-type Resource struct {
-	Data struct {
-		Id string `json:"id"`
-	} `json:"data"`
-	Type string `json:"type"`
+// Resources defines model for Resources.
+type Resources struct {
+	Loaders map[string]Loader `json:"loaders"`
+
+	// the types of resources
+	Types map[string]interface{} `json:"types"`
 }
 
-// ResourceLoader defines model for ResourceLoader.
-type ResourceLoader struct {
-	Title string `json:"title"`
+// The schema for a Common Fate Provider.
+type Schema struct {
+	Config *map[string]Config `json:"config,omitempty"`
+	Meta   Meta               `json:"meta"`
+
+	// A registered provider version
+	Provider  *Provider          `json:"provider,omitempty"`
+	Resources *Resources         `json:"resources,omitempty"`
+	Targets   *map[string]Target `json:"targets,omitempty"`
 }
 
-// ResourcesSchema defines model for ResourcesSchema.
-type ResourcesSchema struct {
-	Loaders map[string]ResourceLoader `json:"loaders"`
-	Types   *map[string]Resource      `json:"types,omitempty"`
+// Target defines model for Target.
+type Target struct {
+	// the actual properties of the target.
+	Properties map[string]TargetField `json:"properties"`
+
+	// included for compatibility with JSON Schema - all targets are currently objects.
+	Type TargetType `json:"type"`
 }
 
-// Defines the metadata and data type for the argument
-type TargetArgument struct {
+// included for compatibility with JSON Schema - all targets are currently objects.
+type TargetType string
+
+// TargetField defines model for TargetField.
+type TargetField struct {
 	Description *string `json:"description,omitempty"`
-	Id          string  `json:"id"`
-	Resource    *string `json:"resource,omitempty"`
-	Title       string  `json:"title"`
+
+	// If specified, the type of the resource the field should be populated from.
+	Resource *string         `json:"resource,omitempty"`
+	Title    *string         `json:"title,omitempty"`
+	Type     TargetFieldType `json:"type"`
 }
 
-// TargetKind defines model for TargetKind.
-type TargetKind struct {
-	Properties map[string]TargetArgument `json:"properties"`
-	Type       TargetKindType            `json:"type"`
-}
-
-// TargetKindType defines model for TargetKind.Type.
-type TargetKindType string
-
-// TargetSchema defines model for TargetSchema.
-type TargetSchema map[string]TargetKind
+// TargetFieldType defines model for TargetField.Type.
+type TargetFieldType string
 
 // ErrorResponse defines model for ErrorResponse.
 type ErrorResponse struct {
@@ -1095,32 +1112,34 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"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",
-	"FG8eAEco22V/BwAA//8Zj4DRtRsAAA==",
+	"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",
+	"wGwn6RsAAA==",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file
