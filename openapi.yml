@@ -257,13 +257,13 @@ components:
         publisher:
           title: Publisher
           type: string
-        schema_version:
-          title: Schema Version
+        version:
+          title: Version
           type: string
       required:
         - publisher
         - name
-        - schema_version
+        - version
       title: Provider
       type: object
     Resources:
@@ -327,6 +327,10 @@ components:
     Schema:
       description: The schema for a Common Fate Provider.
       properties:
+        $id:
+          type: string
+        $schema:
+          type: string
         config:
           additionalProperties:
             $ref: "#/components/schemas/Config"
@@ -347,6 +351,8 @@ components:
           type: object
       required:
         - meta
+        - $id
+        - $schema
       title: Schema
       type: object
   requestBodies: {}
