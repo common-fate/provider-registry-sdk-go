@@ -15,24 +15,41 @@ import (
 )
 
 type Lambda struct {
-	HandlerID    string
+
+	/*
+		The name of the Lambda function, version, or alias. Name formats
+
+		* Function name – my-function (name-only), my-function:v1 (with alias).
+
+		* Function ARN – arn:aws:lambda:us-west-2:123456789012:function:my-function.
+
+		* Partial ARN – 123456789012:function:my-function.
+
+		You can append a version number or alias to any of the formats. The length constraint applies only to the full ARN. If you specify only the function name, it is limited to 64 characters in length.
+	*/
+	FunctionName string // Help text is copied from the AWS Lambda Invoke help
 	lambdaClient *lambda.Client
 }
 
-// The handler id is prefixed with cf-handler- to form the function name this is done in the cloudformation template.
-// the function, cloudwatch log group and IAM role will share this name
-func (l *Lambda) FunctionName() string {
-	return "cf-handler-" + l.HandlerID
-}
+/*
+functionName: The name of the Lambda function, version, or alias. Name formats
 
-func NewLambdaRuntime(ctx context.Context, handlerID string) (*Client, error) {
+* Function name – my-function (name-only), my-function:v1 (with alias).
+
+* Function ARN – arn:aws:lambda:us-west-2:123456789012:function:my-function.
+
+* Partial ARN – 123456789012:function:my-function.
+
+You can append a version number or alias to any of the formats. The length constraint applies only to the full ARN. If you specify only the function name, it is limited to 64 characters in length.
+*/
+func NewLambdaRuntime(ctx context.Context, functionName string) (*Client, error) {
 	cfg, err := config.LoadDefaultConfig(ctx)
 	if err != nil {
 		return nil, err
 	}
 	lambdaClient := lambda.NewFromConfig(cfg)
 
-	l := Lambda{HandlerID: handlerID, lambdaClient: lambdaClient}
+	l := Lambda{FunctionName: functionName, lambdaClient: lambdaClient}
 	return &Client{Executor: l}, nil
 }
 
@@ -50,7 +67,7 @@ func (l Lambda) Execute(ctx context.Context, request msg.Request) (*msg.Result, 
 	}
 
 	res, err := l.lambdaClient.Invoke(ctx, &lambda.InvokeInput{
-		FunctionName:   aws.String(l.HandlerID),
+		FunctionName:   aws.String(l.FunctionName),
 		InvocationType: lambdatypes.InvocationTypeRequestResponse,
 		Payload:        payloadbytes,
 		LogType:        lambdatypes.LogTypeTail,
