@@ -3,7 +3,7 @@
     "CommonFate::Bootstrap::Version": "v1"
   },
   "Resources": {
-    "CommonFateProviderAssetsBucket": {
+    "Assets": {
       "Type": "AWS::S3::Bucket",
       "Properties": {
         "AccessControl": "Private",
@@ -26,11 +26,11 @@
       "UpdateReplacePolicy": "Delete",
       "DeletionPolicy": "Delete"
     },
-    "CommonFateProviderAssetsBucketPolicy": {
+    "AssetsPolicy": {
       "Type": "AWS::S3::BucketPolicy",
       "Properties": {
         "Bucket": {
-          "Ref": "CommonFateProviderAssetsBucket"
+          "Ref": "Assets"
         },
         "PolicyDocument": {
           "Statement": [
@@ -47,14 +47,14 @@
               },
               "Resource": [
                 {
-                  "Fn::GetAtt": ["CommonFateProviderAssetsBucket", "Arn"]
+                  "Fn::GetAtt": ["Assets", "Arn"]
                 },
                 {
                   "Fn::Join": [
                     "",
                     [
                       {
-                        "Fn::GetAtt": ["CommonFateProviderAssetsBucket", "Arn"]
+                        "Fn::GetAtt": ["Assets", "Arn"]
                       },
                       "/*"
                     ]
@@ -71,7 +71,7 @@
   "Outputs": {
     "AssetsBucket": {
       "Value": {
-        "Ref": "CommonFateProviderAssetsBucket"
+        "Ref": "Assets"
       }
     }
   }
