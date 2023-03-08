@@ -3,10 +3,12 @@ module github.com/common-fate/provider-registry-sdk-go
 go 1.19
 
 require (
+	github.com/AlecAivazis/survey/v2 v2.3.6
 	github.com/aws/aws-sdk-go-v2 v1.17.5
 	github.com/aws/aws-sdk-go-v2/service/cloudformation v1.21.2
 	github.com/aws/aws-sdk-go-v2/service/lambda v1.30.0
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.5.0
+	github.com/aws/aws-sdk-go-v2/service/sts v1.18.5
 	github.com/common-fate/apikit v0.2.0
 	github.com/common-fate/clio v1.1.0
 	github.com/common-fate/cloudform v0.5.0
@@ -18,10 +20,10 @@ require (
 	github.com/pkg/errors v0.9.1
 	github.com/sethvargo/go-retry v0.2.4
 	github.com/stretchr/testify v1.8.0
+	golang.org/x/term v0.2.0
 )
 
 require (
-	github.com/AlecAivazis/survey/v2 v2.3.6 // indirect
 	github.com/aws-cloudformation/rain v1.2.0 // indirect
 	github.com/aws/aws-sdk-go-v2/credentials v1.13.15 // indirect
 	github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.12.23 // indirect
@@ -31,7 +33,6 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/internal/s3shared v1.2.2 // indirect
 	github.com/aws/aws-sdk-go-v2/service/sso v1.12.4 // indirect
 	github.com/aws/aws-sdk-go-v2/service/ssooidc v1.14.4 // indirect
-	github.com/aws/aws-sdk-go-v2/service/sts v1.18.5 // indirect
 	github.com/briandowns/spinner v1.23.0 // indirect
 	github.com/chzyer/readline v1.5.0 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
@@ -42,7 +43,6 @@ require (
 	github.com/nathan-fiscaletti/consolesize-go v0.0.0-20220204101620-317176b6684d // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/xo/terminfo v0.0.0-20210125001918-ca9a967f8778 // indirect
-	golang.org/x/term v0.2.0 // indirect
 )
 
 require (

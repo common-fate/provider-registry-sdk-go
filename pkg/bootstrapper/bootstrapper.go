@@ -4,21 +4,25 @@ import (
 	"context"
 	_ "embed"
 	"net/url"
+	"os"
 	"path"
 	"time"
 
 	"fmt"
 
+	"github.com/AlecAivazis/survey/v2"
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation"
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
+	"github.com/aws/aws-sdk-go-v2/service/sts"
 	"github.com/aws/smithy-go"
 	"github.com/common-fate/clio"
 	"github.com/common-fate/cloudform/deployer"
 	"github.com/common-fate/provider-registry-sdk-go/pkg/providerregistrysdk"
 	"github.com/pkg/errors"
 	"github.com/sethvargo/go-retry"
+	"golang.org/x/term"
 )
 
 //go:embed cloudformation/bootstrap.json
@@ -50,18 +54,34 @@ func NewFromConfig(cfg aws.Config) *Bootstrapper {
 
 var ErrNotDeployed error = errors.New("bootstrap stack has not yet been deployed in this account and region")
 
-func (b *Bootstrapper) Detect(ctx context.Context, retryOnStackNotExist bool) (*BootstrapStackOutput, error) {
-	r := retry.NewFibonacci(time.Second)
+// DetectOpts allows the detection of the bootstrap bucket to be customised.
+type DetectOpts struct {
+	// StackName is the name of the stack to query
+	// By default it is set to 'common-fate-bootstrap'
+	StackName string
 
-	// don't retry unless specified
-	if retryOnStackNotExist {
-		r = retry.WithMaxDuration(time.Second*20, r)
-	} else {
-		r = retry.WithMaxRetries(1, r)
+	// Retry to use when querying for the stack if it doesn't exist.
+	Retry retry.Backoff
+}
+
+// WithRetry uses a fibonacci backoff capped at 20 seconds to retry for the stack output.
+var WithRetry = func(do *DetectOpts) {
+	do.Retry = retry.WithMaxDuration(time.Second*20, retry.NewFibonacci(time.Second))
+}
+
+// Detect an existing bootstrap stack.
+func (b *Bootstrapper) Detect(ctx context.Context, opts ...func(*DetectOpts)) (*BootstrapStackOutput, error) {
+	o := DetectOpts{
+		StackName: BootstrapStackName,
+		Retry:     retry.WithMaxRetries(1, retry.NewConstant(time.Second)),
+	}
+
+	for _, opt := range opts {
+		opt(&o)
 	}
 
 	var stack *types.Stack
-	err := retry.Do(ctx, r, func(ctx context.Context) (err error) {
+	err := retry.Do(ctx, o.Retry, func(ctx context.Context) (err error) {
 		stacks, err := b.cfnClient.DescribeStacks(ctx, &cloudformation.DescribeStacksInput{
 			StackName: aws.String(BootstrapStackName),
 		})
@@ -109,39 +129,75 @@ type DeployOpts struct {
 	Confirm bool
 }
 
-// Deployment returns the deployment options
+// Deployment returns the deployment options with the template filled in
+// and the stack name set to the 'common-fate-bootstrap' stack name, ready
 // to use with the deployer package to create the bootstrap stack.
 //
 // Usage:
 //
 //	d := deployer.NewFromConfig(cfg)
-//	deployment := bootstrapper.Deployment
+//	deployment := bootstrapper.Deployment()
 //	d.Deploy(ctx, deployment)
-var Deployment = deployer.DeployOpts{
-	Template:  BootstrapTemplate,
-	StackName: BootstrapStackName,
+func Deployment(opts deployer.DeployOpts) deployer.DeployOpts {
+	opts.Template = BootstrapTemplate
+	opts.StackName = BootstrapStackName
+	return opts
 }
 
 // GetOrDeployBootstrap loads the output if the stack already exists, else it deploys the bootstrap stack first
-func (b *Bootstrapper) GetOrDeployBootstrapBucket(ctx context.Context, confirm bool) (string, error) {
-	out, err := b.Detect(ctx, false)
-	if err == ErrNotDeployed {
-		deployment := Deployment
-		deployment.Confirm = confirm
-		_, err := b.deployer.Deploy(ctx, deployment)
-		if err != nil {
-			return "", err
-		}
-		out, err := b.Detect(ctx, true)
-		if err != nil {
-			return "", err
-		}
-		return out.AssetsBucket, nil
+func (b *Bootstrapper) GetOrDeployBootstrapBucket(ctx context.Context, confirm bool) (*BootstrapStackOutput, error) {
+	bootstrapStackOutput, err := b.Detect(ctx)
+	if err == nil {
+		return bootstrapStackOutput, nil
 	}
+
+	if err != ErrNotDeployed {
+		// some other error which we can't handle
+		return nil, err
+	}
+
+	// if we get here, we need to deploy the bootstrap stack into the particular AWS account and region.
+
+	// get the current AWS account and region to display it in the info message
+	stsClient := sts.NewFromConfig(b.cfg)
+	ci, err := stsClient.GetCallerIdentity(ctx, &sts.GetCallerIdentityInput{})
 	if err != nil {
-		return "", err
+		return nil, errors.Wrap(err, "getting caller identity")
 	}
-	return out.AssetsBucket, nil
+
+	clio.Debug("the bootstrap stack was not detected")
+	clio.Warnf("To get started deploying providers, you need to bootstrap this AWS account and region (%s:%s)", ci.Account, b.cfg.Region)
+	clio.Info("Bootstrapping will deploy a CloudFormation stack which creates an S3 Bucket.\nProvider assets will be copied from the Common Fate Provider Registry into this bucket.\nThese assets can then be deployed into your account.")
+
+	if !confirm {
+		// if the terminal is non-interactive (e.g. in CI/CD systems)
+		// return with an error so that we don't cause a deployment to hang forever.
+		if !term.IsTerminal(int(os.Stdin.Fd())) {
+			return nil, errors.New("bootstrapping needs a confirmation but the terminal is non-interactive (you can try including a '--confirm' flag to resolve this)")
+		}
+
+		err = survey.AskOne(&survey.Confirm{Message: "Deploy bootstrap stack", Default: true}, &confirm)
+		if err != nil {
+			return nil, err
+		}
+
+		if !confirm {
+			return nil, errors.New("cancelling deployment")
+		}
+	}
+
+	deployment := Deployment(deployer.DeployOpts{Confirm: true})
+	_, err = b.deployer.Deploy(ctx, deployment)
+	if err != nil {
+		return nil, err
+	}
+
+	bootstrapStackOutput, err = b.Detect(ctx, WithRetry)
+	if err != nil {
+		return nil, err
+	}
+
+	return bootstrapStackOutput, nil
 }
 
 type ProviderFiles struct {
@@ -151,12 +207,12 @@ type ProviderFiles struct {
 // CopyProviderFiles will clone the handler and cfn template from the registry bucket to the bootstrap bucket of the current account
 func (b *Bootstrapper) CopyProviderFiles(ctx context.Context, provider providerregistrysdk.ProviderDetail) (*ProviderFiles, error) {
 	// detect the bootstrap bucket
-	out, err := b.Detect(ctx, false)
+	out, err := b.Detect(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	lambdaAssetPath := path.Join(provider.Publisher, provider.Name, provider.Version)
+	lambdaAssetPath := path.Join("registry.commonfate.io", "v1alpha1", "providers", provider.Publisher, provider.Name, provider.Version)
 	clio.Debugf("Copying the handler.zip into %s", path.Join(out.AssetsBucket, lambdaAssetPath, "handler.zip"))
 	_, err = b.s3Client.CopyObject(ctx, &s3.CopyObjectInput{
 		Bucket:     aws.String(out.AssetsBucket),
@@ -179,7 +235,9 @@ func (b *Bootstrapper) CopyProviderFiles(ctx context.Context, provider providerr
 	}
 	clio.Debugf("Successfully copied the CloudFormation template into %s", path.Join(out.AssetsBucket, lambdaAssetPath, "cloudformation.json"))
 
-	return &ProviderFiles{
+	pf := &ProviderFiles{
 		CloudformationTemplateURL: fmt.Sprintf("https://%s.s3.%s.amazonaws.com/%s", out.AssetsBucket, b.cfg.Region, path.Join(lambdaAssetPath, "cloudformation.json")),
-	}, nil
+	}
+
+	return pf, nil
 }
