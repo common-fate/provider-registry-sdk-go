@@ -138,14 +138,20 @@ type DeployOpts struct {
 //	d := deployer.NewFromConfig(cfg)
 //	deployment := bootstrapper.Deployment()
 //	d.Deploy(ctx, deployment)
-func Deployment(opts deployer.DeployOpts) deployer.DeployOpts {
-	opts.Template = BootstrapTemplate
-	opts.StackName = BootstrapStackName
-	return opts
+func Deployment(opts ...deployer.DeployOptFunc) deployer.DeployOpts {
+	d := deployer.DeployOpts{
+		Template:  BootstrapTemplate,
+		StackName: BootstrapStackName,
+	}
+	for _, opt := range opts {
+		opt(&d)
+	}
+
+	return d
 }
 
 // GetOrDeployBootstrap loads the output if the stack already exists, else it deploys the bootstrap stack first
-func (b *Bootstrapper) GetOrDeployBootstrapBucket(ctx context.Context, confirm bool) (*BootstrapStackOutput, error) {
+func (b *Bootstrapper) GetOrDeployBootstrapBucket(ctx context.Context, opts ...deployer.DeployOptFunc) (*BootstrapStackOutput, error) {
 	bootstrapStackOutput, err := b.Detect(ctx)
 	if err == nil {
 		return bootstrapStackOutput, nil
@@ -155,6 +161,8 @@ func (b *Bootstrapper) GetOrDeployBootstrapBucket(ctx context.Context, confirm b
 		// some other error which we can't handle
 		return nil, err
 	}
+
+	deployment := Deployment(opts...)
 
 	// if we get here, we need to deploy the bootstrap stack into the particular AWS account and region.
 
@@ -169,24 +177,23 @@ func (b *Bootstrapper) GetOrDeployBootstrapBucket(ctx context.Context, confirm b
 	clio.Warnf("To get started deploying providers, you need to bootstrap this AWS account and region (%s:%s)", ci.Account, b.cfg.Region)
 	clio.Info("Bootstrapping will deploy a CloudFormation stack which creates an S3 Bucket.\nProvider assets will be copied from the Common Fate Provider Registry into this bucket.\nThese assets can then be deployed into your account.")
 
-	if !confirm {
+	if !deployment.Confirm {
 		// if the terminal is non-interactive (e.g. in CI/CD systems)
 		// return with an error so that we don't cause a deployment to hang forever.
 		if !term.IsTerminal(int(os.Stdin.Fd())) {
 			return nil, errors.New("bootstrapping needs a confirmation but the terminal is non-interactive (you can try including a '--confirm' flag to resolve this)")
 		}
 
-		err = survey.AskOne(&survey.Confirm{Message: "Deploy bootstrap stack", Default: true}, &confirm)
+		err = survey.AskOne(&survey.Confirm{Message: "Deploy bootstrap stack", Default: true}, &deployment.Confirm)
 		if err != nil {
 			return nil, err
 		}
 
-		if !confirm {
+		if !deployment.Confirm {
 			return nil, errors.New("cancelling deployment")
 		}
 	}
 
-	deployment := Deployment(deployer.DeployOpts{Confirm: true})
 	_, err = b.deployer.Deploy(ctx, deployment)
 	if err != nil {
 		return nil, err
