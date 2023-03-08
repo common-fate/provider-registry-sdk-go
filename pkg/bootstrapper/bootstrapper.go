@@ -174,8 +174,8 @@ func (b *Bootstrapper) GetOrDeployBootstrapBucket(ctx context.Context, opts ...d
 	}
 
 	clio.Debug("the bootstrap stack was not detected")
-	clio.Warnf("To get started deploying providers, you need to bootstrap this AWS account and region (%s:%s)", ci.Account, b.cfg.Region)
-	clio.Info("Bootstrapping will deploy a CloudFormation stack which creates an S3 Bucket.\nProvider assets will be copied from the Common Fate Provider Registry into this bucket.\nThese assets can then be deployed into your account.")
+	clio.Warnf("To get started deploying providers, you need to bootstrap this AWS account and region (%s:%s)", *ci.Account, b.cfg.Region)
+	clio.Infof("Bootstrapping will deploy a CloudFormation stack called '%s' which creates an S3 Bucket.\nProvider assets will be copied from the Common Fate Provider Registry into this bucket.\nThese assets can then be deployed into your account.", deployment.StackName)
 
 	if !deployment.Confirm {
 		// if the terminal is non-interactive (e.g. in CI/CD systems)

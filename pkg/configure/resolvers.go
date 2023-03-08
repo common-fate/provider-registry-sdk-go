@@ -60,15 +60,15 @@ func (cv Config) CfnParams() []types.Parameter {
 	var params []types.Parameter
 	for k, v := range cv.Values {
 		paramName := pascalCase(k)
+		val := v.Value
 		if v.Secret {
 			paramName += "Secret"
+			val = v.Ref
 		}
 
-		paramName += "Secret"
-
 		params = append(params, types.Parameter{
-			ParameterKey:   &k,
-			ParameterValue: &v.Value,
+			ParameterKey:   &paramName,
+			ParameterValue: &val,
 		})
 	}
 	return params
