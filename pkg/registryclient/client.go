@@ -69,10 +69,9 @@ func WithAPIURL(url string) func(co *ClientOpts) {
 	}
 }
 
-// New creates a new client, specifying the URL and context directly.
-// The client loads the OAuth2.0 tokens from the system keychain.
-// The client automatically refreshes the access token if it is expired.
-func New(ctx context.Context, server, context string, opts ...func(co *ClientOpts)) (*Client, error) {
+// New creates a new client. By default, it uses
+// https://api.registry.commonfate.io as the registry URL.
+func New(ctx context.Context, opts ...func(co *ClientOpts)) (*Client, error) {
 	co := &ClientOpts{
 		APIURL:     "https://api.registry.commonfate.io",
 		HTTPClient: http.DefaultClient,
@@ -84,7 +83,7 @@ func New(ctx context.Context, server, context string, opts ...func(co *ClientOpt
 
 	httpClient := &ErrorHandlingClient{Client: co.HTTPClient}
 
-	return providerregistrysdk.NewClientWithResponses(server, providerregistrysdk.WithHTTPClient(httpClient))
+	return providerregistrysdk.NewClientWithResponses(co.APIURL, providerregistrysdk.WithHTTPClient(httpClient))
 }
 
 // Client is an alias for the exported Go SDK client type
