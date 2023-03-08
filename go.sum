@@ -96,8 +96,6 @@ github.com/common-fate/apikit v0.2.0 h1:62Lf1gQy6M4NNkEs999DQPdW8WEXcJhaLiwBoBLc
 github.com/common-fate/apikit v0.2.0/go.mod h1:5WXBU3NBnQ6ZuqQyazwL5Ou6yT7UpC8c3yK8F9mGh9k=
 github.com/common-fate/clio v1.1.0 h1:M5fyMuYHjB+qODYbl0IGT28SBiokxsIlxluUVnD8cOQ=
 github.com/common-fate/clio v1.1.0/go.mod h1:BYm9XmDIsmpQQdw+xbhQO5hbpUhH03Lk6gQmQ6Wpu1k=
-github.com/common-fate/cloudform v0.5.0 h1:DuCZ3jc+SzgvXz/IqiPXz37+KBxUdW12n2NbOwjkwrw=
-github.com/common-fate/cloudform v0.5.0/go.mod h1:lWkYU3gfk0ohl66sdML9qCYxe5nSdbcqS6U9j/ewmjw=
 github.com/common-fate/cloudform v0.6.0 h1:VDme3jSJAltnF8OlSdqxjHn8YnvIoknARvISN+OHkdQ=
 github.com/common-fate/cloudform v0.6.0/go.mod h1:lWkYU3gfk0ohl66sdML9qCYxe5nSdbcqS6U9j/ewmjw=
 github.com/common-fate/useragent v0.1.0 h1:RLmkIiJXcOUJAUyXWc/zCaGbrGmlCbHBGMx99ztQ3ZU=
