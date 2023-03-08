@@ -11,7 +11,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/sts v1.18.5
 	github.com/common-fate/apikit v0.2.0
 	github.com/common-fate/clio v1.1.0
-	github.com/common-fate/cloudform v0.6.1-0.20230308201538-8776f4a3dcaf
+	github.com/common-fate/cloudform v0.6.0
 	github.com/common-fate/useragent v0.1.0
 	github.com/deepmap/oapi-codegen v1.11.0
 	github.com/getkin/kin-openapi v0.107.0
