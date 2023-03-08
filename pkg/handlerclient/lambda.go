@@ -53,6 +53,15 @@ func NewLambdaRuntime(ctx context.Context, functionName string) (*Client, error)
 	return &Client{Executor: l}, nil
 }
 
+// NewLambdaRuntimeFromConfig creates a new handler client from a
+// provided AWS config.
+func NewLambdaRuntimeFromConfig(cfg aws.Config, functionName string) *Client {
+	lambdaClient := lambda.NewFromConfig(cfg)
+
+	l := Lambda{FunctionName: functionName, lambdaClient: lambdaClient}
+	return &Client{Executor: l}
+}
+
 // payload is the actual request JSON sent to the Lambda function.
 type payload struct {
 	Type msg.RequestType `json:"type"`
