@@ -98,6 +98,8 @@ github.com/common-fate/clio v1.1.0 h1:M5fyMuYHjB+qODYbl0IGT28SBiokxsIlxluUVnD8cO
 github.com/common-fate/clio v1.1.0/go.mod h1:BYm9XmDIsmpQQdw+xbhQO5hbpUhH03Lk6gQmQ6Wpu1k=
 github.com/common-fate/cloudform v0.6.0 h1:VDme3jSJAltnF8OlSdqxjHn8YnvIoknARvISN+OHkdQ=
 github.com/common-fate/cloudform v0.6.0/go.mod h1:lWkYU3gfk0ohl66sdML9qCYxe5nSdbcqS6U9j/ewmjw=
+github.com/common-fate/cloudform v0.6.1-0.20230308201538-8776f4a3dcaf h1:N7nAZc2d1AAcDV/UyrtEuBL4k26WWkwX/K8QTNS5zFQ=
+github.com/common-fate/cloudform v0.6.1-0.20230308201538-8776f4a3dcaf/go.mod h1:lWkYU3gfk0ohl66sdML9qCYxe5nSdbcqS6U9j/ewmjw=
 github.com/common-fate/useragent v0.1.0 h1:RLmkIiJXcOUJAUyXWc/zCaGbrGmlCbHBGMx99ztQ3ZU=
 github.com/common-fate/useragent v0.1.0/go.mod h1:GjXGR6cDiMboDP04qlfDfA5HTbeoRSoNgQWDAyOdW9o=
 github.com/coreos/bbolt v1.3.2/go.mod h1:iRUV2dpdMOn7Bo10OQBFzIJO9kkE559Wcmn+qkEiiKk=
