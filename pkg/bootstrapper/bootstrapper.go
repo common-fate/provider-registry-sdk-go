@@ -3,12 +3,15 @@ package bootstrapper
 import (
 	"context"
 	_ "embed"
+	"net/http"
 	"net/url"
 	"os"
 	"path"
 	"time"
 
 	"fmt"
+
+	awshttp "github.com/aws/aws-sdk-go-v2/aws/transport/http"
 
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -212,12 +215,15 @@ type ProviderFiles struct {
 }
 
 func AssetsExist(ctx context.Context, client *s3.Client, bucket string, key string) (bool, error) {
-	_, err := client.GetObject(ctx, &s3.GetObjectInput{
+	_, err := client.HeadObject(ctx, &s3.HeadObjectInput{
 		Bucket: aws.String(bucket),
 		Key:    aws.String(key),
 	})
 	if err != nil {
-
+		var responseError *awshttp.ResponseError
+		if errors.As(err, &responseError) && responseError.ResponseError.HTTPStatusCode() == http.StatusNotFound {
+			return false, nil
+		}
 		return false, err
 	}
 	return true, nil
