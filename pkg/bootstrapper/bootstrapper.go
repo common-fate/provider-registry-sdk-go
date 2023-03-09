@@ -297,7 +297,7 @@ func (b *Bootstrapper) CopyProviderFiles(ctx context.Context, provider providerr
 	err = b.copyFile(ctx, CopyFileOpts{
 		Bucket:     out.AssetsBucket,
 		Key:        path.Join(assetPath, "cloudformation.json"),
-		CopySource: url.QueryEscape(provider.LambdaAssetS3Arn),
+		CopySource: url.QueryEscape(provider.CfnTemplateS3Arn),
 		Force:      o.ForceCopy,
 	})
 	if err != nil {
