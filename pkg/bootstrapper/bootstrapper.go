@@ -211,6 +211,18 @@ type ProviderFiles struct {
 	CloudformationTemplateURL string
 }
 
+func AssetsExist(ctx context.Context, client *s3.Client, bucket string, key string) (bool, error) {
+	_, err := client.HeadObject(ctx, &s3.HeadObjectInput{
+		Bucket: aws.String(bucket),
+		Key:    aws.String(key),
+	})
+	if err != nil {
+
+		return false, err
+	}
+	return true, nil
+}
+
 // CopyProviderFiles will clone the handler and cfn template from the registry bucket to the bootstrap bucket of the current account
 func (b *Bootstrapper) CopyProviderFiles(ctx context.Context, provider providerregistrysdk.ProviderDetail) (*ProviderFiles, error) {
 	// detect the bootstrap bucket
@@ -220,27 +232,43 @@ func (b *Bootstrapper) CopyProviderFiles(ctx context.Context, provider providerr
 	}
 
 	lambdaAssetPath := path.Join("registry.commonfate.io", "v1alpha1", "providers", provider.Publisher, provider.Name, provider.Version)
-	clio.Debugf("Copying the handler.zip into %s", path.Join(out.AssetsBucket, lambdaAssetPath, "handler.zip"))
-	_, err = b.s3Client.CopyObject(ctx, &s3.CopyObjectInput{
-		Bucket:     aws.String(out.AssetsBucket),
-		Key:        aws.String(path.Join(lambdaAssetPath, "handler.zip")),
-		CopySource: aws.String(url.QueryEscape(provider.LambdaAssetS3Arn)),
-	})
-	if err != nil {
-		return nil, err
-	}
-	clio.Debugf("Successfully copied the handler.zip into %s", path.Join(out.AssetsBucket, lambdaAssetPath, "handler.zip"))
 
-	clio.Debugf("Copying the CloudFormation template into %s", path.Join(out.AssetsBucket, lambdaAssetPath, "cloudformation.json"))
-	_, err = b.s3Client.CopyObject(ctx, &s3.CopyObjectInput{
-		Bucket:     aws.String(out.AssetsBucket),
-		Key:        aws.String(path.Join(lambdaAssetPath, "cloudformation.json")),
-		CopySource: aws.String(url.QueryEscape(provider.CfnTemplateS3Arn)),
-	})
+	//check if asset already exists and if force flag was not passed
+	exists, err := AssetsExist(ctx, b.s3Client, out.AssetsBucket, path.Join(lambdaAssetPath, "handler.zip"))
 	if err != nil {
 		return nil, err
 	}
-	clio.Debugf("Successfully copied the CloudFormation template into %s", path.Join(out.AssetsBucket, lambdaAssetPath, "cloudformation.json"))
+	if !exists {
+		clio.Debugf("Copying the handler.zip into %s", path.Join(out.AssetsBucket, lambdaAssetPath, "handler.zip"))
+		_, err = b.s3Client.CopyObject(ctx, &s3.CopyObjectInput{
+			Bucket:     aws.String(out.AssetsBucket),
+			Key:        aws.String(path.Join(lambdaAssetPath, "handler.zip")),
+			CopySource: aws.String(url.QueryEscape(provider.LambdaAssetS3Arn)),
+		})
+		if err != nil {
+			return nil, err
+		}
+		clio.Debugf("Successfully copied the handler.zip into %s", path.Join(out.AssetsBucket, lambdaAssetPath, "handler.zip"))
+	}
+
+	exists, err = AssetsExist(ctx, b.s3Client, out.AssetsBucket, path.Join(lambdaAssetPath, "cloudformation.json"))
+	if err != nil {
+		return nil, err
+	}
+
+	if !exists {
+		clio.Debugf("Copying the CloudFormation template into %s", path.Join(out.AssetsBucket, lambdaAssetPath, "cloudformation.json"))
+		_, err = b.s3Client.CopyObject(ctx, &s3.CopyObjectInput{
+			Bucket:     aws.String(out.AssetsBucket),
+			Key:        aws.String(path.Join(lambdaAssetPath, "cloudformation.json")),
+			CopySource: aws.String(url.QueryEscape(provider.CfnTemplateS3Arn)),
+		})
+		if err != nil {
+			return nil, err
+		}
+		clio.Debugf("Successfully copied the CloudFormation template into %s", path.Join(out.AssetsBucket, lambdaAssetPath, "cloudformation.json"))
+
+	}
 
 	pf := &ProviderFiles{
 		CloudformationTemplateURL: fmt.Sprintf("https://%s.s3.%s.amazonaws.com/%s", out.AssetsBucket, b.cfg.Region, path.Join(lambdaAssetPath, "cloudformation.json")),
