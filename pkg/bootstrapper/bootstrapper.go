@@ -7,6 +7,7 @@ import (
 	"net/url"
 	"os"
 	"path"
+	"sync"
 	"time"
 
 	"fmt"
@@ -34,7 +35,14 @@ var BootstrapTemplate string
 const BootstrapStackName = "common-fate-bootstrap"
 
 type BootstrapStackOutput struct {
-	AssetsBucket string `json:"AssetsBucket"`
+	AssetsBucket string
+	Region       string
+}
+
+// CloudFormationURL returns the CloudFormation template URL for a particular provider.
+func (bso BootstrapStackOutput) CloudFormationURL(p providerregistrysdk.Provider) string {
+	assetPath := AssetPath(p)
+	return fmt.Sprintf("https://%s.s3.%s.amazonaws.com/%s", bso.AssetsBucket, bso.Region, path.Join(assetPath, "cloudformation.json"))
 }
 
 type Bootstrapper struct {
@@ -42,6 +50,13 @@ type Bootstrapper struct {
 	s3Client  *s3.Client
 	deployer  *deployer.Deployer
 	cfg       aws.Config
+	mu        sync.Mutex
+	// output is a cached bootstrap stack output
+	// which is returned rather than making
+	// multiple CloudFormation API calls
+	// if the bootstrapper is called more
+	// than once in a CLI command.
+	output *BootstrapStackOutput
 }
 
 func NewFromConfig(cfg aws.Config) *Bootstrapper {
@@ -74,6 +89,12 @@ var WithRetry = func(do *DetectOpts) {
 
 // Detect an existing bootstrap stack.
 func (b *Bootstrapper) Detect(ctx context.Context, opts ...func(*DetectOpts)) (*BootstrapStackOutput, error) {
+
+	// return cached bootstrap output, if we have it.
+	if b.output != nil {
+		return b.output, nil
+	}
+
 	o := DetectOpts{
 		StackName: BootstrapStackName,
 		Retry:     retry.WithMaxRetries(1, retry.NewConstant(time.Second)),
@@ -103,13 +124,10 @@ func (b *Bootstrapper) Detect(ctx context.Context, opts ...func(*DetectOpts)) (*
 		return nil, err
 	}
 
-	out := ProcessOutputs(*stack)
-	return &out, nil
-}
-
-func ProcessOutputs(stack types.Stack) BootstrapStackOutput {
 	// decode the output variables into the Go struct.
-	var out BootstrapStackOutput
+	out := BootstrapStackOutput{
+		Region: b.cfg.Region,
+	}
 
 	for _, o := range stack.Outputs {
 		if *o.OutputKey == "AssetsBucket" {
@@ -117,7 +135,11 @@ func ProcessOutputs(stack types.Stack) BootstrapStackOutput {
 		}
 	}
 
-	return out
+	b.mu.Lock()
+	defer b.mu.Unlock()
+	b.output = &out
+
+	return &out, nil
 }
 
 type DeployOpts struct {
@@ -210,23 +232,19 @@ func (b *Bootstrapper) GetOrDeployBootstrapBucket(ctx context.Context, opts ...d
 	return bootstrapStackOutput, nil
 }
 
-type ProviderFiles struct {
-	CloudformationTemplateURL string
-}
-
 type CopyProviderFilesOpts struct {
 	ForceCopy bool
 }
 type CopyProviderFilesOptFunc func(f *CopyProviderFilesOpts)
 
-// WithForceCopy forces the method to overwrite the files if they exist
-// the default behaviour is to check if the files exist then do nothing if they do
+// WithForceCopy forces the method to overwrite the files if they exist// the default behaviour is to check if the files exist then do nothing if they do
 func WithForceCopy(forceCopy bool) CopyProviderFilesOptFunc {
 	return func(opts *CopyProviderFilesOpts) {
 		opts.ForceCopy = forceCopy
 	}
 }
 
+// AssetsExist returns true if the asset already exists in at the key in the S3 bucket.
 func AssetsExist(ctx context.Context, client *s3.Client, bucket string, key string) (bool, error) {
 	_, err := client.HeadObject(ctx, &s3.HeadObjectInput{
 		Bucket: aws.String(bucket),
@@ -242,73 +260,89 @@ func AssetsExist(ctx context.Context, client *s3.Client, bucket string, key stri
 	return true, nil
 }
 
+// AssetPath returns the production registry asset path of a particular in the format:
+//
+//	registry.commonfate.io/v1alpha1/providers/publisher/name/version
+func AssetPath(p providerregistrysdk.Provider) string {
+	return path.Join("registry.commonfate.io", "v1alpha1", "providers", p.Publisher, p.Name, p.Version)
+}
+
 // CopyProviderFiles will clone the handler and cfn template from the registry bucket to the bootstrap bucket of the current account
-func (b *Bootstrapper) CopyProviderFiles(ctx context.Context, provider providerregistrysdk.ProviderDetail, opts ...CopyProviderFilesOptFunc) (*ProviderFiles, error) {
-	var cfg CopyProviderFilesOpts
+func (b *Bootstrapper) CopyProviderFiles(ctx context.Context, provider providerregistrysdk.ProviderDetail, opts ...CopyProviderFilesOptFunc) error {
+	var o CopyProviderFilesOpts
 	for _, opt := range opts {
-		opt(&cfg)
+		opt(&o)
 	}
+
 	// detect the bootstrap bucket
 	out, err := b.Detect(ctx)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	lambdaAssetPath := path.Join("registry.commonfate.io", "v1alpha1", "providers", provider.Publisher, provider.Name, provider.Version)
+	assetPath := AssetPath(provider.Base())
 
-	var exists bool
-	if !cfg.ForceCopy {
-		//check if asset already exists and if force flag was not passed
-		exists, err = AssetsExist(ctx, b.s3Client, out.AssetsBucket, path.Join(lambdaAssetPath, "handler.zip"))
-		if err != nil {
-			return nil, err
-		}
+	// copy the lambda handler zip
+	err = b.copyFile(ctx, CopyFileOpts{
+		Bucket:     out.AssetsBucket,
+		Key:        path.Join(assetPath, "handler.zip"),
+		CopySource: url.QueryEscape(provider.LambdaAssetS3Arn),
+		Force:      o.ForceCopy,
+	})
+	if err != nil {
+		return err
 	}
 
-	if !exists || cfg.ForceCopy {
-		clio.Debugf("Copying the handler.zip into %s", path.Join(out.AssetsBucket, lambdaAssetPath, "handler.zip"))
-		_, err = b.s3Client.CopyObject(ctx, &s3.CopyObjectInput{
-			Bucket:     aws.String(out.AssetsBucket),
-			Key:        aws.String(path.Join(lambdaAssetPath, "handler.zip")),
-			CopySource: aws.String(url.QueryEscape(provider.LambdaAssetS3Arn)),
-		})
-		if err != nil {
-			return nil, err
-		}
-		clio.Debugf("Successfully copied the handler.zip into %s", path.Join(out.AssetsBucket, lambdaAssetPath, "handler.zip"))
-	} else {
-		clio.Debugf("already exists, skipped copy of handler asset")
-
-	}
-	exists = false
-	if !cfg.ForceCopy {
-		//check if asset already exists and if force flag was not passed
-		exists, err = AssetsExist(ctx, b.s3Client, out.AssetsBucket, path.Join(lambdaAssetPath, "cloudformation.json"))
-		if err != nil {
-			return nil, err
-		}
+	// copy the CloudFormation template
+	err = b.copyFile(ctx, CopyFileOpts{
+		Bucket:     out.AssetsBucket,
+		Key:        path.Join(assetPath, "cloudformation.json"),
+		CopySource: url.QueryEscape(provider.LambdaAssetS3Arn),
+		Force:      o.ForceCopy,
+	})
+	if err != nil {
+		return err
 	}
 
-	if !exists || cfg.ForceCopy {
-		clio.Debugf("Copying the CloudFormation template into %s", path.Join(out.AssetsBucket, lambdaAssetPath, "cloudformation.json"))
-		_, err = b.s3Client.CopyObject(ctx, &s3.CopyObjectInput{
-			Bucket:     aws.String(out.AssetsBucket),
-			Key:        aws.String(path.Join(lambdaAssetPath, "cloudformation.json")),
-			CopySource: aws.String(url.QueryEscape(provider.CfnTemplateS3Arn)),
-		})
-		if err != nil {
-			return nil, err
-		}
-		clio.Debugf("Successfully copied the CloudFormation template into %s", path.Join(out.AssetsBucket, lambdaAssetPath, "cloudformation.json"))
+	return nil
+}
 
-	} else {
-		clio.Debugf("already exists, skipped copy of cloudformation asset")
+type CopyFileOpts struct {
+	Bucket     string
+	Key        string
+	CopySource string
+	Force      bool
+}
 
+func (b *Bootstrapper) copyFile(ctx context.Context, opts CopyFileOpts) error {
+	//check if asset already exists
+	exists, err := AssetsExist(ctx, b.s3Client, opts.Bucket, opts.Key)
+	if err != nil {
+		return err
 	}
 
-	pf := &ProviderFiles{
-		CloudformationTemplateURL: fmt.Sprintf("https://%s.s3.%s.amazonaws.com/%s", out.AssetsBucket, b.cfg.Region, path.Join(lambdaAssetPath, "cloudformation.json")),
+	fullPath := path.Join(opts.Bucket, opts.Key)
+
+	if exists && !opts.Force {
+		clio.Infof("File %s already exists in bootstrap bucket: skipping copying", fullPath)
+		return nil
 	}
 
-	return pf, nil
+	if exists && opts.Force {
+		clio.Infof("Forcing overwrite of %s with new assets", fullPath)
+	}
+
+	clio.Debugw("Copying file", "opts", opts)
+	_, err = b.s3Client.CopyObject(ctx, &s3.CopyObjectInput{
+		Bucket:     &opts.Bucket,
+		Key:        &opts.Key,
+		CopySource: &opts.CopySource,
+	})
+	if err != nil {
+		return err
+	}
+
+	clio.Infof("Copied %s", fullPath)
+
+	return nil
 }
