@@ -230,7 +230,7 @@ func AssetsExist(ctx context.Context, client *s3.Client, bucket string, key stri
 }
 
 // CopyProviderFiles will clone the handler and cfn template from the registry bucket to the bootstrap bucket of the current account
-func (b *Bootstrapper) CopyProviderFiles(ctx context.Context, provider providerregistrysdk.ProviderDetail) (*ProviderFiles, error) {
+func (b *Bootstrapper) CopyProviderFiles(ctx context.Context, provider providerregistrysdk.ProviderDetail, force bool) (*ProviderFiles, error) {
 	// detect the bootstrap bucket
 	out, err := b.Detect(ctx)
 	if err != nil {
@@ -244,7 +244,7 @@ func (b *Bootstrapper) CopyProviderFiles(ctx context.Context, provider providerr
 	if err != nil {
 		return nil, err
 	}
-	if !exists {
+	if !exists || force {
 		clio.Debugf("Copying the handler.zip into %s", path.Join(out.AssetsBucket, lambdaAssetPath, "handler.zip"))
 		_, err = b.s3Client.CopyObject(ctx, &s3.CopyObjectInput{
 			Bucket:     aws.String(out.AssetsBucket),
@@ -265,7 +265,7 @@ func (b *Bootstrapper) CopyProviderFiles(ctx context.Context, provider providerr
 		return nil, err
 	}
 
-	if !exists {
+	if !exists || force {
 		clio.Debugf("Copying the CloudFormation template into %s", path.Join(out.AssetsBucket, lambdaAssetPath, "cloudformation.json"))
 		_, err = b.s3Client.CopyObject(ctx, &s3.CopyObjectInput{
 			Bucket:     aws.String(out.AssetsBucket),
