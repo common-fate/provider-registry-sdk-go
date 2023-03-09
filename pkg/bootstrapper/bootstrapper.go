@@ -214,6 +214,19 @@ type ProviderFiles struct {
 	CloudformationTemplateURL string
 }
 
+type CopyProviderFilesOpts struct {
+	ForceCopy bool
+}
+type CopyProviderFilesOptFunc func(f *CopyProviderFilesOpts)
+
+// WithForceCopy forces the method to overwrite the files if they exist
+// the default behaviour is to check if the files exist then do nothing if they do
+func WithForceCopy(forceCopy bool) CopyProviderFilesOptFunc {
+	return func(opts *CopyProviderFilesOpts) {
+		opts.ForceCopy = forceCopy
+	}
+}
+
 func AssetsExist(ctx context.Context, client *s3.Client, bucket string, key string) (bool, error) {
 	_, err := client.HeadObject(ctx, &s3.HeadObjectInput{
 		Bucket: aws.String(bucket),
@@ -230,7 +243,11 @@ func AssetsExist(ctx context.Context, client *s3.Client, bucket string, key stri
 }
 
 // CopyProviderFiles will clone the handler and cfn template from the registry bucket to the bootstrap bucket of the current account
-func (b *Bootstrapper) CopyProviderFiles(ctx context.Context, provider providerregistrysdk.ProviderDetail, force bool) (*ProviderFiles, error) {
+func (b *Bootstrapper) CopyProviderFiles(ctx context.Context, provider providerregistrysdk.ProviderDetail, opts ...CopyProviderFilesOptFunc) (*ProviderFiles, error) {
+	var cfg CopyProviderFilesOpts
+	for _, opt := range opts {
+		opt(&cfg)
+	}
 	// detect the bootstrap bucket
 	out, err := b.Detect(ctx)
 	if err != nil {
@@ -239,12 +256,16 @@ func (b *Bootstrapper) CopyProviderFiles(ctx context.Context, provider providerr
 
 	lambdaAssetPath := path.Join("registry.commonfate.io", "v1alpha1", "providers", provider.Publisher, provider.Name, provider.Version)
 
-	//check if asset already exists and if force flag was not passed
-	exists, err := AssetsExist(ctx, b.s3Client, out.AssetsBucket, path.Join(lambdaAssetPath, "handler.zip"))
-	if err != nil {
-		return nil, err
+	var exists bool
+	if !cfg.ForceCopy {
+		//check if asset already exists and if force flag was not passed
+		exists, err = AssetsExist(ctx, b.s3Client, out.AssetsBucket, path.Join(lambdaAssetPath, "handler.zip"))
+		if err != nil {
+			return nil, err
+		}
 	}
-	if !exists || force {
+
+	if !exists || cfg.ForceCopy {
 		clio.Debugf("Copying the handler.zip into %s", path.Join(out.AssetsBucket, lambdaAssetPath, "handler.zip"))
 		_, err = b.s3Client.CopyObject(ctx, &s3.CopyObjectInput{
 			Bucket:     aws.String(out.AssetsBucket),
@@ -259,13 +280,16 @@ func (b *Bootstrapper) CopyProviderFiles(ctx context.Context, provider providerr
 		clio.Debugf("already exists, skipped copy of handler asset")
 
 	}
-
-	exists, err = AssetsExist(ctx, b.s3Client, out.AssetsBucket, path.Join(lambdaAssetPath, "cloudformation.json"))
-	if err != nil {
-		return nil, err
+	exists = false
+	if !cfg.ForceCopy {
+		//check if asset already exists and if force flag was not passed
+		exists, err = AssetsExist(ctx, b.s3Client, out.AssetsBucket, path.Join(lambdaAssetPath, "cloudformation.json"))
+		if err != nil {
+			return nil, err
+		}
 	}
 
-	if !exists || force {
+	if !exists || cfg.ForceCopy {
 		clio.Debugf("Copying the CloudFormation template into %s", path.Join(out.AssetsBucket, lambdaAssetPath, "cloudformation.json"))
 		_, err = b.s3Client.CopyObject(ctx, &s3.CopyObjectInput{
 			Bucket:     aws.String(out.AssetsBucket),
