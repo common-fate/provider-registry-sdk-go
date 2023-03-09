@@ -249,6 +249,9 @@ func (b *Bootstrapper) CopyProviderFiles(ctx context.Context, provider providerr
 			return nil, err
 		}
 		clio.Debugf("Successfully copied the handler.zip into %s", path.Join(out.AssetsBucket, lambdaAssetPath, "handler.zip"))
+	} else {
+		clio.Debugf("already exists, skipped copy of handler asset")
+
 	}
 
 	exists, err = AssetsExist(ctx, b.s3Client, out.AssetsBucket, path.Join(lambdaAssetPath, "cloudformation.json"))
@@ -267,6 +270,9 @@ func (b *Bootstrapper) CopyProviderFiles(ctx context.Context, provider providerr
 			return nil, err
 		}
 		clio.Debugf("Successfully copied the CloudFormation template into %s", path.Join(out.AssetsBucket, lambdaAssetPath, "cloudformation.json"))
+
+	} else {
+		clio.Debugf("already exists, skipped copy of cloudformation asset")
 
 	}
 
