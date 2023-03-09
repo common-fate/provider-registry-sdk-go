@@ -324,12 +324,12 @@ func (b *Bootstrapper) copyFile(ctx context.Context, opts CopyFileOpts) error {
 	fullPath := path.Join(opts.Bucket, opts.Key)
 
 	if exists && !opts.Force {
-		clio.Infof("File %s already exists in bootstrap bucket: skipping copying", fullPath)
+		clio.Infow("skipped file: already exists", "file", fullPath)
 		return nil
 	}
 
 	if exists && opts.Force {
-		clio.Infof("Forcing overwrite of %s with new assets", fullPath)
+		clio.Infof("Forcing overwrite: %s", fullPath)
 	}
 
 	clio.Debugw("Copying file", "opts", opts)
