@@ -212,7 +212,7 @@ type ProviderFiles struct {
 }
 
 func AssetsExist(ctx context.Context, client *s3.Client, bucket string, key string) (bool, error) {
-	_, err := client.HeadObject(ctx, &s3.HeadObjectInput{
+	_, err := client.GetObject(ctx, &s3.GetObjectInput{
 		Bucket: aws.String(bucket),
 		Key:    aws.String(key),
 	})
