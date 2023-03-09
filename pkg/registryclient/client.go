@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"os"
 
 	"github.com/common-fate/provider-registry-sdk-go/pkg/providerregistrysdk"
 	"github.com/common-fate/useragent"
@@ -20,7 +21,6 @@ type Doer interface {
 // and creates an error if the API returns greater than 300.
 type ErrorHandlingClient struct {
 	Client Doer
-	Logger *zap.SugaredLogger
 }
 
 func (rd *ErrorHandlingClient) Do(req *http.Request) (*http.Response, error) {
@@ -54,36 +54,52 @@ func (rd *ErrorHandlingClient) Do(req *http.Request) (*http.Response, error) {
 }
 
 type ClientOpts struct {
-	APIURL     string
 	HTTPClient Doer
-}
-
-// WithAPIURL overrides the API URL.
-// If the url is empty, it is not overriden and the regular
-// API URL from aws-exports.json is used instead.
-//
-// This can be used for local development to provider a localhost URL.
-func WithAPIURL(url string) func(co *ClientOpts) {
-	return func(co *ClientOpts) {
-		co.APIURL = url
-	}
+	// Logger to use. If not provided,
+	// we default to the global logger with zap.S().
+	//
+	// The registry client writes a debug log message
+	// when being configured, with the registry URL in use.
+	Logger *zap.SugaredLogger
 }
 
 // New creates a new client. By default, it uses
 // https://api.registry.commonfate.io as the registry URL.
+//
+// By default, if the COMMON_FATE_PROVIDER_REGISTRY_URL environment variables is set,
+// it will be used as the registry URL.
+//
+// If you want to change the registry local, set this environment variable.
+//
+// Alternatively, and not recommended, you can use the registryclient.NewWithURL()
+// to provide a custom URL defined in Go code.
 func New(ctx context.Context, opts ...func(co *ClientOpts)) (*Client, error) {
+	url := os.Getenv("COMMON_FATE_PROVIDER_REGISTRY_URL")
+
+	if url == "" {
+		// default to the Common Fate production registry URL.
+		url = "https://api.registry.commonfate.io"
+	}
+
+	return NewWithURL(ctx, url, opts...)
+}
+
+// NewWithURL allows a custom registry URL to be provided. This method is not recommended.
+// Most of the time you won't need this - just call registryclient.New() and set the
+// COMMON_FATE_PROVIDER_REGISTRY_URL environment variable.
+func NewWithURL(ctx context.Context, url string, opts ...func(co *ClientOpts)) (*Client, error) {
 	co := &ClientOpts{
-		APIURL:     "https://api.registry.commonfate.io",
-		HTTPClient: http.DefaultClient,
+		HTTPClient: &ErrorHandlingClient{Client: http.DefaultClient},
+		Logger:     zap.S(),
 	}
 
 	for _, o := range opts {
 		o(co)
 	}
 
-	httpClient := &ErrorHandlingClient{Client: co.HTTPClient}
+	co.Logger.Debugw("configuring provider registry client", "url", url)
 
-	return providerregistrysdk.NewClientWithResponses(co.APIURL, providerregistrysdk.WithHTTPClient(httpClient))
+	return providerregistrysdk.NewClientWithResponses(url, providerregistrysdk.WithHTTPClient(co.HTTPClient))
 }
 
 // Client is an alias for the exported Go SDK client type
