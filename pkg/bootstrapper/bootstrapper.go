@@ -324,7 +324,7 @@ func (b *Bootstrapper) copyFile(ctx context.Context, opts CopyFileOpts) error {
 	fullPath := path.Join(opts.Bucket, opts.Key)
 
 	if exists && !opts.Force {
-		clio.Infow("skipped file: already exists", "file", fullPath)
+		clio.Infof("skipped file (already exists): %s", fullPath)
 		return nil
 	}
 
