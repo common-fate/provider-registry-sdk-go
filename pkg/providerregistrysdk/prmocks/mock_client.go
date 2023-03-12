@@ -95,6 +95,26 @@ func (mr *MockClientWithResponsesInterfaceMockRecorder) GetProviderWithResponse(
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetProviderWithResponse", reflect.TypeOf((*MockClientWithResponsesInterface)(nil).GetProviderWithResponse), varargs...)
 }
 
+// HealthcheckWithResponse mocks base method.
+func (m *MockClientWithResponsesInterface) HealthcheckWithResponse(arg0 context.Context, arg1 ...providerregistrysdk.RequestEditorFn) (*providerregistrysdk.HealthcheckResponse, error) {
+	m.ctrl.T.Helper()
+	varargs := []interface{}{arg0}
+	for _, a := range arg1 {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "HealthcheckWithResponse", varargs...)
+	ret0, _ := ret[0].(*providerregistrysdk.HealthcheckResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// HealthcheckWithResponse indicates an expected call of HealthcheckWithResponse.
+func (mr *MockClientWithResponsesInterfaceMockRecorder) HealthcheckWithResponse(arg0 interface{}, arg1 ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]interface{}{arg0}, arg1...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "HealthcheckWithResponse", reflect.TypeOf((*MockClientWithResponsesInterface)(nil).HealthcheckWithResponse), varargs...)
+}
+
 // ListAllProvidersWithResponse mocks base method.
 func (m *MockClientWithResponsesInterface) ListAllProvidersWithResponse(arg0 context.Context, arg1 ...providerregistrysdk.RequestEditorFn) (*providerregistrysdk.ListAllProvidersResponse, error) {
 	m.ctrl.T.Helper()
