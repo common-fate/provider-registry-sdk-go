@@ -116,6 +116,15 @@ paths:
         "500":
           $ref: "#/components/responses/ErrorResponse"
       operationId: list-all-providers
+  /v1alpha1/health:
+    get:
+      summary: Healthcheck
+      tags: []
+      responses:
+        "200":
+          description: OK
+      operationId: healthcheck
+      description: Returns a HTTP 200 OK response if the registry service is healthy.
 components:
   schemas:
     ProviderDetail:
@@ -271,7 +280,7 @@ components:
         loaders:
           additionalProperties:
             $ref: "#/components/schemas/Loader"
-          x-go-type: map[string]Loader
+          x-go-type: "map[string]Loader"
           title: Loaders
           type: object
         types:
@@ -288,7 +297,7 @@ components:
         properties:
           additionalProperties:
             $ref: "#/components/schemas/TargetField"
-          x-go-type: map[string]TargetField
+          x-go-type: "map[string]TargetField"
           description: the actual properties of the target.
           title: Properties
           type: object
@@ -334,7 +343,7 @@ components:
         config:
           additionalProperties:
             $ref: "#/components/schemas/Config"
-          x-go-type: map[string]Config
+          x-go-type: "map[string]Config"
           title: Config
           type: object
         meta:
@@ -346,7 +355,7 @@ components:
         targets:
           additionalProperties:
             $ref: "#/components/schemas/Target"
-          x-go-type: map[string]Target
+          x-go-type: "map[string]Target"
           title: Targets
           type: object
       required:
