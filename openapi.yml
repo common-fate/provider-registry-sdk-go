@@ -144,6 +144,8 @@ components:
           type: string
         cfnTemplateS3Arn:
           type: string
+        icon:
+          type: string
         schema:
           $ref: "#/components/schemas/Schema"
       required:
