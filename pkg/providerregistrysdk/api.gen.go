@@ -100,10 +100,11 @@ type Provider struct {
 
 // A registered provider version
 type ProviderDetail struct {
-	CfnTemplateS3Arn string `json:"cfnTemplateS3Arn"`
-	LambdaAssetS3Arn string `json:"lambdaAssetS3Arn"`
-	Name             string `json:"name"`
-	Publisher        string `json:"publisher"`
+	CfnTemplateS3Arn string  `json:"cfnTemplateS3Arn"`
+	Icon             *string `json:"icon,omitempty"`
+	LambdaAssetS3Arn string  `json:"lambdaAssetS3Arn"`
+	Name             string  `json:"name"`
+	Publisher        string  `json:"publisher"`
 
 	// The schema for a Common Fate Provider.
 	Schema  Schema `json:"schema"`
@@ -1240,21 +1241,21 @@ var swaggerSpec = []string{
 	"MatoNarBxdX5NQ7wh/n8eo4D/Nfp/Ori6mNbn1+1a0l/WNQJhQcjv4bH5t3/nbW/g+k5MyJFEvgh1bf+",
 	"0llmGzqze9uF6DMzqFqF7kFpi3cRuDRbcaZjCF1UC3o2C+x5tVsfnqWUs7QHuJtGidilloI10wYUhDWZ",
 	"vG2dEAuSQE+OBLg0X/V+LdUdzK5aTVDsVa9tBPSmrj9D8mz1JjyZTqdkGkVH79yWO2fyT4JCI7GAJOXE",
-	"wO3xqRK9EHCSrEJyqjWY/ULPhPdpxfxlwtHjUdBFoq/+74A/sPqHJys4fheuYHLSjqHu6eZKGP2OV4Xp",
-	"B1AtzWv4/CiRvfyfFSC/lNp5gOdlRe8561zJdI+kqvQ3LZHHT0Hi+4J2Dda90VnL1/5lQtIvhbvLhopN",
-	"2tNdYlvW3Ccko/pwwu0mrrth5/xtGaab2M2bSnfBu61ypFuqCxjciUjQe5kkUqBzYuoa3j3rXllW9qTi",
-	"qzoXO9/qpvE5MfLtan6wgd0bolpD4g+0x/ZzR8kzu0vVZOpji+qQWb+IWoN5NokXbnkToIVXOBihUsUO",
-	"55LiVLUxryPcIJ7nVg/rvMJOvrZ/Pd/bc9vL4c590OYaoSYjHNU72bxzSehWNnuLxq5PhKrav7yjte1g",
-	"gvIshNCllnWCGLZinJkN+sFMjH67vb5CBXroNSKce+M0IgoQzZQCYfgGFcZoa3PZ9nn7nnUJbCXzcpcv",
-	"++NYeHvoFj3wSlzmSBe1i6jstCEMUFk3y/CV69wP18sjHcuMh7ZpT2Wa2dO3mPc0Y1xmWp8pQxv3X3YV",
-	"b8LbO+5gIpLleIdQUx/yuFGucYAzxfEMx8akejYek5SNikZObUbUCUbEwIjJbsrYc6Cv9KO5V1AMzprV",
-	"9xHhxuE+w9PRxO4nUxAkZXiGj0eT0cSykJjYMWh8PyU8jcl0XFyj7bt1OS9pWjl34zyNCPq0WNygo8kE",
-	"XX+u52OspIg3WYO6ZxQQ08jfz60HlrvuCncRtgdtOGiPN48mk64J15+L6VKWJERtdhTYL7UzrWGZ96e9",
-	"+SXT5pTzm8bQq8+CvkJYyY37h4F5gN8OWd2e4bZds5pR0zhD1toS2DWJFC/3+DveVt1ePt5apubjrSdE",
-	"vheMj2Aa7V8fDoOnm08ZSHbHiTbEAX4zefNk9F4A849QQ96HuE0bexc2jldftphZk20qlY31rNVr13Wn",
-	"GOnubdDyoFdXfeH5WU2+6x+uZvkMdo01mCwdwrFbK3gmqf5ZslUjzj3HRTXp7iXa3uAjZyDyFv7Hgyfy",
-	"wI3uh/DgDyt4Juk/lQbOPlQY+O9mgftHirovXa2bndl4zCUlPJbazE4mkynOlxVYVavkQbP2+DcLIAnO",
-	"l/nfAQAA//9fD8aM5RwAAA==",
+	"wO3xqRK9EDAq+z9wkqxCcqo1mP2rn4n706r8y8Spx6OgC1HfwbATlYHHQniyguN34QomJ+3g6p42r4TR",
+	"73hVmH4A1dK8hs+PMtzL/1kB8ks5nwd4Xpb6nkPQ1VL3SKoj4KYl8vjxSHzD0C7Oujc6a/nav0xI+qVw",
+	"d9lQsUl72k5s6537hGRUn1q43d11N+wczC3DdBO7eVPpLni3VY50a3gBgzsqCXovk0QKdE5MXdy7h+Ar",
+	"y8qeVHxV52LnW91NPidGvo/ND3a2e0NUa0j8SffYfu6MeWbbqZpMfWxRHTLrF1FrMM8m8cItbwK08AoH",
+	"I1Sq2OFcUhy3NuZ1hBvE89zqYZ1X2MnX9q/ne3tumzzcuSjaXCPUZISjeiebdy4J3cpm09HY9YlQVfuX",
+	"l7e2HUxQnoUQutSyThDDVowzs0E/mInRb7fXV6hAD71GhHNvnEZEAaKZUiAM36DCGG1tLvtBb9+zboet",
+	"ZF7u8mV/HAtvD12vB96VyxzponYRlS04hAEq62YZvnKd++GafKRjmfHQdvOpTDN7+haDoGaMy0zrM2Vo",
+	"R//L7uhNeHvnIExEspz7EGrqQx43yjUOcKY4nuHYmFTPxmOSslHR4anNiDrBiBgYMdlNGXsO9JV+NPcK",
+	"iolas/o+Itw43Gd4OprY/WQKgqQMz/DxaDKaWBYSEzsGje+nhKcxmY6L+7V9ty4HKU0r527OpxFBnxaL",
+	"G3Q0maDrz/XgjJUU8SZrUPeMAmIa+Yu79cBy193tLsL2BA4H7bnn0WTSNeH6czF2ypKEqM2OAvuldqY1",
+	"RfP+tDe/ZNqccn7TmIb1WdBXCCu5cf+UMA/w2yGr28PdtmtWM2oaZ8haWwK7JpHi5R5/x9uq28vHW8vU",
+	"fLz1hMj3gvERTKP968Nh8NjzKZPK7pzRhjjAbyZvnozeC2D+EWrI+xC3aWMvycbx6ssWM2uyTaWysZ61",
+	"eu267hSz3r0NWh706qovPD+ryXf9w9Usn8GusQaTpUM4dmsFzyTVP0u2ava557ioRuC9RNsbfOQMRN7C",
+	"/3jwRB64mf4QHvxhBc8k/afSwNmHCgP/3Sxw/2FR96WrdbMzG4+5pITHUpvZyWQyxfmyAqtqlTxo1h7/",
+	"ZgEkwfky/zsAAP//95+3vf4cAAA=",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file
