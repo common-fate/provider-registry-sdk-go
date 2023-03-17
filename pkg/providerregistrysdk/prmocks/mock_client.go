@@ -116,10 +116,10 @@ func (mr *MockClientWithResponsesInterfaceMockRecorder) HealthcheckWithResponse(
 }
 
 // ListAllProvidersWithResponse mocks base method.
-func (m *MockClientWithResponsesInterface) ListAllProvidersWithResponse(arg0 context.Context, arg1 ...providerregistrysdk.RequestEditorFn) (*providerregistrysdk.ListAllProvidersResponse, error) {
+func (m *MockClientWithResponsesInterface) ListAllProvidersWithResponse(arg0 context.Context, arg1 *providerregistrysdk.ListAllProvidersParams, arg2 ...providerregistrysdk.RequestEditorFn) (*providerregistrysdk.ListAllProvidersResponse, error) {
 	m.ctrl.T.Helper()
-	varargs := []interface{}{arg0}
-	for _, a := range arg1 {
+	varargs := []interface{}{arg0, arg1}
+	for _, a := range arg2 {
 		varargs = append(varargs, a)
 	}
 	ret := m.ctrl.Call(m, "ListAllProvidersWithResponse", varargs...)
@@ -129,8 +129,8 @@ func (m *MockClientWithResponsesInterface) ListAllProvidersWithResponse(arg0 con
 }
 
 // ListAllProvidersWithResponse indicates an expected call of ListAllProvidersWithResponse.
-func (mr *MockClientWithResponsesInterfaceMockRecorder) ListAllProvidersWithResponse(arg0 interface{}, arg1 ...interface{}) *gomock.Call {
+func (mr *MockClientWithResponsesInterfaceMockRecorder) ListAllProvidersWithResponse(arg0, arg1 interface{}, arg2 ...interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	varargs := append([]interface{}{arg0}, arg1...)
+	varargs := append([]interface{}{arg0, arg1}, arg2...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListAllProvidersWithResponse", reflect.TypeOf((*MockClientWithResponsesInterface)(nil).ListAllProvidersWithResponse), varargs...)
 }

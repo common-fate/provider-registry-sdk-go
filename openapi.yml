@@ -116,6 +116,12 @@ paths:
         "500":
           $ref: "#/components/responses/ErrorResponse"
       operationId: list-all-providers
+      parameters:
+        - schema:
+            type: boolean
+          in: query
+          name: withDev
+          description: withDev flag will return all providers including dev providers
   /v1alpha1/health:
     get:
       summary: Healthcheck
