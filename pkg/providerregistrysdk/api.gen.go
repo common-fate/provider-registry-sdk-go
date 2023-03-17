@@ -180,6 +180,12 @@ type ListProvidersResponse struct {
 	Providers []ProviderDetail `json:"providers"`
 }
 
+// ListAllProvidersParams defines parameters for ListAllProviders.
+type ListAllProvidersParams struct {
+	// withDev flag will return all providers including dev providers
+	WithDev *bool `form:"withDev,omitempty" json:"withDev,omitempty"`
+}
+
 // RequestEditorFn  is the function signature for the RequestEditor callback function
 type RequestEditorFn func(ctx context.Context, req *http.Request) error
 
@@ -257,7 +263,7 @@ type ClientInterface interface {
 	Healthcheck(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// ListAllProviders request
-	ListAllProviders(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
+	ListAllProviders(ctx context.Context, params *ListAllProvidersParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// GetProvider request
 	GetProvider(ctx context.Context, publisher string, name string, version string, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -281,8 +287,8 @@ func (c *Client) Healthcheck(ctx context.Context, reqEditors ...RequestEditorFn)
 	return c.Client.Do(req)
 }
 
-func (c *Client) ListAllProviders(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewListAllProvidersRequest(c.Server)
+func (c *Client) ListAllProviders(ctx context.Context, params *ListAllProvidersParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListAllProvidersRequest(c.Server, params)
 	if err != nil {
 		return nil, err
 	}
@@ -357,7 +363,7 @@ func NewHealthcheckRequest(server string) (*http.Request, error) {
 }
 
 // NewListAllProvidersRequest generates requests for ListAllProviders
-func NewListAllProvidersRequest(server string) (*http.Request, error) {
+func NewListAllProvidersRequest(server string, params *ListAllProvidersParams) (*http.Request, error) {
 	var err error
 
 	serverURL, err := url.Parse(server)
@@ -374,6 +380,26 @@ func NewListAllProvidersRequest(server string) (*http.Request, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	queryValues := queryURL.Query()
+
+	if params.WithDev != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "withDev", runtime.ParamLocationQuery, *params.WithDev); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	queryURL.RawQuery = queryValues.Encode()
 
 	req, err := http.NewRequest("GET", queryURL.String(), nil)
 	if err != nil {
@@ -574,7 +600,7 @@ type ClientWithResponsesInterface interface {
 	HealthcheckWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*HealthcheckResponse, error)
 
 	// ListAllProviders request
-	ListAllProvidersWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*ListAllProvidersResponse, error)
+	ListAllProvidersWithResponse(ctx context.Context, params *ListAllProvidersParams, reqEditors ...RequestEditorFn) (*ListAllProvidersResponse, error)
 
 	// GetProvider request
 	GetProviderWithResponse(ctx context.Context, publisher string, name string, version string, reqEditors ...RequestEditorFn) (*GetProviderResponse, error)
@@ -717,8 +743,8 @@ func (c *ClientWithResponses) HealthcheckWithResponse(ctx context.Context, reqEd
 }
 
 // ListAllProvidersWithResponse request returning *ListAllProvidersResponse
-func (c *ClientWithResponses) ListAllProvidersWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*ListAllProvidersResponse, error) {
-	rsp, err := c.ListAllProviders(ctx, reqEditors...)
+func (c *ClientWithResponses) ListAllProvidersWithResponse(ctx context.Context, params *ListAllProvidersParams, reqEditors ...RequestEditorFn) (*ListAllProvidersResponse, error) {
+	rsp, err := c.ListAllProviders(ctx, params, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
@@ -909,7 +935,7 @@ type ServerInterface interface {
 	Healthcheck(w http.ResponseWriter, r *http.Request)
 	// List Providers
 	// (GET /v1alpha1/providers)
-	ListAllProviders(w http.ResponseWriter, r *http.Request)
+	ListAllProviders(w http.ResponseWriter, r *http.Request, params ListAllProvidersParams)
 	// Get Provider
 	// (GET /v1alpha1/providers/{publisher}/{name}/{version})
 	GetProvider(w http.ResponseWriter, r *http.Request, publisher string, name string, version string)
@@ -949,8 +975,24 @@ func (siw *ServerInterfaceWrapper) Healthcheck(w http.ResponseWriter, r *http.Re
 func (siw *ServerInterfaceWrapper) ListAllProviders(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
+	var err error
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params ListAllProvidersParams
+
+	// ------------- Optional query parameter "withDev" -------------
+	if paramValue := r.URL.Query().Get("withDev"); paramValue != "" {
+
+	}
+
+	err = runtime.BindQueryParameter("form", true, false, "withDev", r.URL.Query(), &params.WithDev)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "withDev", Err: err})
+		return
+	}
+
 	var handler = func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.ListAllProviders(w, r)
+		siw.Handler.ListAllProviders(w, r, params)
 	}
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -1227,35 +1269,36 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"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",
-	"ZgEkwfky/zsAAP//95+3vf4cAAA=",
+	"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",
+	"/6YWHBaYHQAA",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file
