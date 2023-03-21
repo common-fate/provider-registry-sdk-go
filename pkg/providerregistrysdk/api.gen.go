@@ -203,6 +203,11 @@ type PostV1alpha1RegisterJSONBody struct {
 	Username *string              `json:"username,omitempty"`
 }
 
+// GetV1alpha1SignupOauth2CallbackParams defines parameters for GetV1alpha1SignupOauth2Callback.
+type GetV1alpha1SignupOauth2CallbackParams struct {
+	Code *string `form:"code,omitempty" json:"code,omitempty"`
+}
+
 // PostV1alpha1RegisterJSONRequestBody defines body for PostV1alpha1Register for application/json ContentType.
 type PostV1alpha1RegisterJSONRequestBody PostV1alpha1RegisterJSONBody
 
@@ -299,8 +304,11 @@ type ClientInterface interface {
 
 	PostV1alpha1Register(ctx context.Context, body PostV1alpha1RegisterJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// GetV1alpha1Oauth2Github request
-	GetV1alpha1Oauth2Github(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
+	// GetV1alpha1SignupOauth2Callback request
+	GetV1alpha1SignupOauth2Callback(ctx context.Context, params *GetV1alpha1SignupOauth2CallbackParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetV1alpha1SignupOauth2Github request
+	GetV1alpha1SignupOauth2Github(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
 }
 
 func (c *Client) Healthcheck(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
@@ -387,8 +395,20 @@ func (c *Client) PostV1alpha1Register(ctx context.Context, body PostV1alpha1Regi
 	return c.Client.Do(req)
 }
 
-func (c *Client) GetV1alpha1Oauth2Github(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewGetV1alpha1Oauth2GithubRequest(c.Server)
+func (c *Client) GetV1alpha1SignupOauth2Callback(ctx context.Context, params *GetV1alpha1SignupOauth2CallbackParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetV1alpha1SignupOauth2CallbackRequest(c.Server, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetV1alpha1SignupOauth2Github(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetV1alpha1SignupOauth2GithubRequest(c.Server)
 	if err != nil {
 		return nil, err
 	}
@@ -657,8 +677,55 @@ func NewPostV1alpha1RegisterRequestWithBody(server string, contentType string, b
 	return req, nil
 }
 
-// NewGetV1alpha1Oauth2GithubRequest generates requests for GetV1alpha1Oauth2Github
-func NewGetV1alpha1Oauth2GithubRequest(server string) (*http.Request, error) {
+// NewGetV1alpha1SignupOauth2CallbackRequest generates requests for GetV1alpha1SignupOauth2Callback
+func NewGetV1alpha1SignupOauth2CallbackRequest(server string, params *GetV1alpha1SignupOauth2CallbackParams) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/v1alpha1/signup/oauth2/callback")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	queryValues := queryURL.Query()
+
+	if params.Code != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "code", runtime.ParamLocationQuery, *params.Code); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	queryURL.RawQuery = queryValues.Encode()
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewGetV1alpha1SignupOauth2GithubRequest generates requests for GetV1alpha1SignupOauth2Github
+func NewGetV1alpha1SignupOauth2GithubRequest(server string) (*http.Request, error) {
 	var err error
 
 	serverURL, err := url.Parse(server)
@@ -747,8 +814,11 @@ type ClientWithResponsesInterface interface {
 
 	PostV1alpha1RegisterWithResponse(ctx context.Context, body PostV1alpha1RegisterJSONRequestBody, reqEditors ...RequestEditorFn) (*PostV1alpha1RegisterResponse, error)
 
-	// GetV1alpha1Oauth2Github request
-	GetV1alpha1Oauth2GithubWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetV1alpha1Oauth2GithubResponse, error)
+	// GetV1alpha1SignupOauth2Callback request
+	GetV1alpha1SignupOauth2CallbackWithResponse(ctx context.Context, params *GetV1alpha1SignupOauth2CallbackParams, reqEditors ...RequestEditorFn) (*GetV1alpha1SignupOauth2CallbackResponse, error)
+
+	// GetV1alpha1SignupOauth2Github request
+	GetV1alpha1SignupOauth2GithubWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetV1alpha1SignupOauth2GithubResponse, error)
 }
 
 type HealthcheckResponse struct {
@@ -893,7 +963,28 @@ func (r PostV1alpha1RegisterResponse) StatusCode() int {
 	return 0
 }
 
-type GetV1alpha1Oauth2GithubResponse struct {
+type GetV1alpha1SignupOauth2CallbackResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r GetV1alpha1SignupOauth2CallbackResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetV1alpha1SignupOauth2CallbackResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GetV1alpha1SignupOauth2GithubResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON201      *struct {
@@ -903,7 +994,7 @@ type GetV1alpha1Oauth2GithubResponse struct {
 }
 
 // Status returns HTTPResponse.Status
-func (r GetV1alpha1Oauth2GithubResponse) Status() string {
+func (r GetV1alpha1SignupOauth2GithubResponse) Status() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Status
 	}
@@ -911,7 +1002,7 @@ func (r GetV1alpha1Oauth2GithubResponse) Status() string {
 }
 
 // StatusCode returns HTTPResponse.StatusCode
-func (r GetV1alpha1Oauth2GithubResponse) StatusCode() int {
+func (r GetV1alpha1SignupOauth2GithubResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -980,13 +1071,22 @@ func (c *ClientWithResponses) PostV1alpha1RegisterWithResponse(ctx context.Conte
 	return ParsePostV1alpha1RegisterResponse(rsp)
 }
 
-// GetV1alpha1Oauth2GithubWithResponse request returning *GetV1alpha1Oauth2GithubResponse
-func (c *ClientWithResponses) GetV1alpha1Oauth2GithubWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetV1alpha1Oauth2GithubResponse, error) {
-	rsp, err := c.GetV1alpha1Oauth2Github(ctx, reqEditors...)
+// GetV1alpha1SignupOauth2CallbackWithResponse request returning *GetV1alpha1SignupOauth2CallbackResponse
+func (c *ClientWithResponses) GetV1alpha1SignupOauth2CallbackWithResponse(ctx context.Context, params *GetV1alpha1SignupOauth2CallbackParams, reqEditors ...RequestEditorFn) (*GetV1alpha1SignupOauth2CallbackResponse, error) {
+	rsp, err := c.GetV1alpha1SignupOauth2Callback(ctx, params, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParseGetV1alpha1Oauth2GithubResponse(rsp)
+	return ParseGetV1alpha1SignupOauth2CallbackResponse(rsp)
+}
+
+// GetV1alpha1SignupOauth2GithubWithResponse request returning *GetV1alpha1SignupOauth2GithubResponse
+func (c *ClientWithResponses) GetV1alpha1SignupOauth2GithubWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetV1alpha1SignupOauth2GithubResponse, error) {
+	rsp, err := c.GetV1alpha1SignupOauth2Github(ctx, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetV1alpha1SignupOauth2GithubResponse(rsp)
 }
 
 // ParseHealthcheckResponse parses an HTTP response from a HealthcheckWithResponse call
@@ -1155,15 +1255,31 @@ func ParsePostV1alpha1RegisterResponse(rsp *http.Response) (*PostV1alpha1Registe
 	return response, nil
 }
 
-// ParseGetV1alpha1Oauth2GithubResponse parses an HTTP response from a GetV1alpha1Oauth2GithubWithResponse call
-func ParseGetV1alpha1Oauth2GithubResponse(rsp *http.Response) (*GetV1alpha1Oauth2GithubResponse, error) {
+// ParseGetV1alpha1SignupOauth2CallbackResponse parses an HTTP response from a GetV1alpha1SignupOauth2CallbackWithResponse call
+func ParseGetV1alpha1SignupOauth2CallbackResponse(rsp *http.Response) (*GetV1alpha1SignupOauth2CallbackResponse, error) {
 	bodyBytes, err := ioutil.ReadAll(rsp.Body)
 	defer func() { _ = rsp.Body.Close() }()
 	if err != nil {
 		return nil, err
 	}
 
-	response := &GetV1alpha1Oauth2GithubResponse{
+	response := &GetV1alpha1SignupOauth2CallbackResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseGetV1alpha1SignupOauth2GithubResponse parses an HTTP response from a GetV1alpha1SignupOauth2GithubWithResponse call
+func ParseGetV1alpha1SignupOauth2GithubResponse(rsp *http.Response) (*GetV1alpha1SignupOauth2GithubResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetV1alpha1SignupOauth2GithubResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
@@ -1205,8 +1321,11 @@ type ServerInterface interface {
 	// (POST /v1alpha1/register)
 	PostV1alpha1Register(w http.ResponseWriter, r *http.Request)
 
+	// (GET /v1alpha1/signup/oauth2/callback)
+	GetV1alpha1SignupOauth2Callback(w http.ResponseWriter, r *http.Request, params GetV1alpha1SignupOauth2CallbackParams)
+
 	// (GET /v1alpha1/signup/oauth2/github)
-	GetV1alpha1Oauth2Github(w http.ResponseWriter, r *http.Request)
+	GetV1alpha1SignupOauth2Github(w http.ResponseWriter, r *http.Request)
 }
 
 // ServerInterfaceWrapper converts contexts to parameters.
@@ -1411,12 +1530,43 @@ func (siw *ServerInterfaceWrapper) PostV1alpha1Register(w http.ResponseWriter, r
 	handler(w, r.WithContext(ctx))
 }
 
-// GetV1alpha1Oauth2Github operation middleware
-func (siw *ServerInterfaceWrapper) GetV1alpha1Oauth2Github(w http.ResponseWriter, r *http.Request) {
+// GetV1alpha1SignupOauth2Callback operation middleware
+func (siw *ServerInterfaceWrapper) GetV1alpha1SignupOauth2Callback(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	var err error
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params GetV1alpha1SignupOauth2CallbackParams
+
+	// ------------- Optional query parameter "code" -------------
+	if paramValue := r.URL.Query().Get("code"); paramValue != "" {
+
+	}
+
+	err = runtime.BindQueryParameter("form", true, false, "code", r.URL.Query(), &params.Code)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "code", Err: err})
+		return
+	}
+
+	var handler = func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetV1alpha1SignupOauth2Callback(w, r, params)
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler(w, r.WithContext(ctx))
+}
+
+// GetV1alpha1SignupOauth2Github operation middleware
+func (siw *ServerInterfaceWrapper) GetV1alpha1SignupOauth2Github(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
 	var handler = func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.GetV1alpha1Oauth2Github(w, r)
+		siw.Handler.GetV1alpha1SignupOauth2Github(w, r)
 	}
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -1558,7 +1708,10 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 		r.Post(options.BaseURL+"/v1alpha1/register", wrapper.PostV1alpha1Register)
 	})
 	r.Group(func(r chi.Router) {
-		r.Get(options.BaseURL+"/v1alpha1/signup/oauth2/github", wrapper.GetV1alpha1Oauth2Github)
+		r.Get(options.BaseURL+"/v1alpha1/signup/oauth2/callback", wrapper.GetV1alpha1SignupOauth2Callback)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/v1alpha1/signup/oauth2/github", wrapper.GetV1alpha1SignupOauth2Github)
 	})
 
 	return r
@@ -1567,39 +1720,40 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"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",
+	"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",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file

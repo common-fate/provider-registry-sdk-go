@@ -126,7 +126,7 @@ paths:
     parameters: []
     get:
       summary: ""
-      operationId: get-v1alpha1-oauth2-github
+      operationId: get-v1alpha1-signup-oauth2-github
       responses:
         "201":
           description: ""
@@ -140,6 +140,20 @@ paths:
         "":
           description: ""
       description: "Sign Up to CommonFate using Github Oauth2 "
+  /v1alpha1/signup/oauth2/callback:
+    parameters: []
+    get:
+      summary: ""
+      operationId: get-v1alpha1-signup-oauth2-callback
+      responses:
+        "200":
+          description: ""
+      description: Github oauth2 callback URL
+      parameters:
+        - schema:
+            type: string
+          in: query
+          name: code
   /v1alpha1/register:
     parameters: []
     post:

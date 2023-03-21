@@ -96,24 +96,44 @@ func (mr *MockClientWithResponsesInterfaceMockRecorder) GetProviderWithResponse(
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetProviderWithResponse", reflect.TypeOf((*MockClientWithResponsesInterface)(nil).GetProviderWithResponse), varargs...)
 }
 
-// GetV1alpha1Oauth2GithubWithResponse mocks base method.
-func (m *MockClientWithResponsesInterface) GetV1alpha1Oauth2GithubWithResponse(arg0 context.Context, arg1 ...providerregistrysdk.RequestEditorFn) (*providerregistrysdk.GetV1alpha1Oauth2GithubResponse, error) {
+// GetV1alpha1SignupOauth2CallbackWithResponse mocks base method.
+func (m *MockClientWithResponsesInterface) GetV1alpha1SignupOauth2CallbackWithResponse(arg0 context.Context, arg1 *providerregistrysdk.GetV1alpha1SignupOauth2CallbackParams, arg2 ...providerregistrysdk.RequestEditorFn) (*providerregistrysdk.GetV1alpha1SignupOauth2CallbackResponse, error) {
+	m.ctrl.T.Helper()
+	varargs := []interface{}{arg0, arg1}
+	for _, a := range arg2 {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "GetV1alpha1SignupOauth2CallbackWithResponse", varargs...)
+	ret0, _ := ret[0].(*providerregistrysdk.GetV1alpha1SignupOauth2CallbackResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetV1alpha1SignupOauth2CallbackWithResponse indicates an expected call of GetV1alpha1SignupOauth2CallbackWithResponse.
+func (mr *MockClientWithResponsesInterfaceMockRecorder) GetV1alpha1SignupOauth2CallbackWithResponse(arg0, arg1 interface{}, arg2 ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]interface{}{arg0, arg1}, arg2...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetV1alpha1SignupOauth2CallbackWithResponse", reflect.TypeOf((*MockClientWithResponsesInterface)(nil).GetV1alpha1SignupOauth2CallbackWithResponse), varargs...)
+}
+
+// GetV1alpha1SignupOauth2GithubWithResponse mocks base method.
+func (m *MockClientWithResponsesInterface) GetV1alpha1SignupOauth2GithubWithResponse(arg0 context.Context, arg1 ...providerregistrysdk.RequestEditorFn) (*providerregistrysdk.GetV1alpha1SignupOauth2GithubResponse, error) {
 	m.ctrl.T.Helper()
 	varargs := []interface{}{arg0}
 	for _, a := range arg1 {
 		varargs = append(varargs, a)
 	}
-	ret := m.ctrl.Call(m, "GetV1alpha1Oauth2GithubWithResponse", varargs...)
-	ret0, _ := ret[0].(*providerregistrysdk.GetV1alpha1Oauth2GithubResponse)
+	ret := m.ctrl.Call(m, "GetV1alpha1SignupOauth2GithubWithResponse", varargs...)
+	ret0, _ := ret[0].(*providerregistrysdk.GetV1alpha1SignupOauth2GithubResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// GetV1alpha1Oauth2GithubWithResponse indicates an expected call of GetV1alpha1Oauth2GithubWithResponse.
-func (mr *MockClientWithResponsesInterfaceMockRecorder) GetV1alpha1Oauth2GithubWithResponse(arg0 interface{}, arg1 ...interface{}) *gomock.Call {
+// GetV1alpha1SignupOauth2GithubWithResponse indicates an expected call of GetV1alpha1SignupOauth2GithubWithResponse.
+func (mr *MockClientWithResponsesInterfaceMockRecorder) GetV1alpha1SignupOauth2GithubWithResponse(arg0 interface{}, arg1 ...interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	varargs := append([]interface{}{arg0}, arg1...)
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetV1alpha1Oauth2GithubWithResponse", reflect.TypeOf((*MockClientWithResponsesInterface)(nil).GetV1alpha1Oauth2GithubWithResponse), varargs...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetV1alpha1SignupOauth2GithubWithResponse", reflect.TypeOf((*MockClientWithResponsesInterface)(nil).GetV1alpha1SignupOauth2GithubWithResponse), varargs...)
 }
 
 // HealthcheckWithResponse mocks base method.
