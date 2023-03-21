@@ -122,6 +122,44 @@ paths:
           in: query
           name: withDev
           description: withDev flag will return all providers including dev providers
+  /v1alpha1/signup/oauth2/github:
+    parameters: []
+    get:
+      summary: ""
+      operationId: get-v1alpha1-oauth2-github
+      responses:
+        "201":
+          description: ""
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  User:
+                    $ref: "#/components/schemas/UserDetail"
+        "":
+          description: ""
+      description: "Sign Up to CommonFate using Github Oauth2 "
+  /v1alpha1/register:
+    parameters: []
+    post:
+      summary: ""
+      operationId: post-v1alpha1-register
+      responses:
+        "201":
+          description: Created
+      description: Register User to Common Fate Provider Registry
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  format: email
+                username:
+                  type: string
   /v1alpha1/health:
     get:
       summary: Healthcheck
@@ -372,6 +410,23 @@ components:
         - $schema
       title: Schema
       type: object
+    UserDetail:
+      description: User Details returned by Github Authenticator
+      title: UserDetail
+      type: object
+      x-stoplight:
+        id: 3af5c75a5731d
+      properties:
+        login:
+          type: string
+        id:
+          type: string
+        name:
+          type: string
+        company:
+          type: string
+        email:
+          type: string
   requestBodies: {}
   responses:
     HealthResponse:

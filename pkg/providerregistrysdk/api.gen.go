@@ -10,6 +10,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -17,6 +18,7 @@ import (
 	"strings"
 
 	"github.com/deepmap/oapi-codegen/pkg/runtime"
+	openapi_types "github.com/deepmap/oapi-codegen/pkg/types"
 	"github.com/getkin/kin-openapi/openapi3"
 	"github.com/go-chi/chi/v5"
 )
@@ -164,6 +166,15 @@ type TargetField struct {
 // TargetFieldType defines model for TargetField.Type.
 type TargetFieldType string
 
+// User Details returned by Github Authenticator
+type UserDetail struct {
+	Company *string `json:"company,omitempty"`
+	Email   *string `json:"email,omitempty"`
+	Id      *string `json:"id,omitempty"`
+	Login   *string `json:"login,omitempty"`
+	Name    *string `json:"name,omitempty"`
+}
+
 // ErrorResponse defines model for ErrorResponse.
 type ErrorResponse struct {
 	Error string `json:"error"`
@@ -185,6 +196,15 @@ type ListAllProvidersParams struct {
 	// withDev flag will return all providers including dev providers
 	WithDev *bool `form:"withDev,omitempty" json:"withDev,omitempty"`
 }
+
+// PostV1alpha1RegisterJSONBody defines parameters for PostV1alpha1Register.
+type PostV1alpha1RegisterJSONBody struct {
+	Email    *openapi_types.Email `json:"email,omitempty"`
+	Username *string              `json:"username,omitempty"`
+}
+
+// PostV1alpha1RegisterJSONRequestBody defines body for PostV1alpha1Register for application/json ContentType.
+type PostV1alpha1RegisterJSONRequestBody PostV1alpha1RegisterJSONBody
 
 // RequestEditorFn  is the function signature for the RequestEditor callback function
 type RequestEditorFn func(ctx context.Context, req *http.Request) error
@@ -273,6 +293,14 @@ type ClientInterface interface {
 
 	// GetProviderUsageDoc request
 	GetProviderUsageDoc(ctx context.Context, publisher string, name string, version string, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// PostV1alpha1Register request with any body
+	PostV1alpha1RegisterWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	PostV1alpha1Register(ctx context.Context, body PostV1alpha1RegisterJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetV1alpha1Oauth2Github request
+	GetV1alpha1Oauth2Github(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
 }
 
 func (c *Client) Healthcheck(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
@@ -325,6 +353,42 @@ func (c *Client) GetProviderSetupDocs(ctx context.Context, publisher string, nam
 
 func (c *Client) GetProviderUsageDoc(ctx context.Context, publisher string, name string, version string, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewGetProviderUsageDocRequest(c.Server, publisher, name, version)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) PostV1alpha1RegisterWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewPostV1alpha1RegisterRequestWithBody(c.Server, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) PostV1alpha1Register(ctx context.Context, body PostV1alpha1RegisterJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewPostV1alpha1RegisterRequest(c.Server, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetV1alpha1Oauth2Github(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetV1alpha1Oauth2GithubRequest(c.Server)
 	if err != nil {
 		return nil, err
 	}
@@ -553,6 +617,73 @@ func NewGetProviderUsageDocRequest(server string, publisher string, name string,
 	return req, nil
 }
 
+// NewPostV1alpha1RegisterRequest calls the generic PostV1alpha1Register builder with application/json body
+func NewPostV1alpha1RegisterRequest(server string, body PostV1alpha1RegisterJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewPostV1alpha1RegisterRequestWithBody(server, "application/json", bodyReader)
+}
+
+// NewPostV1alpha1RegisterRequestWithBody generates requests for PostV1alpha1Register with any type of body
+func NewPostV1alpha1RegisterRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/v1alpha1/register")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewGetV1alpha1Oauth2GithubRequest generates requests for GetV1alpha1Oauth2Github
+func NewGetV1alpha1Oauth2GithubRequest(server string) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/v1alpha1/signup/oauth2/github")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 func (c *Client) applyEditors(ctx context.Context, req *http.Request, additionalEditors []RequestEditorFn) error {
 	for _, r := range c.RequestEditors {
 		if err := r(ctx, req); err != nil {
@@ -610,6 +741,14 @@ type ClientWithResponsesInterface interface {
 
 	// GetProviderUsageDoc request
 	GetProviderUsageDocWithResponse(ctx context.Context, publisher string, name string, version string, reqEditors ...RequestEditorFn) (*GetProviderUsageDocResponse, error)
+
+	// PostV1alpha1Register request with any body
+	PostV1alpha1RegisterWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostV1alpha1RegisterResponse, error)
+
+	PostV1alpha1RegisterWithResponse(ctx context.Context, body PostV1alpha1RegisterJSONRequestBody, reqEditors ...RequestEditorFn) (*PostV1alpha1RegisterResponse, error)
+
+	// GetV1alpha1Oauth2Github request
+	GetV1alpha1Oauth2GithubWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetV1alpha1Oauth2GithubResponse, error)
 }
 
 type HealthcheckResponse struct {
@@ -733,6 +872,52 @@ func (r GetProviderUsageDocResponse) StatusCode() int {
 	return 0
 }
 
+type PostV1alpha1RegisterResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r PostV1alpha1RegisterResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r PostV1alpha1RegisterResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GetV1alpha1Oauth2GithubResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON201      *struct {
+		// User Details returned by Github Authenticator
+		User *UserDetail `json:"User,omitempty"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r GetV1alpha1Oauth2GithubResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetV1alpha1Oauth2GithubResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 // HealthcheckWithResponse request returning *HealthcheckResponse
 func (c *ClientWithResponses) HealthcheckWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*HealthcheckResponse, error) {
 	rsp, err := c.Healthcheck(ctx, reqEditors...)
@@ -776,6 +961,32 @@ func (c *ClientWithResponses) GetProviderUsageDocWithResponse(ctx context.Contex
 		return nil, err
 	}
 	return ParseGetProviderUsageDocResponse(rsp)
+}
+
+// PostV1alpha1RegisterWithBodyWithResponse request with arbitrary body returning *PostV1alpha1RegisterResponse
+func (c *ClientWithResponses) PostV1alpha1RegisterWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostV1alpha1RegisterResponse, error) {
+	rsp, err := c.PostV1alpha1RegisterWithBody(ctx, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParsePostV1alpha1RegisterResponse(rsp)
+}
+
+func (c *ClientWithResponses) PostV1alpha1RegisterWithResponse(ctx context.Context, body PostV1alpha1RegisterJSONRequestBody, reqEditors ...RequestEditorFn) (*PostV1alpha1RegisterResponse, error) {
+	rsp, err := c.PostV1alpha1Register(ctx, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParsePostV1alpha1RegisterResponse(rsp)
+}
+
+// GetV1alpha1Oauth2GithubWithResponse request returning *GetV1alpha1Oauth2GithubResponse
+func (c *ClientWithResponses) GetV1alpha1Oauth2GithubWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetV1alpha1Oauth2GithubResponse, error) {
+	rsp, err := c.GetV1alpha1Oauth2Github(ctx, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetV1alpha1Oauth2GithubResponse(rsp)
 }
 
 // ParseHealthcheckResponse parses an HTTP response from a HealthcheckWithResponse call
@@ -928,6 +1139,51 @@ func ParseGetProviderUsageDocResponse(rsp *http.Response) (*GetProviderUsageDocR
 	return response, nil
 }
 
+// ParsePostV1alpha1RegisterResponse parses an HTTP response from a PostV1alpha1RegisterWithResponse call
+func ParsePostV1alpha1RegisterResponse(rsp *http.Response) (*PostV1alpha1RegisterResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &PostV1alpha1RegisterResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseGetV1alpha1Oauth2GithubResponse parses an HTTP response from a GetV1alpha1Oauth2GithubWithResponse call
+func ParseGetV1alpha1Oauth2GithubResponse(rsp *http.Response) (*GetV1alpha1Oauth2GithubResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetV1alpha1Oauth2GithubResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 201:
+		var dest struct {
+			// User Details returned by Github Authenticator
+			User *UserDetail `json:"User,omitempty"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON201 = &dest
+
+	}
+
+	return response, nil
+}
+
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
 	// Healthcheck
@@ -945,6 +1201,12 @@ type ServerInterface interface {
 	// Get Provider Usage Doc
 	// (GET /v1alpha1/providers/{publisher}/{name}/{version}/usage)
 	GetProviderUsageDoc(w http.ResponseWriter, r *http.Request, publisher string, name string, version string)
+
+	// (POST /v1alpha1/register)
+	PostV1alpha1Register(w http.ResponseWriter, r *http.Request)
+
+	// (GET /v1alpha1/signup/oauth2/github)
+	GetV1alpha1Oauth2Github(w http.ResponseWriter, r *http.Request)
 }
 
 // ServerInterfaceWrapper converts contexts to parameters.
@@ -1134,6 +1396,36 @@ func (siw *ServerInterfaceWrapper) GetProviderUsageDoc(w http.ResponseWriter, r 
 	handler(w, r.WithContext(ctx))
 }
 
+// PostV1alpha1Register operation middleware
+func (siw *ServerInterfaceWrapper) PostV1alpha1Register(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	var handler = func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.PostV1alpha1Register(w, r)
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler(w, r.WithContext(ctx))
+}
+
+// GetV1alpha1Oauth2Github operation middleware
+func (siw *ServerInterfaceWrapper) GetV1alpha1Oauth2Github(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	var handler = func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetV1alpha1Oauth2Github(w, r)
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler(w, r.WithContext(ctx))
+}
+
 type UnescapedCookieParamError struct {
 	ParamName string
 	Err       error
@@ -1262,6 +1554,12 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 	r.Group(func(r chi.Router) {
 		r.Get(options.BaseURL+"/v1alpha1/providers/{publisher}/{name}/{version}/usage", wrapper.GetProviderUsageDoc)
 	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/v1alpha1/register", wrapper.PostV1alpha1Register)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/v1alpha1/signup/oauth2/github", wrapper.GetV1alpha1Oauth2Github)
+	})
 
 	return r
 }
@@ -1269,36 +1567,39 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"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",
-	"/6YWHBaYHQAA",
+	"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",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file
