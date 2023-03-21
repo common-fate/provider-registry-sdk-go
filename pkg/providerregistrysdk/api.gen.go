@@ -686,7 +686,7 @@ func NewGetV1alpha1SignupOauth2CallbackRequest(server string, params *GetV1alpha
 		return nil, err
 	}
 
-	operationPath := fmt.Sprintf("/v1alpha1/signup/oauth2/callback")
+	operationPath := fmt.Sprintf("/v1alpha1/signup/oauth/callback")
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -733,7 +733,7 @@ func NewGetV1alpha1SignupOauth2GithubRequest(server string) (*http.Request, erro
 		return nil, err
 	}
 
-	operationPath := fmt.Sprintf("/v1alpha1/signup/oauth2/github")
+	operationPath := fmt.Sprintf("/v1alpha1/signup/oauth/github")
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -1338,10 +1338,10 @@ type ServerInterface interface {
 	// (POST /v1alpha1/register)
 	PostV1alpha1Register(w http.ResponseWriter, r *http.Request)
 
-	// (GET /v1alpha1/signup/oauth2/callback)
+	// (GET /v1alpha1/signup/oauth/callback)
 	GetV1alpha1SignupOauth2Callback(w http.ResponseWriter, r *http.Request, params GetV1alpha1SignupOauth2CallbackParams)
 
-	// (GET /v1alpha1/signup/oauth2/github)
+	// (GET /v1alpha1/signup/oauth/github)
 	GetV1alpha1SignupOauth2Github(w http.ResponseWriter, r *http.Request)
 }
 
@@ -1725,10 +1725,10 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 		r.Post(options.BaseURL+"/v1alpha1/register", wrapper.PostV1alpha1Register)
 	})
 	r.Group(func(r chi.Router) {
-		r.Get(options.BaseURL+"/v1alpha1/signup/oauth2/callback", wrapper.GetV1alpha1SignupOauth2Callback)
+		r.Get(options.BaseURL+"/v1alpha1/signup/oauth/callback", wrapper.GetV1alpha1SignupOauth2Callback)
 	})
 	r.Group(func(r chi.Router) {
-		r.Get(options.BaseURL+"/v1alpha1/signup/oauth2/github", wrapper.GetV1alpha1SignupOauth2Github)
+		r.Get(options.BaseURL+"/v1alpha1/signup/oauth/github", wrapper.GetV1alpha1SignupOauth2Github)
 	})
 
 	return r
@@ -1767,10 +1767,10 @@ var swaggerSpec = []string{
 	"fozvt0Ri8tR06+vJkwFgPXnyVF1vDdM56KB9H8Jh9Nj6OZPm/pzYkC/Cb6Zvno3eb8D8HFrIhxDvcdeS",
 	"zSR5y7XwrtSeG25Wv7XBXkeDutoL669q8re28WruX8CuiQJdlWM4dmsEz4Qdv/4S2ZrZ9ZbjvvmEMUi0",
 	"rcFH1kHkPfyHB8/kgf0mM4YHn43gmYj/rjSw/iHn4D8sqFlQTx7tdUKowS7GSSDb4mqB9vVSXYbcCKX/",
-	"9NZqVd5fUPrfIln9ypfsujdOhSyIxnP/ZODKUCmQO/rfzW+e6x6LZ31o3kswlxwv34KqaMarciJIpfPD",
-	"SUwYW5L4+9Y+0V8RnDiqxdHnxWUPzXNowLy1Rq7tove1iWEeb7RQsUgA76TIxub7LhtEn5vY3dAZNu1r",
-	"MYLbyGCQop5XOwORWZy3hsEAij6XLcUtwytlOlMfIoc2GhsWtwqPRHP2d0TTfk2XDzWd2ivbfDJhIiYs",
-	"F0rPT6bTGTa08YW1ufD5Amtql39yB6TA6/v1/wMAAP//mYBejOoiAAA=",
+	"9NZqVd5fUPrfIln9ypfsujdOhSyIxnP/ZODKUCmQO/rfzW+e6x6LZ31o3kswlxwv34KqaMarciJIpfNJ",
+	"TBhbkvj71jbR3xCs9CGqxdHnxWUPzHNosLy1Nq7tove1iWEab3RQsUgA72TIxt77LhtAn5vX3cgZMu3r",
+	"MILLyGCMop5Xu+KQWZi3RsHgiT6XLcEtvytl+lIfIQc2GhsVtwqPBHP2dwTTfkuXDzWb2gvbfDJhIiYs",
+	"F0rPT6bTGTas8WW1ue758moql39yB6TA6/v1/wMAAP//DlflWegiAAA=",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file
