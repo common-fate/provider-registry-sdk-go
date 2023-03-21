@@ -148,6 +148,15 @@ paths:
       responses:
         "200":
           description: ""
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  User:
+                    $ref: "#/components/schemas/UserDetail"
+        "":
+          description: ""
       description: Github oauth2 callback URL
       parameters:
         - schema:
@@ -433,14 +442,14 @@ components:
       properties:
         login:
           type: string
-        id:
-          type: string
         name:
           type: string
         company:
           type: string
         email:
           type: string
+        id:
+          type: number
   requestBodies: {}
   responses:
     HealthResponse:
