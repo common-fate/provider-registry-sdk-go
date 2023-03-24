@@ -154,6 +154,10 @@ components:
           type: string
         schema:
           $ref: "#/components/schemas/Schema"
+        createdAt:
+          type: string
+        updatedAt:
+          type: string
       required:
         - publisher
         - name
@@ -161,6 +165,8 @@ components:
         - lambdaAssetS3Arn
         - cfnTemplateS3Arn
         - schema
+        - createdAt
+        - updatedAt
     Provider:
       title: Provider
       type: object
