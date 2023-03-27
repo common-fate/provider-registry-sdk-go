@@ -193,6 +193,9 @@ components:
           type: string
         updatedAt:
           type: string
+        usage:
+          type: string
+          description: the usage docs encoded in markdown formatting
       required:
         - publisher
         - name
