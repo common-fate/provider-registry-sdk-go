@@ -122,67 +122,19 @@ paths:
           in: query
           name: withDev
           description: withDev flag will return all providers including dev providers
-  /v1alpha1/signup/oauth/github:
-    parameters: []
+  /v1alpha1/publisher/providers:
     get:
-      summary: ""
-      operationId: get-v1alpha1-signup-oauth2-github
-      responses:
-        "201":
-          description: ""
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  User:
-                    $ref: "#/components/schemas/UserDetail"
-        "":
-          description: ""
-      description: "Sign Up to CommonFate using Github Oauth2 "
-  /v1alpha1/signup/oauth/callback:
-    parameters: []
-    get:
-      summary: ""
-      operationId: get-v1alpha1-signup-oauth2-callback
+      summary: List Providers
+      tags:
+        - Public
       responses:
         "200":
-          description: ""
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  User:
-                    $ref: "#/components/schemas/UserDetail"
-        "":
-          description: ""
-      description: Github oauth2 callback URL
-      parameters:
-        - schema:
-            type: string
-          in: query
-          name: code
-  /v1alpha1/register:
+          $ref: "#/components/responses/ListProvidersResponse"
+        "500":
+          $ref: "#/components/responses/ErrorResponse"
+      operationId: list-all-publisher-providers
+      parameters: []
     parameters: []
-    post:
-      summary: ""
-      operationId: post-v1alpha1-register
-      responses:
-        "201":
-          description: Created
-      description: Register User to Common Fate Provider Registry
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                email:
-                  type: string
-                  format: email
-                username:
-                  type: string
   /v1alpha1/health:
     get:
       summary: Healthcheck
