@@ -6,7 +6,6 @@ package prmocks
 
 import (
 	context "context"
-	io "io"
 	reflect "reflect"
 
 	providerregistrysdk "github.com/common-fate/provider-registry-sdk-go/pkg/providerregistrysdk"
@@ -96,46 +95,6 @@ func (mr *MockClientWithResponsesInterfaceMockRecorder) GetProviderWithResponse(
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetProviderWithResponse", reflect.TypeOf((*MockClientWithResponsesInterface)(nil).GetProviderWithResponse), varargs...)
 }
 
-// GetV1alpha1SignupOauth2CallbackWithResponse mocks base method.
-func (m *MockClientWithResponsesInterface) GetV1alpha1SignupOauth2CallbackWithResponse(arg0 context.Context, arg1 *providerregistrysdk.GetV1alpha1SignupOauth2CallbackParams, arg2 ...providerregistrysdk.RequestEditorFn) (*providerregistrysdk.GetV1alpha1SignupOauth2CallbackResponse, error) {
-	m.ctrl.T.Helper()
-	varargs := []interface{}{arg0, arg1}
-	for _, a := range arg2 {
-		varargs = append(varargs, a)
-	}
-	ret := m.ctrl.Call(m, "GetV1alpha1SignupOauth2CallbackWithResponse", varargs...)
-	ret0, _ := ret[0].(*providerregistrysdk.GetV1alpha1SignupOauth2CallbackResponse)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetV1alpha1SignupOauth2CallbackWithResponse indicates an expected call of GetV1alpha1SignupOauth2CallbackWithResponse.
-func (mr *MockClientWithResponsesInterfaceMockRecorder) GetV1alpha1SignupOauth2CallbackWithResponse(arg0, arg1 interface{}, arg2 ...interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	varargs := append([]interface{}{arg0, arg1}, arg2...)
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetV1alpha1SignupOauth2CallbackWithResponse", reflect.TypeOf((*MockClientWithResponsesInterface)(nil).GetV1alpha1SignupOauth2CallbackWithResponse), varargs...)
-}
-
-// GetV1alpha1SignupOauth2GithubWithResponse mocks base method.
-func (m *MockClientWithResponsesInterface) GetV1alpha1SignupOauth2GithubWithResponse(arg0 context.Context, arg1 ...providerregistrysdk.RequestEditorFn) (*providerregistrysdk.GetV1alpha1SignupOauth2GithubResponse, error) {
-	m.ctrl.T.Helper()
-	varargs := []interface{}{arg0}
-	for _, a := range arg1 {
-		varargs = append(varargs, a)
-	}
-	ret := m.ctrl.Call(m, "GetV1alpha1SignupOauth2GithubWithResponse", varargs...)
-	ret0, _ := ret[0].(*providerregistrysdk.GetV1alpha1SignupOauth2GithubResponse)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetV1alpha1SignupOauth2GithubWithResponse indicates an expected call of GetV1alpha1SignupOauth2GithubWithResponse.
-func (mr *MockClientWithResponsesInterfaceMockRecorder) GetV1alpha1SignupOauth2GithubWithResponse(arg0 interface{}, arg1 ...interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	varargs := append([]interface{}{arg0}, arg1...)
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetV1alpha1SignupOauth2GithubWithResponse", reflect.TypeOf((*MockClientWithResponsesInterface)(nil).GetV1alpha1SignupOauth2GithubWithResponse), varargs...)
-}
-
 // HealthcheckWithResponse mocks base method.
 func (m *MockClientWithResponsesInterface) HealthcheckWithResponse(arg0 context.Context, arg1 ...providerregistrysdk.RequestEditorFn) (*providerregistrysdk.HealthcheckResponse, error) {
 	m.ctrl.T.Helper()
@@ -176,42 +135,22 @@ func (mr *MockClientWithResponsesInterfaceMockRecorder) ListAllProvidersWithResp
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListAllProvidersWithResponse", reflect.TypeOf((*MockClientWithResponsesInterface)(nil).ListAllProvidersWithResponse), varargs...)
 }
 
-// PostV1alpha1RegisterWithBodyWithResponse mocks base method.
-func (m *MockClientWithResponsesInterface) PostV1alpha1RegisterWithBodyWithResponse(arg0 context.Context, arg1 string, arg2 io.Reader, arg3 ...providerregistrysdk.RequestEditorFn) (*providerregistrysdk.PostV1alpha1RegisterResponse, error) {
+// ListAllPublisherProvidersWithResponse mocks base method.
+func (m *MockClientWithResponsesInterface) ListAllPublisherProvidersWithResponse(arg0 context.Context, arg1 ...providerregistrysdk.RequestEditorFn) (*providerregistrysdk.ListAllPublisherProvidersResponse, error) {
 	m.ctrl.T.Helper()
-	varargs := []interface{}{arg0, arg1, arg2}
-	for _, a := range arg3 {
+	varargs := []interface{}{arg0}
+	for _, a := range arg1 {
 		varargs = append(varargs, a)
 	}
-	ret := m.ctrl.Call(m, "PostV1alpha1RegisterWithBodyWithResponse", varargs...)
-	ret0, _ := ret[0].(*providerregistrysdk.PostV1alpha1RegisterResponse)
+	ret := m.ctrl.Call(m, "ListAllPublisherProvidersWithResponse", varargs...)
+	ret0, _ := ret[0].(*providerregistrysdk.ListAllPublisherProvidersResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// PostV1alpha1RegisterWithBodyWithResponse indicates an expected call of PostV1alpha1RegisterWithBodyWithResponse.
-func (mr *MockClientWithResponsesInterfaceMockRecorder) PostV1alpha1RegisterWithBodyWithResponse(arg0, arg1, arg2 interface{}, arg3 ...interface{}) *gomock.Call {
+// ListAllPublisherProvidersWithResponse indicates an expected call of ListAllPublisherProvidersWithResponse.
+func (mr *MockClientWithResponsesInterfaceMockRecorder) ListAllPublisherProvidersWithResponse(arg0 interface{}, arg1 ...interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	varargs := append([]interface{}{arg0, arg1, arg2}, arg3...)
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PostV1alpha1RegisterWithBodyWithResponse", reflect.TypeOf((*MockClientWithResponsesInterface)(nil).PostV1alpha1RegisterWithBodyWithResponse), varargs...)
-}
-
-// PostV1alpha1RegisterWithResponse mocks base method.
-func (m *MockClientWithResponsesInterface) PostV1alpha1RegisterWithResponse(arg0 context.Context, arg1 providerregistrysdk.PostV1alpha1RegisterJSONRequestBody, arg2 ...providerregistrysdk.RequestEditorFn) (*providerregistrysdk.PostV1alpha1RegisterResponse, error) {
-	m.ctrl.T.Helper()
-	varargs := []interface{}{arg0, arg1}
-	for _, a := range arg2 {
-		varargs = append(varargs, a)
-	}
-	ret := m.ctrl.Call(m, "PostV1alpha1RegisterWithResponse", varargs...)
-	ret0, _ := ret[0].(*providerregistrysdk.PostV1alpha1RegisterResponse)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// PostV1alpha1RegisterWithResponse indicates an expected call of PostV1alpha1RegisterWithResponse.
-func (mr *MockClientWithResponsesInterfaceMockRecorder) PostV1alpha1RegisterWithResponse(arg0, arg1 interface{}, arg2 ...interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	varargs := append([]interface{}{arg0, arg1}, arg2...)
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PostV1alpha1RegisterWithResponse", reflect.TypeOf((*MockClientWithResponsesInterface)(nil).PostV1alpha1RegisterWithResponse), varargs...)
+	varargs := append([]interface{}{arg0}, arg1...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListAllPublisherProvidersWithResponse", reflect.TypeOf((*MockClientWithResponsesInterface)(nil).ListAllPublisherProvidersWithResponse), varargs...)
 }
