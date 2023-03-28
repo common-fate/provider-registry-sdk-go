@@ -42,6 +42,37 @@ paths:
           $ref: "#/components/responses/ErrorResponse"
       tags:
         - Public
+  "/v1alpha1/providers/{publisher}/{name}":
+    parameters:
+      - schema:
+          type: string
+        name: publisher
+        in: path
+        required: true
+      - schema:
+          type: string
+        name: name
+        in: path
+        required: true
+    get:
+      summary: Get Provider Versions
+      operationId: get-provider-versions
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Provider"
+        "404":
+          $ref: "#/components/responses/ErrorResponse"
+        "500":
+          $ref: "#/components/responses/ErrorResponse"
+      tags:
+        - Public
+      description: "pass in a generic published/name combination and get the full list of providers "
   "/v1alpha1/providers/{publisher}/{name}/{version}/setup":
     parameters:
       - schema:
@@ -99,9 +130,7 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  type: string
+                type: string
       tags:
         - Public
       description: ""
@@ -152,8 +181,13 @@ components:
           type: string
         icon:
           type: string
+          description: "a shortcode for a provider icon. examples are: azure, aws, google, flask"
         schema:
           $ref: "#/components/schemas/Schema"
+        createdAt:
+          type: string
+        updatedAt:
+          type: string
       required:
         - publisher
         - name
@@ -161,6 +195,8 @@ components:
         - lambdaAssetS3Arn
         - cfnTemplateS3Arn
         - schema
+        - createdAt
+        - updatedAt
     Provider:
       title: Provider
       type: object
