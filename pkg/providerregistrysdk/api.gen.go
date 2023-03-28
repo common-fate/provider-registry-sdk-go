@@ -91,6 +91,13 @@ type Meta struct {
 	Framework *string `json:"framework,omitempty"`
 }
 
+// PresignURL will return time-timited presigned URL for provided bucketname & filename
+type PresignURLResponse struct {
+	Bucketname struct {
+		Filename string `json:"filename"`
+	} `json:"bucketname"`
+}
+
 // A registered provider version
 type Provider struct {
 	Name      string `json:"name"`
@@ -190,6 +197,15 @@ type ListAllProvidersParams struct {
 	WithDev *bool `form:"withDev,omitempty" json:"withDev,omitempty"`
 }
 
+// PreSignURLParams defines parameters for PreSignURL.
+type PreSignURLParams struct {
+	// name of the S3 bucket
+	BucketName string `form:"bucketName" json:"bucketName"`
+
+	// filename of the required file
+	Keys []interface{} `form:"keys" json:"keys"`
+}
+
 // RequestEditorFn  is the function signature for the RequestEditor callback function
 type RequestEditorFn func(ctx context.Context, req *http.Request) error
 
@@ -269,6 +285,9 @@ type ClientInterface interface {
 	// ListAllProviders request
 	ListAllProviders(ctx context.Context, params *ListAllProvidersParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// PreSignURL request
+	PreSignURL(ctx context.Context, params *PreSignURLParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// GetProviderVersions request
 	GetProviderVersions(ctx context.Context, publisher string, name string, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -296,6 +315,18 @@ func (c *Client) Healthcheck(ctx context.Context, reqEditors ...RequestEditorFn)
 
 func (c *Client) ListAllProviders(ctx context.Context, params *ListAllProvidersParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewListAllProvidersRequest(c.Server, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) PreSignURL(ctx context.Context, params *PreSignURLParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewPreSignURLRequest(c.Server, params)
 	if err != nil {
 		return nil, err
 	}
@@ -416,6 +447,61 @@ func NewListAllProvidersRequest(server string, params *ListAllProvidersParams) (
 			}
 		}
 
+	}
+
+	queryURL.RawQuery = queryValues.Encode()
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewPreSignURLRequest generates requests for PreSignURL
+func NewPreSignURLRequest(server string, params *PreSignURLParams) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/v1alpha1/providers/presignurl")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	queryValues := queryURL.Query()
+
+	if queryFrag, err := runtime.StyleParamWithLocation("form", true, "bucketName", runtime.ParamLocationQuery, params.BucketName); err != nil {
+		return nil, err
+	} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+		return nil, err
+	} else {
+		for k, v := range parsed {
+			for _, v2 := range v {
+				queryValues.Add(k, v2)
+			}
+		}
+	}
+
+	if queryFrag, err := runtime.StyleParamWithLocation("form", true, "keys", runtime.ParamLocationQuery, params.Keys); err != nil {
+		return nil, err
+	} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+		return nil, err
+	} else {
+		for k, v := range parsed {
+			for _, v2 := range v {
+				queryValues.Add(k, v2)
+			}
+		}
 	}
 
 	queryURL.RawQuery = queryValues.Encode()
@@ -662,6 +748,9 @@ type ClientWithResponsesInterface interface {
 	// ListAllProviders request
 	ListAllProvidersWithResponse(ctx context.Context, params *ListAllProvidersParams, reqEditors ...RequestEditorFn) (*ListAllProvidersResponse, error)
 
+	// PreSignURL request
+	PreSignURLWithResponse(ctx context.Context, params *PreSignURLParams, reqEditors ...RequestEditorFn) (*PreSignURLResponse, error)
+
 	// GetProviderVersions request
 	GetProviderVersionsWithResponse(ctx context.Context, publisher string, name string, reqEditors ...RequestEditorFn) (*GetProviderVersionsResponse, error)
 
@@ -718,6 +807,28 @@ func (r ListAllProvidersResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r ListAllProvidersResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type PreSignURLResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *PresignURLResponse
+}
+
+// Status returns HTTPResponse.Status
+func (r PreSignURLResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r PreSignURLResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -842,6 +953,15 @@ func (c *ClientWithResponses) ListAllProvidersWithResponse(ctx context.Context, 
 	return ParseListAllProvidersResponse(rsp)
 }
 
+// PreSignURLWithResponse request returning *PreSignURLResponse
+func (c *ClientWithResponses) PreSignURLWithResponse(ctx context.Context, params *PreSignURLParams, reqEditors ...RequestEditorFn) (*PreSignURLResponse, error) {
+	rsp, err := c.PreSignURL(ctx, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParsePreSignURLResponse(rsp)
+}
+
 // GetProviderVersionsWithResponse request returning *GetProviderVersionsResponse
 func (c *ClientWithResponses) GetProviderVersionsWithResponse(ctx context.Context, publisher string, name string, reqEditors ...RequestEditorFn) (*GetProviderVersionsResponse, error) {
 	rsp, err := c.GetProviderVersions(ctx, publisher, name, reqEditors...)
@@ -926,6 +1046,32 @@ func ParseListAllProvidersResponse(rsp *http.Response) (*ListAllProvidersRespons
 			return nil, err
 		}
 		response.JSON500 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParsePreSignURLResponse parses an HTTP response from a PreSignURLWithResponse call
+func ParsePreSignURLResponse(rsp *http.Response) (*PreSignURLResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &PreSignURLResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest PresignURLResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
 
 	}
 
@@ -1080,6 +1226,9 @@ type ServerInterface interface {
 	// List Providers
 	// (GET /v1alpha1/providers)
 	ListAllProviders(w http.ResponseWriter, r *http.Request, params ListAllProvidersParams)
+
+	// (GET /v1alpha1/providers/presignurl)
+	PreSignURL(w http.ResponseWriter, r *http.Request, params PreSignURLParams)
 	// Get Provider Versions
 	// (GET /v1alpha1/providers/{publisher}/{name})
 	GetProviderVersions(w http.ResponseWriter, r *http.Request, publisher string, name string)
@@ -1140,6 +1289,54 @@ func (siw *ServerInterfaceWrapper) ListAllProviders(w http.ResponseWriter, r *ht
 
 	var handler = func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.ListAllProviders(w, r, params)
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler(w, r.WithContext(ctx))
+}
+
+// PreSignURL operation middleware
+func (siw *ServerInterfaceWrapper) PreSignURL(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	var err error
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params PreSignURLParams
+
+	// ------------- Required query parameter "bucketName" -------------
+	if paramValue := r.URL.Query().Get("bucketName"); paramValue != "" {
+
+	} else {
+		siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "bucketName"})
+		return
+	}
+
+	err = runtime.BindQueryParameter("form", true, true, "bucketName", r.URL.Query(), &params.BucketName)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "bucketName", Err: err})
+		return
+	}
+
+	// ------------- Required query parameter "keys" -------------
+	if paramValue := r.URL.Query().Get("keys"); paramValue != "" {
+
+	} else {
+		siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "keys"})
+		return
+	}
+
+	err = runtime.BindQueryParameter("form", true, true, "keys", r.URL.Query(), &params.Keys)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "keys", Err: err})
+		return
+	}
+
+	var handler = func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.PreSignURL(w, r, params)
 	}
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -1436,6 +1633,9 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 		r.Get(options.BaseURL+"/v1alpha1/providers", wrapper.ListAllProviders)
 	})
 	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/v1alpha1/providers/presignurl", wrapper.PreSignURL)
+	})
+	r.Group(func(r chi.Router) {
 		r.Get(options.BaseURL+"/v1alpha1/providers/{publisher}/{name}", wrapper.GetProviderVersions)
 	})
 	r.Group(func(r chi.Router) {
@@ -1454,38 +1654,41 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"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",
-	"3iw2/wkAAP//gHQeBbsgAAA=",
+	"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",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file
