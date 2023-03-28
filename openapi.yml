@@ -151,11 +151,6 @@ paths:
           in: query
           name: withDev
           description: withDev flag will return all providers including dev providers
-        - schema:
-            type: boolean
-          in: query
-          name: latestVersionOnly
-          description: latestVersionOnly flag returns the latest provider only from each publisher/team grouping
   /v1alpha1/health:
     get:
       summary: Healthcheck
@@ -193,9 +188,6 @@ components:
           type: string
         updatedAt:
           type: string
-        usage:
-          type: string
-          description: the usage docs encoded in markdown formatting
       required:
         - publisher
         - name
