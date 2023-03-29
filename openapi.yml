@@ -291,9 +291,9 @@ components:
         - createdAt
         - updatedAt
     ProviderRegisterRequest:
-      title: ProviderDetail
+      title: ProviderRegisterRequest
       type: object
-      description: A registered provider version
+      description: Request Body to register a Provider
       x-stoplight:
         id: b4d9111a1ff26
       properties:
@@ -306,10 +306,15 @@ components:
         icon:
           type: string
           description: "a shortcode for a provider icon. examples are: azure, aws, google, flask"
+        schema:
+          $ref: "#/components/schemas/Schema"
+        dev:
+          type: boolean
       required:
         - publisher
         - name
         - version
+        - schema
     Provider:
       title: Provider
       type: object
