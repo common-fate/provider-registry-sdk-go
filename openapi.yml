@@ -171,7 +171,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/PresignURLResponse"
-      operationId: preSignURL
+      operationId: get-presigned-url
       description: Returns a presigned URL for Provider Assets to grant time-limited permission to download the objects.
       parameters:
         - schema:
@@ -181,10 +181,10 @@ paths:
           required: true
           description: name of the S3 bucket
         - schema:
-            type: array
+            type: string
           in: query
-          name: keys
-          description: filename of the required file
+          name: key
+          description: "key value of the S3 object  "
           required: true
     parameters: []
 components:
@@ -249,11 +249,10 @@ components:
         id: 1bb8b6403eed2
       x-examples: {}
       properties:
-        presignedFiles:
-          type: object
-          x-go-type: "map[string]string"
+        presignedURL:
+          type: string
       required:
-        - presignedFiles
+        - presignedURL
     DiagnosticLog:
       title: DiagnosticLog
       x-stoplight:

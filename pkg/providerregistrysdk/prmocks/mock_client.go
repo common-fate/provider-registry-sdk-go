@@ -35,6 +35,26 @@ func (m *MockClientWithResponsesInterface) EXPECT() *MockClientWithResponsesInte
 	return m.recorder
 }
 
+// GetPresignedUrlWithResponse mocks base method.
+func (m *MockClientWithResponsesInterface) GetPresignedUrlWithResponse(arg0 context.Context, arg1 *providerregistrysdk.GetPresignedUrlParams, arg2 ...providerregistrysdk.RequestEditorFn) (*providerregistrysdk.GetPresignedUrlResponse, error) {
+	m.ctrl.T.Helper()
+	varargs := []interface{}{arg0, arg1}
+	for _, a := range arg2 {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "GetPresignedUrlWithResponse", varargs...)
+	ret0, _ := ret[0].(*providerregistrysdk.GetPresignedUrlResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetPresignedUrlWithResponse indicates an expected call of GetPresignedUrlWithResponse.
+func (mr *MockClientWithResponsesInterfaceMockRecorder) GetPresignedUrlWithResponse(arg0, arg1 interface{}, arg2 ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]interface{}{arg0, arg1}, arg2...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPresignedUrlWithResponse", reflect.TypeOf((*MockClientWithResponsesInterface)(nil).GetPresignedUrlWithResponse), varargs...)
+}
+
 // GetProviderSetupDocsWithResponse mocks base method.
 func (m *MockClientWithResponsesInterface) GetProviderSetupDocsWithResponse(arg0 context.Context, arg1, arg2, arg3 string, arg4 ...providerregistrysdk.RequestEditorFn) (*providerregistrysdk.GetProviderSetupDocsResponse, error) {
 	m.ctrl.T.Helper()
@@ -153,24 +173,4 @@ func (mr *MockClientWithResponsesInterfaceMockRecorder) ListAllProvidersWithResp
 	mr.mock.ctrl.T.Helper()
 	varargs := append([]interface{}{arg0, arg1}, arg2...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListAllProvidersWithResponse", reflect.TypeOf((*MockClientWithResponsesInterface)(nil).ListAllProvidersWithResponse), varargs...)
-}
-
-// PreSignURLWithResponse mocks base method.
-func (m *MockClientWithResponsesInterface) PreSignURLWithResponse(arg0 context.Context, arg1 *providerregistrysdk.PreSignURLParams, arg2 ...providerregistrysdk.RequestEditorFn) (*providerregistrysdk.PreSignURLResponse, error) {
-	m.ctrl.T.Helper()
-	varargs := []interface{}{arg0, arg1}
-	for _, a := range arg2 {
-		varargs = append(varargs, a)
-	}
-	ret := m.ctrl.Call(m, "PreSignURLWithResponse", varargs...)
-	ret0, _ := ret[0].(*providerregistrysdk.PreSignURLResponse)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// PreSignURLWithResponse indicates an expected call of PreSignURLWithResponse.
-func (mr *MockClientWithResponsesInterfaceMockRecorder) PreSignURLWithResponse(arg0, arg1 interface{}, arg2 ...interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	varargs := append([]interface{}{arg0, arg1}, arg2...)
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PreSignURLWithResponse", reflect.TypeOf((*MockClientWithResponsesInterface)(nil).PreSignURLWithResponse), varargs...)
 }
