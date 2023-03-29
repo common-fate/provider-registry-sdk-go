@@ -247,13 +247,13 @@ components:
       description: PresignURL will return time-timited presigned URL for provided bucketname & filename
       x-stoplight:
         id: 1bb8b6403eed2
+      x-examples: {}
       properties:
-        bucketname:
+        presignedFiles:
           type: object
           x-go-type: "map[string]string"
       required:
-        - bucketname
-      x-examples: {}
+        - presignedFiles
     DiagnosticLog:
       title: DiagnosticLog
       x-stoplight:
@@ -376,6 +376,7 @@ components:
         - types
       title: Resources
       type: object
+      description: ""
     Target:
       properties:
         properties:
@@ -419,6 +420,8 @@ components:
       type: object
     Schema:
       description: The schema for a Common Fate Provider.
+      title: Schema
+      type: object
       properties:
         $id:
           type: string
@@ -443,11 +446,9 @@ components:
           title: Targets
           type: object
       required:
-        - meta
         - $id
         - $schema
-      title: Schema
-      type: object
+        - meta
   requestBodies: {}
   responses:
     HealthResponse:
