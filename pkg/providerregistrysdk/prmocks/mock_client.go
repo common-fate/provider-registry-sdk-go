@@ -6,6 +6,7 @@ package prmocks
 
 import (
 	context "context"
+	io "io"
 	reflect "reflect"
 
 	providerregistrysdk "github.com/common-fate/provider-registry-sdk-go/pkg/providerregistrysdk"
@@ -173,4 +174,84 @@ func (mr *MockClientWithResponsesInterfaceMockRecorder) ListAllProvidersWithResp
 	mr.mock.ctrl.T.Helper()
 	varargs := append([]interface{}{arg0, arg1}, arg2...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListAllProvidersWithResponse", reflect.TypeOf((*MockClientWithResponsesInterface)(nil).ListAllProvidersWithResponse), varargs...)
+}
+
+// RegisterProviderWithBodyWithResponse mocks base method.
+func (m *MockClientWithResponsesInterface) RegisterProviderWithBodyWithResponse(arg0 context.Context, arg1 string, arg2 io.Reader, arg3 ...providerregistrysdk.RequestEditorFn) (*providerregistrysdk.RegisterProviderResponse, error) {
+	m.ctrl.T.Helper()
+	varargs := []interface{}{arg0, arg1, arg2}
+	for _, a := range arg3 {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "RegisterProviderWithBodyWithResponse", varargs...)
+	ret0, _ := ret[0].(*providerregistrysdk.RegisterProviderResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// RegisterProviderWithBodyWithResponse indicates an expected call of RegisterProviderWithBodyWithResponse.
+func (mr *MockClientWithResponsesInterfaceMockRecorder) RegisterProviderWithBodyWithResponse(arg0, arg1, arg2 interface{}, arg3 ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]interface{}{arg0, arg1, arg2}, arg3...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RegisterProviderWithBodyWithResponse", reflect.TypeOf((*MockClientWithResponsesInterface)(nil).RegisterProviderWithBodyWithResponse), varargs...)
+}
+
+// RegisterProviderWithResponse mocks base method.
+func (m *MockClientWithResponsesInterface) RegisterProviderWithResponse(arg0 context.Context, arg1 providerregistrysdk.RegisterProviderJSONRequestBody, arg2 ...providerregistrysdk.RequestEditorFn) (*providerregistrysdk.RegisterProviderResponse, error) {
+	m.ctrl.T.Helper()
+	varargs := []interface{}{arg0, arg1}
+	for _, a := range arg2 {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "RegisterProviderWithResponse", varargs...)
+	ret0, _ := ret[0].(*providerregistrysdk.RegisterProviderResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// RegisterProviderWithResponse indicates an expected call of RegisterProviderWithResponse.
+func (mr *MockClientWithResponsesInterfaceMockRecorder) RegisterProviderWithResponse(arg0, arg1 interface{}, arg2 ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]interface{}{arg0, arg1}, arg2...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RegisterProviderWithResponse", reflect.TypeOf((*MockClientWithResponsesInterface)(nil).RegisterProviderWithResponse), varargs...)
+}
+
+// UpdateProviderAsLatestWithBodyWithResponse mocks base method.
+func (m *MockClientWithResponsesInterface) UpdateProviderAsLatestWithBodyWithResponse(arg0 context.Context, arg1 string, arg2 io.Reader, arg3 ...providerregistrysdk.RequestEditorFn) (*providerregistrysdk.UpdateProviderAsLatestResponse, error) {
+	m.ctrl.T.Helper()
+	varargs := []interface{}{arg0, arg1, arg2}
+	for _, a := range arg3 {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "UpdateProviderAsLatestWithBodyWithResponse", varargs...)
+	ret0, _ := ret[0].(*providerregistrysdk.UpdateProviderAsLatestResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// UpdateProviderAsLatestWithBodyWithResponse indicates an expected call of UpdateProviderAsLatestWithBodyWithResponse.
+func (mr *MockClientWithResponsesInterfaceMockRecorder) UpdateProviderAsLatestWithBodyWithResponse(arg0, arg1, arg2 interface{}, arg3 ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]interface{}{arg0, arg1, arg2}, arg3...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateProviderAsLatestWithBodyWithResponse", reflect.TypeOf((*MockClientWithResponsesInterface)(nil).UpdateProviderAsLatestWithBodyWithResponse), varargs...)
+}
+
+// UpdateProviderAsLatestWithResponse mocks base method.
+func (m *MockClientWithResponsesInterface) UpdateProviderAsLatestWithResponse(arg0 context.Context, arg1 providerregistrysdk.UpdateProviderAsLatestJSONRequestBody, arg2 ...providerregistrysdk.RequestEditorFn) (*providerregistrysdk.UpdateProviderAsLatestResponse, error) {
+	m.ctrl.T.Helper()
+	varargs := []interface{}{arg0, arg1}
+	for _, a := range arg2 {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "UpdateProviderAsLatestWithResponse", varargs...)
+	ret0, _ := ret[0].(*providerregistrysdk.UpdateProviderAsLatestResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// UpdateProviderAsLatestWithResponse indicates an expected call of UpdateProviderAsLatestWithResponse.
+func (mr *MockClientWithResponsesInterfaceMockRecorder) UpdateProviderAsLatestWithResponse(arg0, arg1 interface{}, arg2 ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]interface{}{arg0, arg1}, arg2...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateProviderAsLatestWithResponse", reflect.TypeOf((*MockClientWithResponsesInterface)(nil).UpdateProviderAsLatestWithResponse), varargs...)
 }
