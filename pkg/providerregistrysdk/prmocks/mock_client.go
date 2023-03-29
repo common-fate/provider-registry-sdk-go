@@ -176,44 +176,44 @@ func (mr *MockClientWithResponsesInterfaceMockRecorder) ListAllProvidersWithResp
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListAllProvidersWithResponse", reflect.TypeOf((*MockClientWithResponsesInterface)(nil).ListAllProvidersWithResponse), varargs...)
 }
 
-// RegisterProviderWithBodyWithResponse mocks base method.
-func (m *MockClientWithResponsesInterface) RegisterProviderWithBodyWithResponse(arg0 context.Context, arg1 string, arg2 io.Reader, arg3 ...providerregistrysdk.RequestEditorFn) (*providerregistrysdk.RegisterProviderResponse, error) {
+// RegisterNewProviderWithBodyWithResponse mocks base method.
+func (m *MockClientWithResponsesInterface) RegisterNewProviderWithBodyWithResponse(arg0 context.Context, arg1 string, arg2 io.Reader, arg3 ...providerregistrysdk.RequestEditorFn) (*providerregistrysdk.RegisterNewProviderResponse, error) {
 	m.ctrl.T.Helper()
 	varargs := []interface{}{arg0, arg1, arg2}
 	for _, a := range arg3 {
 		varargs = append(varargs, a)
 	}
-	ret := m.ctrl.Call(m, "RegisterProviderWithBodyWithResponse", varargs...)
-	ret0, _ := ret[0].(*providerregistrysdk.RegisterProviderResponse)
+	ret := m.ctrl.Call(m, "RegisterNewProviderWithBodyWithResponse", varargs...)
+	ret0, _ := ret[0].(*providerregistrysdk.RegisterNewProviderResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// RegisterProviderWithBodyWithResponse indicates an expected call of RegisterProviderWithBodyWithResponse.
-func (mr *MockClientWithResponsesInterfaceMockRecorder) RegisterProviderWithBodyWithResponse(arg0, arg1, arg2 interface{}, arg3 ...interface{}) *gomock.Call {
+// RegisterNewProviderWithBodyWithResponse indicates an expected call of RegisterNewProviderWithBodyWithResponse.
+func (mr *MockClientWithResponsesInterfaceMockRecorder) RegisterNewProviderWithBodyWithResponse(arg0, arg1, arg2 interface{}, arg3 ...interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	varargs := append([]interface{}{arg0, arg1, arg2}, arg3...)
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RegisterProviderWithBodyWithResponse", reflect.TypeOf((*MockClientWithResponsesInterface)(nil).RegisterProviderWithBodyWithResponse), varargs...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RegisterNewProviderWithBodyWithResponse", reflect.TypeOf((*MockClientWithResponsesInterface)(nil).RegisterNewProviderWithBodyWithResponse), varargs...)
 }
 
-// RegisterProviderWithResponse mocks base method.
-func (m *MockClientWithResponsesInterface) RegisterProviderWithResponse(arg0 context.Context, arg1 providerregistrysdk.RegisterProviderJSONRequestBody, arg2 ...providerregistrysdk.RequestEditorFn) (*providerregistrysdk.RegisterProviderResponse, error) {
+// RegisterNewProviderWithResponse mocks base method.
+func (m *MockClientWithResponsesInterface) RegisterNewProviderWithResponse(arg0 context.Context, arg1 providerregistrysdk.RegisterNewProviderJSONRequestBody, arg2 ...providerregistrysdk.RequestEditorFn) (*providerregistrysdk.RegisterNewProviderResponse, error) {
 	m.ctrl.T.Helper()
 	varargs := []interface{}{arg0, arg1}
 	for _, a := range arg2 {
 		varargs = append(varargs, a)
 	}
-	ret := m.ctrl.Call(m, "RegisterProviderWithResponse", varargs...)
-	ret0, _ := ret[0].(*providerregistrysdk.RegisterProviderResponse)
+	ret := m.ctrl.Call(m, "RegisterNewProviderWithResponse", varargs...)
+	ret0, _ := ret[0].(*providerregistrysdk.RegisterNewProviderResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// RegisterProviderWithResponse indicates an expected call of RegisterProviderWithResponse.
-func (mr *MockClientWithResponsesInterfaceMockRecorder) RegisterProviderWithResponse(arg0, arg1 interface{}, arg2 ...interface{}) *gomock.Call {
+// RegisterNewProviderWithResponse indicates an expected call of RegisterNewProviderWithResponse.
+func (mr *MockClientWithResponsesInterfaceMockRecorder) RegisterNewProviderWithResponse(arg0, arg1 interface{}, arg2 ...interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	varargs := append([]interface{}{arg0, arg1}, arg2...)
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RegisterProviderWithResponse", reflect.TypeOf((*MockClientWithResponsesInterface)(nil).RegisterProviderWithResponse), varargs...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RegisterNewProviderWithResponse", reflect.TypeOf((*MockClientWithResponsesInterface)(nil).RegisterNewProviderWithResponse), varargs...)
 }
 
 // UpdateProviderAsLatestWithBodyWithResponse mocks base method.
