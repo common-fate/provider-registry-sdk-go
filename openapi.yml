@@ -250,13 +250,10 @@ components:
       properties:
         bucketname:
           type: object
-          required:
-            - filename
-          properties:
-            filename:
-              type: string
+          x-go-type: "map[string]string"
       required:
         - bucketname
+      x-examples: {}
     DiagnosticLog:
       title: DiagnosticLog
       x-stoplight:
