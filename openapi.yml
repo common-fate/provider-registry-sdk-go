@@ -243,7 +243,7 @@ paths:
               type: object
               properties:
                 provider:
-                  $ref: "#/components/schemas/ProviderDetail"
+                  $ref: "#/components/schemas/Provider"
               required:
                 - provider
           application/xml:

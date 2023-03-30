@@ -229,7 +229,7 @@ type RegisterNewProviderJSONBody struct {
 // UpdateProviderAsLatestJSONBody defines parameters for UpdateProviderAsLatest.
 type UpdateProviderAsLatestJSONBody struct {
 	// A registered provider version
-	Provider ProviderDetail `json:"provider"`
+	Provider Provider `json:"provider"`
 }
 
 // RegisterNewProviderJSONRequestBody defines body for RegisterNewProvider for application/json ContentType.
@@ -2050,8 +2050,8 @@ var swaggerSpec = []string{
 	"WvCcx8+XnDaU7Nuz0ObMYAxEzsK/eHAgD8xXFPvw4IsWPOfxU2mwbvWB3jZmIGvHX85unF0vqnH7oL46",
 	"MM0AHr5saC4XCrhrIe5VKrXgJdx1dh7THX/Dk+UTvm46tHe33pvf+P1H6NukVY+7o19oerOTHmDxenC8",
 	"tTdWduMdPsH4HGQd+dsbIbXgPta9IQlqHbPaRVEXPgNGlLsNCxP1DyJu/Q9Kkub7BCKRHWwq8KrItWQp",
-	"YEF51bxywv2T3Bdz5Ve750xeWDv+V9R+BD+ijkH3Odtmj//lQOAzjZ7qvGKKlkSoQcpF/jIhtiN/WPkY",
-	"DrtNTRsjK0Es6gTedsvGgwHjMWFzLtX4dDgcYX0GdVtA02tzW4HOsu7JNZAcr25W/w0AAP//pKdpjS0r",
+	"YEF51bxywv2T3Bdz5Ve750xeWDv+V9Q+iBlRx5T7nG2zxP9mIPCBRk91XjFFSyLUIOUif5kQ24s/rHAM",
+	"B9ymdo2RlSAWdepu+2TjwYDxmLA5l2p8OhyOsD59uuTfdNncJqDzq3tyDSTHq5vVfwMAAP//0ejmZicr",
 	"AAA=",
 }
 
