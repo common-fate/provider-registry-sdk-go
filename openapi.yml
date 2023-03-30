@@ -195,6 +195,15 @@ paths:
       responses:
         "200":
           description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  provider:
+                    $ref: "#/components/schemas/ProviderDetail"
+                required:
+                  - provider
       description: "Register a new Provider "
       requestBody:
         content:
