@@ -193,8 +193,8 @@ paths:
       summary: ""
       operationId: register-new-provider
       responses:
-        "200":
-          description: OK
+        "201":
+          description: Created
           content:
             application/json:
               schema:
@@ -204,6 +204,17 @@ paths:
                     $ref: "#/components/schemas/ProviderDetail"
                 required:
                   - provider
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                required:
+                  - message
       description: "Register a new Provider "
       requestBody:
         content:
@@ -215,6 +226,7 @@ paths:
                   $ref: "#/components/schemas/ProviderRegisterRequest"
               required:
                 - provider
+        description: ""
   /v1alpha1/publisher/provider/version/latest:
     parameters: []
     post:
