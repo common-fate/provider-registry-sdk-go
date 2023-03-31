@@ -226,17 +226,8 @@ type RegisterNewProviderJSONBody struct {
 	Provider ProviderRegisterRequest `json:"provider"`
 }
 
-// UpdateProviderAsLatestJSONBody defines parameters for UpdateProviderAsLatest.
-type UpdateProviderAsLatestJSONBody struct {
-	// A registered provider version
-	Provider Provider `json:"provider"`
-}
-
 // RegisterNewProviderJSONRequestBody defines body for RegisterNewProvider for application/json ContentType.
 type RegisterNewProviderJSONRequestBody RegisterNewProviderJSONBody
-
-// UpdateProviderAsLatestJSONRequestBody defines body for UpdateProviderAsLatest for application/json ContentType.
-type UpdateProviderAsLatestJSONRequestBody UpdateProviderAsLatestJSONBody
 
 // RequestEditorFn  is the function signature for the RequestEditor callback function
 type RequestEditorFn func(ctx context.Context, req *http.Request) error
@@ -336,11 +327,6 @@ type ClientInterface interface {
 	RegisterNewProviderWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	RegisterNewProvider(ctx context.Context, body RegisterNewProviderJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	// UpdateProviderAsLatest request with any body
-	UpdateProviderAsLatestWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	UpdateProviderAsLatest(ctx context.Context, body UpdateProviderAsLatestJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 }
 
 func (c *Client) Healthcheck(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
@@ -441,30 +427,6 @@ func (c *Client) RegisterNewProviderWithBody(ctx context.Context, contentType st
 
 func (c *Client) RegisterNewProvider(ctx context.Context, body RegisterNewProviderJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewRegisterNewProviderRequest(c.Server, body)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) UpdateProviderAsLatestWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewUpdateProviderAsLatestRequestWithBody(c.Server, contentType, body)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) UpdateProviderAsLatest(ctx context.Context, body UpdateProviderAsLatestJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewUpdateProviderAsLatestRequest(c.Server, body)
 	if err != nil {
 		return nil, err
 	}
@@ -809,47 +771,7 @@ func NewRegisterNewProviderRequestWithBody(server string, contentType string, bo
 		return nil, err
 	}
 
-	operationPath := fmt.Sprintf("/v1alpha1/publisher/provider/register")
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("POST", queryURL.String(), body)
-	if err != nil {
-		return nil, err
-	}
-
-	req.Header.Add("Content-Type", contentType)
-
-	return req, nil
-}
-
-// NewUpdateProviderAsLatestRequest calls the generic UpdateProviderAsLatest builder with application/json body
-func NewUpdateProviderAsLatestRequest(server string, body UpdateProviderAsLatestJSONRequestBody) (*http.Request, error) {
-	var bodyReader io.Reader
-	buf, err := json.Marshal(body)
-	if err != nil {
-		return nil, err
-	}
-	bodyReader = bytes.NewReader(buf)
-	return NewUpdateProviderAsLatestRequestWithBody(server, "application/json", bodyReader)
-}
-
-// NewUpdateProviderAsLatestRequestWithBody generates requests for UpdateProviderAsLatest with any type of body
-func NewUpdateProviderAsLatestRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
-	var err error
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/v1alpha1/publisher/provider/version/latest")
+	operationPath := fmt.Sprintf("/v1alpha1/publisher/provider")
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -937,11 +859,6 @@ type ClientWithResponsesInterface interface {
 	RegisterNewProviderWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*RegisterNewProviderResponse, error)
 
 	RegisterNewProviderWithResponse(ctx context.Context, body RegisterNewProviderJSONRequestBody, reqEditors ...RequestEditorFn) (*RegisterNewProviderResponse, error)
-
-	// UpdateProviderAsLatest request with any body
-	UpdateProviderAsLatestWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateProviderAsLatestResponse, error)
-
-	UpdateProviderAsLatestWithResponse(ctx context.Context, body UpdateProviderAsLatestJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateProviderAsLatestResponse, error)
 }
 
 type HealthcheckResponse struct {
@@ -1143,27 +1060,6 @@ func (r RegisterNewProviderResponse) StatusCode() int {
 	return 0
 }
 
-type UpdateProviderAsLatestResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-}
-
-// Status returns HTTPResponse.Status
-func (r UpdateProviderAsLatestResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r UpdateProviderAsLatestResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
-}
-
 // HealthcheckWithResponse request returning *HealthcheckResponse
 func (c *ClientWithResponses) HealthcheckWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*HealthcheckResponse, error) {
 	rsp, err := c.Healthcheck(ctx, reqEditors...)
@@ -1242,23 +1138,6 @@ func (c *ClientWithResponses) RegisterNewProviderWithResponse(ctx context.Contex
 		return nil, err
 	}
 	return ParseRegisterNewProviderResponse(rsp)
-}
-
-// UpdateProviderAsLatestWithBodyWithResponse request with arbitrary body returning *UpdateProviderAsLatestResponse
-func (c *ClientWithResponses) UpdateProviderAsLatestWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateProviderAsLatestResponse, error) {
-	rsp, err := c.UpdateProviderAsLatestWithBody(ctx, contentType, body, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseUpdateProviderAsLatestResponse(rsp)
-}
-
-func (c *ClientWithResponses) UpdateProviderAsLatestWithResponse(ctx context.Context, body UpdateProviderAsLatestJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateProviderAsLatestResponse, error) {
-	rsp, err := c.UpdateProviderAsLatest(ctx, body, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseUpdateProviderAsLatestResponse(rsp)
 }
 
 // ParseHealthcheckResponse parses an HTTP response from a HealthcheckWithResponse call
@@ -1519,22 +1398,6 @@ func ParseRegisterNewProviderResponse(rsp *http.Response) (*RegisterNewProviderR
 	return response, nil
 }
 
-// ParseUpdateProviderAsLatestResponse parses an HTTP response from a UpdateProviderAsLatestWithResponse call
-func ParseUpdateProviderAsLatestResponse(rsp *http.Response) (*UpdateProviderAsLatestResponse, error) {
-	bodyBytes, err := ioutil.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &UpdateProviderAsLatestResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	return response, nil
-}
-
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
 	// Healthcheck
@@ -1559,11 +1422,8 @@ type ServerInterface interface {
 	// (GET /v1alpha1/providers/{publisher}/{name}/{version}/usage)
 	GetProviderUsageDoc(w http.ResponseWriter, r *http.Request, publisher string, name string, version string)
 
-	// (POST /v1alpha1/publisher/provider/register)
+	// (POST /v1alpha1/publisher/provider)
 	RegisterNewProvider(w http.ResponseWriter, r *http.Request)
-
-	// (POST /v1alpha1/publisher/provider/version/latest)
-	UpdateProviderAsLatest(w http.ResponseWriter, r *http.Request)
 }
 
 // ServerInterfaceWrapper converts contexts to parameters.
@@ -1851,21 +1711,6 @@ func (siw *ServerInterfaceWrapper) RegisterNewProvider(w http.ResponseWriter, r 
 	handler(w, r.WithContext(ctx))
 }
 
-// UpdateProviderAsLatest operation middleware
-func (siw *ServerInterfaceWrapper) UpdateProviderAsLatest(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
-
-	var handler = func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.UpdateProviderAsLatest(w, r)
-	}
-
-	for _, middleware := range siw.HandlerMiddlewares {
-		handler = middleware(handler)
-	}
-
-	handler(w, r.WithContext(ctx))
-}
-
 type UnescapedCookieParamError struct {
 	ParamName string
 	Err       error
@@ -2001,10 +1846,7 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 		r.Get(options.BaseURL+"/v1alpha1/providers/{publisher}/{name}/{version}/usage", wrapper.GetProviderUsageDoc)
 	})
 	r.Group(func(r chi.Router) {
-		r.Post(options.BaseURL+"/v1alpha1/publisher/provider/register", wrapper.RegisterNewProvider)
-	})
-	r.Group(func(r chi.Router) {
-		r.Post(options.BaseURL+"/v1alpha1/publisher/provider/version/latest", wrapper.UpdateProviderAsLatest)
+		r.Post(options.BaseURL+"/v1alpha1/publisher/provider", wrapper.RegisterNewProvider)
 	})
 
 	return r
@@ -2013,46 +1855,44 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"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",
-	"AAA=",
+	"H4sIAAAAAAAC/+xa3XLbuhF+FQx6LhlLsnPSWndOnOSkcR2N7LQXsS8gckkhBgEGAGWrHr17Bz8kQZH6",
+	"s53M6cy5skguFotvv10sFn7EscgLwYFrhcePWIIqBFdgH95LKeTUvzEvYsE1cG1+kqJgNCaaCj74rgQ3",
+	"71Q8h5yYX4UUBUhNnR4weswPvSwAj7HSkvIMr1YRlvCjpBISPP7mxW6jSkzMvkOs8crIJaBiSQszHR7j",
+	"M46sMJKgS8khQakUOdJzQGeTT0d4FeE/gDA9fwHj51bRMjB/JgQDwjv2V5L7rMCZF88hvkMV5mgmkqU1",
+	"/oIqPZFiQROQ6gXWwOHBjuElY2TGAI+1LCFa90dkhrlJjTTVkNsfv0lI8Rj/bdBwZeCmUoPKzHPQhDKj",
+	"wyslUpJlB6NmgshZtQ9Y7x9IXjCogbJavQHGvneCpzTrLrulZe0RX88BlYpkgFIhLXViqwYtiKQGpCMc",
+	"YU21QQufB0N7YFMQS9BujpSUTONxSpiCRsGVk4g6HKrePGLgZW4g8mpvm8HXRiLaET32azDIg9KBN/KL",
+	"mUFIrDZwcQ1oZ3BCScaF0jTenyPn9ZgLkXUpEm2LsYaT+zIR1+TYNeLKSW3iKI4qIBoL2wDUE92uUyVA",
+	"d90DEX54pbQoGM3mljM0MVjoNCX8ePYwPD2V1qQ2ah0fMVgA27XCC5FdWLlVhHOV7c7BTqsTDhfVsmW/",
+	"FT38+L2cq4eC5mzkEsGFIN6Pa+kcxcQlJpSWPDZvEeU2JitfoPs5jecoJvyGM0ESkwtEKWNQRzf8hp8l",
+	"CTXDCEMpBZYoG9TMzufjupQ2V6KcLNEMEEkSSG445YigtNSlBKQKiGnqc6qJ/jbgHovHJizt351xaaUC",
+	"LD0KPYFZeyvIBp8uP3zBEX4/nX6Z4gj/52x6+enyY1ufH7VuSb9b5GkMD1p8T070m79ba/8FumfPSCXJ",
+	"4V7Iu/7UWUUbOjdzm4HoM9WoHoUWIJXB2zmuKGeMqjkk1quOnmGC/VDP1odnJWUt7QFuIkHRjH+dXoQ5",
+	"rW10I4PuKWO+dECa5vBK05xqSFDhZCBBRsxQyPMvQbMyvgPNSQ7ophwOj9+glDIwzx2i1Fq+Ti92R1xL",
+	"OnBrz5r64g7c3mgmXvU7fDSb/WP25vXwBCA5ttNPgoy6HokSMqo0SIuGd7F3ZWehdvXdBUa48rbs/Vqp",
+	"2w1NrSbCHulqbAuoOl3vk5Zmr5PT0WhERml6/KYFhy9hnglKnPJryAtGNFydnEneC0EsgWhIznTvVxr3",
+	"FSwEqbmQOhaJK1lIY4sZcIQqKiAiYYzIf0sJESL3KkKZEBmDCKWMqLu+AoaRfJaQM6VAbzb6ie4+bC+O",
+	"sMvrvarKItkC20vwqgeKqOvSelGhJ0Pzeujp2bVnNZCczuDkTTKD4WmbpFNPxSn8KEHpLk38B/RWJEuk",
+	"Rc1dRFAQKeuF8qK/9vr1TPxFJHsZrnSrv01uem5uUj2HugopP/Wls24HcJWdwbK2BpKX/3e95p+aslcR",
+	"nlaFXU/Jaysn+5PUBd+kJbK9GCb+eNAuxVSvdzLxyr/MSfHNLfc2ULEseg6Z2FQ39hMSaVOj4vZZrjth",
+	"pwxvGaZC7Kah0nXwruow6FZsDgYfsO9EnguOPhDdlHLdkvc3w8qeaPutCbfu1lafHZ/iI39qXe08x250",
+	"UaMh93XttvlsRfnEQ6YMmbptUOMysy4iM9BPJvG1HR4CdO0V7o1QpWKNc8bZjWs9fAHxrqoPHdZ5hZ14",
+	"bT89fbUfzJEOd9pCJtZIrEvCUDOTiTsbhHZkeMQIZj0Qqnr+qlXTtoPymJXmjGBCyyyCaDqjjOoluqd6",
+	"jv559eUSOfTQK0QY88bZ7RHFpZTANVsiZ4wyNlenP2/fk3pBrWC+XefLZj+61e5qpu3ZGatipIvap7Q6",
+	"cEMSoSpvVu6rxtkHe6Q3NUfJEnN2L0RRmmLMtX1DH1eR1mfKvuf3n9aRC+Ht7XpSnoqqy0ti3WzyOEjX",
+	"ps6UDI/xXOtCjQcDUtAjV+TJ5VFsBVOi4YiKbsiYfaAv9aOpV+D652H23SIcbO5jPDoamvlEAZwUFI/x",
+	"ydHwaGhYSPTcMmiwGBFWzMlo4Lpp5l0GvSWsOZorRNAf19cTdDwcoi+fmzY5rSjiTVYgFzQGRBXybTqz",
+	"AsNd28n5lLT77Thq33IcD4ddE758dk3mMs+JXK4pMF+axbR65n497ckvqNJnjE2C3ndBJMlB21Hf1ic3",
+	"WeMcFqZIzlrNCpM76umQyzuUZyiBBQo769Ro+VGCdZGnkFeKw1q5c6Fx249NX4qu5Qb9txWrCP++z+j2",
+	"JVMbdKMZhbBpkhnAXPka49sNnhj4pooNlJ0ka7o+k6/XtvOjRU9kvLUdIPMtk4Rr1zliVecIZE6VbXhp",
+	"gcrC9iiDhN4mxEfQk7rtI9kuPtiuk0+MVye+FbXBzU2fCofZyN33bCzbVtH6nHewRAvCynBitx6ENkx9",
+	"B8uD5txAtr3vuLbXaZ3uWc/FUifKJxKu3LBNQT54rI84q8GjWflqI8UKokyUIoIy4CBp3LRBB9anschn",
+	"lLu+NOEJygy/zIZXMoaYIb9Ig4Dv55H76g9oCj8T1IMu/Xqu+3oxjvDr4euDU8ELJJCP0OQPFEDUySOd",
+	"CKTOgXre8Ds82x4UWT26Dg7Q273pOHj0m/Jq44YU8Ab/1CBs3w3/icnxZ+BE01f6v2DXQIEui304dmUE",
+	"z0X8cslpQ8m+PQttzgzWQOQt/IsHB/LA/hfFPjz4agTPRfxcGqxbfaC3rRnI2fGXs2tnV4sahL2wQvTf",
+	"MdR3ChzuG2Q7BUoleAn3rQ3HNsXfimT5jH9qOrRlt96S3/hvH33/krTqUHb0C02vN9ADLF6PiXfuosrt",
+	"t8NnGJ+DqgJ+e/+jEtzHurckQY1jrIA51ldB2HQ8xoMBEzFhc6H0+HQ4HGFzjvBhXPdLfDibSPFvroHk",
+	"eHW7+l8AAAD//+2IsuDxKAAA",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file
