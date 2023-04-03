@@ -65,7 +65,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: "#/components/schemas/Provider"
+                  $ref: "#/components/schemas/ProviderDetail"
         "404":
           $ref: "#/components/responses/ErrorResponse"
         "500":

@@ -727,7 +727,7 @@ func (r ListAllProvidersResponse) StatusCode() int {
 type GetProviderVersionsResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON200      *[]Provider
+	JSON200      *[]ProviderDetail
 	JSON404      *struct {
 		Error string `json:"error"`
 	}
@@ -947,7 +947,7 @@ func ParseGetProviderVersionsResponse(rsp *http.Response) (*GetProviderVersionsR
 
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest []Provider
+		var dest []ProviderDetail
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -1481,11 +1481,11 @@ var swaggerSpec = []string{
 	"29sr9GY2Q5efuykfaygSTNagVowCYhqFKYM9geWuu4iepf1xIU76Q9o3s9nQhMvPfkZWlyVR6y0B9kt3",
 	"mN7IL5ynr/ycaXPC+VU0uquIva8Zt+vLtnKbNU5hZZvzHN0xzsOY1uWOVh3yeYeJHKWwQvFgkFkpP2pw",
 	"LgoUCkJx3H4P5rGLcWzGUnS7bjo+bN0k+LdDdvdn5H3QrWQUw2ZIbgHz7SvFix2emD60fehm+mAB2Owk",
-	"W0W0hRIRlIMAxWh31Z7anTajL5nwsw8iUpSD8Vmp5hxxa6HMIq8MqPcJWnRCF613UPDg4fSTBssjI+VB",
-	"XrB0T/C72bsn++sFvPwJOiejCKKBswdhw7wDTdHRPL6AdMnYT+t3dq2bZFRWuMAcLmZxMB2nDyFzbnZm",
-	"jYg3P8uXp/z/4Rcmx6/AiW5i8F/BrqkGU1eHcOzGLjyV9OWS046+6vEstDszOANRsPD/PHgiD9x/6g7h",
-	"wT/swlNJf5YG21Y/0dvODOTt+N92tvv3qFo1R+2a//l0yiUlvJDazI9nsyNs+7cAVnt1CKBZe8KbWyAl",
-	"3iw2/wkAAP//gHQeBbsgAAA=",
+	"W0W0hRIRlIMAxWh31Z7anTajL5nwsw8iUpSD8Vmp5hxxa6HMIq8MqPcJWnRCF613UPDg4fTLDJYH2cGS",
+	"PsHvZu+e7LUX8PUn6FyNIqAGLh8ED/NuNEVH9vga0qVkP7Pf2btuklFZ4RpzuJjFwaScPoT8udmZOyL2",
+	"/CxrnkKWX5gcvwInurnBfwW7phpMXR3CsRu78FTSl0tRO7qrx7PQ7szgDETBwv/z4Ik8cP+vO4QH/7AL",
+	"TyX9WRpsW/1EbzszkLfjf9vZ7p+katUctbsCzKdTLinhhdRmfjybHWHbxQWw2gtEAM3aE97cAinxZrH5",
+	"TwAAAP//L0ScOMEgAAA=",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file
