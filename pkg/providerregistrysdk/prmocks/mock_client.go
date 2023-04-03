@@ -35,44 +35,24 @@ func (m *MockClientWithResponsesInterface) EXPECT() *MockClientWithResponsesInte
 	return m.recorder
 }
 
-// GetProviderSetupDocsWithResponse mocks base method.
-func (m *MockClientWithResponsesInterface) GetProviderSetupDocsWithResponse(arg0 context.Context, arg1, arg2, arg3 string, arg4 ...providerregistrysdk.RequestEditorFn) (*providerregistrysdk.GetProviderSetupDocsResponse, error) {
+// GetProviderDocsWithResponse mocks base method.
+func (m *MockClientWithResponsesInterface) GetProviderDocsWithResponse(arg0 context.Context, arg1, arg2, arg3 string, arg4 ...providerregistrysdk.RequestEditorFn) (*providerregistrysdk.GetProviderDocsResponse, error) {
 	m.ctrl.T.Helper()
 	varargs := []interface{}{arg0, arg1, arg2, arg3}
 	for _, a := range arg4 {
 		varargs = append(varargs, a)
 	}
-	ret := m.ctrl.Call(m, "GetProviderSetupDocsWithResponse", varargs...)
-	ret0, _ := ret[0].(*providerregistrysdk.GetProviderSetupDocsResponse)
+	ret := m.ctrl.Call(m, "GetProviderDocsWithResponse", varargs...)
+	ret0, _ := ret[0].(*providerregistrysdk.GetProviderDocsResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// GetProviderSetupDocsWithResponse indicates an expected call of GetProviderSetupDocsWithResponse.
-func (mr *MockClientWithResponsesInterfaceMockRecorder) GetProviderSetupDocsWithResponse(arg0, arg1, arg2, arg3 interface{}, arg4 ...interface{}) *gomock.Call {
+// GetProviderDocsWithResponse indicates an expected call of GetProviderDocsWithResponse.
+func (mr *MockClientWithResponsesInterfaceMockRecorder) GetProviderDocsWithResponse(arg0, arg1, arg2, arg3 interface{}, arg4 ...interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	varargs := append([]interface{}{arg0, arg1, arg2, arg3}, arg4...)
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetProviderSetupDocsWithResponse", reflect.TypeOf((*MockClientWithResponsesInterface)(nil).GetProviderSetupDocsWithResponse), varargs...)
-}
-
-// GetProviderUsageDocWithResponse mocks base method.
-func (m *MockClientWithResponsesInterface) GetProviderUsageDocWithResponse(arg0 context.Context, arg1, arg2, arg3 string, arg4 ...providerregistrysdk.RequestEditorFn) (*providerregistrysdk.GetProviderUsageDocResponse, error) {
-	m.ctrl.T.Helper()
-	varargs := []interface{}{arg0, arg1, arg2, arg3}
-	for _, a := range arg4 {
-		varargs = append(varargs, a)
-	}
-	ret := m.ctrl.Call(m, "GetProviderUsageDocWithResponse", varargs...)
-	ret0, _ := ret[0].(*providerregistrysdk.GetProviderUsageDocResponse)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetProviderUsageDocWithResponse indicates an expected call of GetProviderUsageDocWithResponse.
-func (mr *MockClientWithResponsesInterfaceMockRecorder) GetProviderUsageDocWithResponse(arg0, arg1, arg2, arg3 interface{}, arg4 ...interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	varargs := append([]interface{}{arg0, arg1, arg2, arg3}, arg4...)
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetProviderUsageDocWithResponse", reflect.TypeOf((*MockClientWithResponsesInterface)(nil).GetProviderUsageDocWithResponse), varargs...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetProviderDocsWithResponse", reflect.TypeOf((*MockClientWithResponsesInterface)(nil).GetProviderDocsWithResponse), varargs...)
 }
 
 // GetProviderVersionsWithResponse mocks base method.
