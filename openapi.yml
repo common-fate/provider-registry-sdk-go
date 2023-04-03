@@ -73,7 +73,7 @@ paths:
       tags:
         - Public
       description: "pass in a generic published/name combination and get the full list of providers "
-  "/v1alpha1/providers/{publisher}/{name}/{version}/setup":
+  "/v1alpha1/providers/{publisher}/{name}/{version}/docs":
     parameters:
       - schema:
           type: string
@@ -91,8 +91,8 @@ paths:
         in: path
         required: true
     get:
-      summary: Get Provider Setup Docs
-      operationId: get-provider-setup-docs
+      summary: Get Provider Docs
+      operationId: get-provider-docs
       responses:
         "200":
           description: OK
@@ -101,39 +101,9 @@ paths:
               schema:
                 type: array
                 items:
-                  type: string
+                  $ref: "#/components/schemas/Document"
       tags:
         - Public
-  "/v1alpha1/providers/{publisher}/{name}/{version}/usage":
-    parameters:
-      - schema:
-          type: string
-        name: publisher
-        in: path
-        required: true
-      - schema:
-          type: string
-        name: version
-        in: path
-        required: true
-      - schema:
-          type: string
-        name: name
-        in: path
-        required: true
-    get:
-      summary: Get Provider Usage Doc
-      operationId: get-provider-usage-doc
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: string
-      tags:
-        - Public
-      description: ""
   /v1alpha1/providers:
     get:
       summary: List Providers
@@ -408,6 +378,23 @@ components:
         - $schema
       title: Schema
       type: object
+    Document:
+      description: The Document of a Common Fate Provider.
+      title: Document
+      type: object
+      x-stoplight:
+        id: 3af5c75a5731d
+      properties:
+        content:
+          type: string
+        filename:
+          type: string
+        key:
+          type: string
+        size:
+          type: integer
+      required:
+        - content
   requestBodies: {}
   responses:
     HealthResponse:
