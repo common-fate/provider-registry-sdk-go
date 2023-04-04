@@ -310,7 +310,7 @@ func (b *Bootstrapper) CopyProviderFiles(ctx context.Context, provider providerr
 type CopyFileOpts struct {
 	Bucket     string
 	Key        string
-	CopySource string
+	CopySource string // Presigned URL of the source object
 	Force      bool
 }
 

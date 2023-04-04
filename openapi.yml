@@ -130,6 +130,73 @@ paths:
           description: OK
       operationId: healthcheck
       description: Returns a HTTP 200 OK response if the registry service is healthy.
+  /v1alpha1/providers/presignurl:
+    get:
+      summary: PreSignURL
+      tags: []
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PresignURLResponse"
+      operationId: get-presigned-url
+      description: Returns a presigned PUT URL to Provider Registry Bucket to grant time-limited permission to upload objects.
+      parameters:
+        - schema:
+            type: string
+          in: query
+          name: bucketname
+          required: true
+          description: name of the S3 bucket
+        - schema:
+            type: string
+          in: query
+          name: key
+          description: "key value of the S3 object  "
+          required: true
+    parameters: []
+  /v1alpha1/publisher/provider:
+    parameters: []
+    post:
+      summary: ""
+      operationId: register-new-provider
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  provider:
+                    $ref: "#/components/schemas/ProviderDetail"
+                required:
+                  - provider
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                required:
+                  - message
+      description: "Register a new Provider "
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                provider:
+                  $ref: "#/components/schemas/ProviderRegisterRequest"
+              required:
+                - provider
+        description: ""
 components:
   schemas:
     ProviderDetail:
@@ -158,6 +225,8 @@ components:
           type: string
         updatedAt:
           type: string
+        source:
+          type: string
       required:
         - publisher
         - name
@@ -167,6 +236,31 @@ components:
         - schema
         - createdAt
         - updatedAt
+    ProviderRegisterRequest:
+      title: ProviderRegisterRequest
+      type: object
+      description: Request Body to register a Provider
+      x-stoplight:
+        id: b4d9111a1ff26
+      properties:
+        publisher:
+          type: string
+        name:
+          type: string
+        version:
+          type: string
+        icon:
+          type: string
+          description: "a shortcode for a provider icon. examples are: azure, aws, google, flask"
+        schema:
+          $ref: "#/components/schemas/Schema"
+        dev:
+          type: boolean
+      required:
+        - publisher
+        - name
+        - version
+        - schema
     Provider:
       title: Provider
       type: object
@@ -184,6 +278,18 @@ components:
         - publisher
         - name
         - version
+    PresignURLResponse:
+      title: PresignURLResponse
+      type: object
+      description: PresignURL will return time-timited presigned URL for provided bucketname & filename
+      x-stoplight:
+        id: 1bb8b6403eed2
+      x-examples: {}
+      properties:
+        presignedURL:
+          type: string
+      required:
+        - presignedURL
     DiagnosticLog:
       title: DiagnosticLog
       x-stoplight:
@@ -306,6 +412,7 @@ components:
         - types
       title: Resources
       type: object
+      description: ""
     Target:
       properties:
         properties:
