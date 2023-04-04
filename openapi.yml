@@ -456,6 +456,33 @@ components:
       type: object
     Schema:
       description: The schema for a Common Fate Provider.
+      properties:
+        $id:
+          type: string
+        $schema:
+          type: string
+        config:
+          additionalProperties:
+            $ref: "#/components/schemas/Config"
+          x-go-type: "map[string]Config"
+          title: Config
+          type: object
+        meta:
+          $ref: "#/components/schemas/Meta"
+        provider:
+          $ref: "#/components/schemas/Provider"
+        resources:
+          $ref: "#/components/schemas/Resources"
+        targets:
+          additionalProperties:
+            $ref: "#/components/schemas/Target"
+          x-go-type: "map[string]Target"
+          title: Targets
+          type: object
+      required:
+        - meta
+        - $id
+        - $schema
       title: Schema
       type: object
     Document:
