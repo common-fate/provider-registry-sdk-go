@@ -216,17 +216,14 @@ components:
           type: string
         cfnTemplateS3Arn:
           type: string
-        icon:
-          type: string
-          description: "a shortcode for a provider icon. examples are: azure, aws, google, flask"
         schema:
           $ref: "#/components/schemas/Schema"
         createdAt:
           type: string
         updatedAt:
           type: string
-        source:
-          type: string
+        meta:
+          $ref: "#/components/schemas/ProviderMetaInfo"
       required:
         - publisher
         - name
@@ -249,13 +246,12 @@ components:
           type: string
         version:
           type: string
-        icon:
-          type: string
-          description: "a shortcode for a provider icon. examples are: azure, aws, google, flask"
         schema:
           $ref: "#/components/schemas/Schema"
         dev:
           type: boolean
+        meta:
+          $ref: "#/components/schemas/ProviderMetaInfo"
       required:
         - publisher
         - name
@@ -502,6 +498,19 @@ components:
           type: integer
       required:
         - content
+    ProviderMetaInfo:
+      type: object
+      properties:
+        name:
+          type: string
+        source:
+          type: string
+        displayName:
+          type: string
+      title: ProviderMetaInfo
+      description: "Metadata from provider.toml file for a Provider "
+      x-stoplight:
+        id: 1bb8b6403eed2
   requestBodies: {}
   responses:
     HealthResponse:
