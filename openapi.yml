@@ -501,7 +501,7 @@ components:
     ProviderMetaInfo:
       type: object
       properties:
-        name:
+        icon:
           type: string
         source:
           type: string
