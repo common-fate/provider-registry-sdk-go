@@ -36,26 +36,6 @@ func (m *MockClientWithResponsesInterface) EXPECT() *MockClientWithResponsesInte
 	return m.recorder
 }
 
-// GetPresignedUrlWithResponse mocks base method.
-func (m *MockClientWithResponsesInterface) GetPresignedUrlWithResponse(arg0 context.Context, arg1 *providerregistrysdk.GetPresignedUrlParams, arg2 ...providerregistrysdk.RequestEditorFn) (*providerregistrysdk.GetPresignedUrlResponse, error) {
-	m.ctrl.T.Helper()
-	varargs := []interface{}{arg0, arg1}
-	for _, a := range arg2 {
-		varargs = append(varargs, a)
-	}
-	ret := m.ctrl.Call(m, "GetPresignedUrlWithResponse", varargs...)
-	ret0, _ := ret[0].(*providerregistrysdk.GetPresignedUrlResponse)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetPresignedUrlWithResponse indicates an expected call of GetPresignedUrlWithResponse.
-func (mr *MockClientWithResponsesInterfaceMockRecorder) GetPresignedUrlWithResponse(arg0, arg1 interface{}, arg2 ...interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	varargs := append([]interface{}{arg0, arg1}, arg2...)
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPresignedUrlWithResponse", reflect.TypeOf((*MockClientWithResponsesInterface)(nil).GetPresignedUrlWithResponse), varargs...)
-}
-
 // GetProviderDocsWithResponse mocks base method.
 func (m *MockClientWithResponsesInterface) GetProviderDocsWithResponse(arg0 context.Context, arg1, arg2, arg3 string, arg4 ...providerregistrysdk.RequestEditorFn) (*providerregistrysdk.GetProviderDocsResponse, error) {
 	m.ctrl.T.Helper()
@@ -156,42 +136,82 @@ func (mr *MockClientWithResponsesInterfaceMockRecorder) ListAllProvidersWithResp
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListAllProvidersWithResponse", reflect.TypeOf((*MockClientWithResponsesInterface)(nil).ListAllProvidersWithResponse), varargs...)
 }
 
-// RegisterNewProviderWithBodyWithResponse mocks base method.
-func (m *MockClientWithResponsesInterface) RegisterNewProviderWithBodyWithResponse(arg0 context.Context, arg1 string, arg2 io.Reader, arg3 ...providerregistrysdk.RequestEditorFn) (*providerregistrysdk.RegisterNewProviderResponse, error) {
+// UserCompletePublishProviderWithBodyWithResponse mocks base method.
+func (m *MockClientWithResponsesInterface) UserCompletePublishProviderWithBodyWithResponse(arg0 context.Context, arg1 string, arg2 io.Reader, arg3 ...providerregistrysdk.RequestEditorFn) (*providerregistrysdk.UserCompletePublishProviderResponse, error) {
 	m.ctrl.T.Helper()
 	varargs := []interface{}{arg0, arg1, arg2}
 	for _, a := range arg3 {
 		varargs = append(varargs, a)
 	}
-	ret := m.ctrl.Call(m, "RegisterNewProviderWithBodyWithResponse", varargs...)
-	ret0, _ := ret[0].(*providerregistrysdk.RegisterNewProviderResponse)
+	ret := m.ctrl.Call(m, "UserCompletePublishProviderWithBodyWithResponse", varargs...)
+	ret0, _ := ret[0].(*providerregistrysdk.UserCompletePublishProviderResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// RegisterNewProviderWithBodyWithResponse indicates an expected call of RegisterNewProviderWithBodyWithResponse.
-func (mr *MockClientWithResponsesInterfaceMockRecorder) RegisterNewProviderWithBodyWithResponse(arg0, arg1, arg2 interface{}, arg3 ...interface{}) *gomock.Call {
+// UserCompletePublishProviderWithBodyWithResponse indicates an expected call of UserCompletePublishProviderWithBodyWithResponse.
+func (mr *MockClientWithResponsesInterfaceMockRecorder) UserCompletePublishProviderWithBodyWithResponse(arg0, arg1, arg2 interface{}, arg3 ...interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	varargs := append([]interface{}{arg0, arg1, arg2}, arg3...)
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RegisterNewProviderWithBodyWithResponse", reflect.TypeOf((*MockClientWithResponsesInterface)(nil).RegisterNewProviderWithBodyWithResponse), varargs...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UserCompletePublishProviderWithBodyWithResponse", reflect.TypeOf((*MockClientWithResponsesInterface)(nil).UserCompletePublishProviderWithBodyWithResponse), varargs...)
 }
 
-// RegisterNewProviderWithResponse mocks base method.
-func (m *MockClientWithResponsesInterface) RegisterNewProviderWithResponse(arg0 context.Context, arg1 providerregistrysdk.RegisterNewProviderJSONRequestBody, arg2 ...providerregistrysdk.RequestEditorFn) (*providerregistrysdk.RegisterNewProviderResponse, error) {
+// UserCompletePublishProviderWithResponse mocks base method.
+func (m *MockClientWithResponsesInterface) UserCompletePublishProviderWithResponse(arg0 context.Context, arg1 providerregistrysdk.UserCompletePublishProviderJSONRequestBody, arg2 ...providerregistrysdk.RequestEditorFn) (*providerregistrysdk.UserCompletePublishProviderResponse, error) {
 	m.ctrl.T.Helper()
 	varargs := []interface{}{arg0, arg1}
 	for _, a := range arg2 {
 		varargs = append(varargs, a)
 	}
-	ret := m.ctrl.Call(m, "RegisterNewProviderWithResponse", varargs...)
-	ret0, _ := ret[0].(*providerregistrysdk.RegisterNewProviderResponse)
+	ret := m.ctrl.Call(m, "UserCompletePublishProviderWithResponse", varargs...)
+	ret0, _ := ret[0].(*providerregistrysdk.UserCompletePublishProviderResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// RegisterNewProviderWithResponse indicates an expected call of RegisterNewProviderWithResponse.
-func (mr *MockClientWithResponsesInterfaceMockRecorder) RegisterNewProviderWithResponse(arg0, arg1 interface{}, arg2 ...interface{}) *gomock.Call {
+// UserCompletePublishProviderWithResponse indicates an expected call of UserCompletePublishProviderWithResponse.
+func (mr *MockClientWithResponsesInterfaceMockRecorder) UserCompletePublishProviderWithResponse(arg0, arg1 interface{}, arg2 ...interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	varargs := append([]interface{}{arg0, arg1}, arg2...)
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RegisterNewProviderWithResponse", reflect.TypeOf((*MockClientWithResponsesInterface)(nil).RegisterNewProviderWithResponse), varargs...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UserCompletePublishProviderWithResponse", reflect.TypeOf((*MockClientWithResponsesInterface)(nil).UserCompletePublishProviderWithResponse), varargs...)
+}
+
+// UserPublishProviderWithBodyWithResponse mocks base method.
+func (m *MockClientWithResponsesInterface) UserPublishProviderWithBodyWithResponse(arg0 context.Context, arg1 string, arg2 io.Reader, arg3 ...providerregistrysdk.RequestEditorFn) (*providerregistrysdk.UserPublishProviderResponse, error) {
+	m.ctrl.T.Helper()
+	varargs := []interface{}{arg0, arg1, arg2}
+	for _, a := range arg3 {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "UserPublishProviderWithBodyWithResponse", varargs...)
+	ret0, _ := ret[0].(*providerregistrysdk.UserPublishProviderResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// UserPublishProviderWithBodyWithResponse indicates an expected call of UserPublishProviderWithBodyWithResponse.
+func (mr *MockClientWithResponsesInterfaceMockRecorder) UserPublishProviderWithBodyWithResponse(arg0, arg1, arg2 interface{}, arg3 ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]interface{}{arg0, arg1, arg2}, arg3...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UserPublishProviderWithBodyWithResponse", reflect.TypeOf((*MockClientWithResponsesInterface)(nil).UserPublishProviderWithBodyWithResponse), varargs...)
+}
+
+// UserPublishProviderWithResponse mocks base method.
+func (m *MockClientWithResponsesInterface) UserPublishProviderWithResponse(arg0 context.Context, arg1 providerregistrysdk.UserPublishProviderJSONRequestBody, arg2 ...providerregistrysdk.RequestEditorFn) (*providerregistrysdk.UserPublishProviderResponse, error) {
+	m.ctrl.T.Helper()
+	varargs := []interface{}{arg0, arg1}
+	for _, a := range arg2 {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "UserPublishProviderWithResponse", varargs...)
+	ret0, _ := ret[0].(*providerregistrysdk.UserPublishProviderResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// UserPublishProviderWithResponse indicates an expected call of UserPublishProviderWithResponse.
+func (mr *MockClientWithResponsesInterfaceMockRecorder) UserPublishProviderWithResponse(arg0, arg1 interface{}, arg2 ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]interface{}{arg0, arg1}, arg2...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UserPublishProviderWithResponse", reflect.TypeOf((*MockClientWithResponsesInterface)(nil).UserPublishProviderWithResponse), varargs...)
 }
