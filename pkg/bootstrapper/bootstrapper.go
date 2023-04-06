@@ -27,6 +27,8 @@ import (
 	"github.com/pkg/errors"
 	"github.com/sethvargo/go-retry"
 	"golang.org/x/term"
+
+	"github.com/briandowns/spinner"
 )
 
 //go:embed cloudformation/bootstrap.json
@@ -337,8 +339,14 @@ func (b *Bootstrapper) copyFile(ctx context.Context, opts CopyFileOpts) error {
 
 	clio.Debugf("Downloading assets file from %s", &opts.CopySource)
 
+	si := spinner.New(spinner.CharSets[14], 100*time.Millisecond, spinner.WithColor("green"))
+	si.Suffix = " Copying Provider Assets..."
+	si.Writer = os.Stderr
+	si.Start()
+
 	filename, err := downloadFile(ctx, opts.CopySource, opts.Filename)
 	if err != nil {
+		si.Stop()
 		return err
 	}
 
@@ -346,6 +354,7 @@ func (b *Bootstrapper) copyFile(ctx context.Context, opts CopyFileOpts) error {
 
 	file, err := os.Open(filename)
 	if err != nil {
+		si.Stop()
 		return err
 	}
 	defer file.Close()
@@ -357,8 +366,11 @@ func (b *Bootstrapper) copyFile(ctx context.Context, opts CopyFileOpts) error {
 		Body:   file,
 	})
 	if err != nil {
+		si.Stop()
 		return err
 	}
+
+	si.Stop()
 
 	clio.Debugf("s3 upload output: %v", res.ResultMetadata)
 
