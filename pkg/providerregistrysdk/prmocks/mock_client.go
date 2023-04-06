@@ -157,7 +157,7 @@ func (mr *MockClientWithResponsesInterfaceMockRecorder) UserCompletePublishProvi
 }
 
 // UserCompletePublishProviderWithResponse mocks base method.
-func (m *MockClientWithResponsesInterface) UserCompletePublishProviderWithResponse(arg0 context.Context, arg1 providerregistrysdk.UserCompletePublishProviderJSONRequestBody, arg2 ...providerregistrysdk.RequestEditorFn) (*providerregistrysdk.UserCompletePublishProviderResponse, error) {
+func (m *MockClientWithResponsesInterface) UserCompletePublishProviderWithResponse(arg0 context.Context, arg1 providerregistrysdk.Provider, arg2 ...providerregistrysdk.RequestEditorFn) (*providerregistrysdk.UserCompletePublishProviderResponse, error) {
 	m.ctrl.T.Helper()
 	varargs := []interface{}{arg0, arg1}
 	for _, a := range arg2 {

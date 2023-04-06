@@ -189,7 +189,10 @@ paths:
       tags:
         - Team
       requestBody:
-        $ref: '#/components/requestBodies/PublishProviderRequest'
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Provider'
 components:
   schemas:
     ProviderDetail:
