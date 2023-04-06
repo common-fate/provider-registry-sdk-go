@@ -1,15 +1,15 @@
 openapi: 3.0.0
 info:
   title: Common Fate Provider Registry
-  version: "1.0"
+  version: '1.0'
   contact:
     name: Common Fate
-    url: "https://api.registry.commonfate.io"
+    url: 'https://api.registry.commonfate.io'
   description: The Common Fate Provider Registry API.
 servers:
-  - url: "http://localhost:9001"
+  - url: 'http://localhost:9001'
 paths:
-  "/v1alpha1/providers/{publisher}/{name}/{version}":
+  '/v1alpha1/providers/{publisher}/{name}/{version}':
     parameters:
       - schema:
           type: string
@@ -30,19 +30,19 @@ paths:
       summary: Get Provider
       operationId: get-provider
       responses:
-        "200":
+        '200':
           description: OK
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ProviderDetail"
-        "404":
-          $ref: "#/components/responses/ErrorResponse"
-        "500":
-          $ref: "#/components/responses/ErrorResponse"
+                $ref: '#/components/schemas/ProviderDetail'
+        '404':
+          $ref: '#/components/responses/ErrorResponse'
+        '500':
+          $ref: '#/components/responses/ErrorResponse'
       tags:
         - Public
-  "/v1alpha1/providers/{publisher}/{name}":
+  '/v1alpha1/providers/{publisher}/{name}':
     parameters:
       - schema:
           type: string
@@ -58,22 +58,22 @@ paths:
       summary: Get Provider Versions
       operationId: get-provider-versions
       responses:
-        "200":
+        '200':
           description: OK
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: "#/components/schemas/ProviderDetail"
-        "404":
-          $ref: "#/components/responses/ErrorResponse"
-        "500":
-          $ref: "#/components/responses/ErrorResponse"
+                  $ref: '#/components/schemas/ProviderDetail'
+        '404':
+          $ref: '#/components/responses/ErrorResponse'
+        '500':
+          $ref: '#/components/responses/ErrorResponse'
       tags:
         - Public
-      description: "pass in a generic published/name combination and get the full list of providers "
-  "/v1alpha1/providers/{publisher}/{name}/{version}/docs":
+      description: 'pass in a generic published/name combination and get the full list of providers '
+  '/v1alpha1/providers/{publisher}/{name}/{version}/docs':
     parameters:
       - schema:
           type: string
@@ -94,14 +94,14 @@ paths:
       summary: Get Provider Docs
       operationId: get-provider-docs
       responses:
-        "200":
+        '200':
           description: OK
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: "#/components/schemas/Document"
+                  $ref: '#/components/schemas/Document'
       tags:
         - Public
   /v1alpha1/providers:
@@ -110,10 +110,10 @@ paths:
       tags:
         - Public
       responses:
-        "200":
-          $ref: "#/components/responses/ListProvidersResponse"
-        "500":
-          $ref: "#/components/responses/ErrorResponse"
+        '200':
+          $ref: '#/components/responses/ListProvidersResponse'
+        '500':
+          $ref: '#/components/responses/ErrorResponse'
       operationId: list-all-providers
       parameters:
         - schema:
@@ -126,44 +126,17 @@ paths:
       summary: Healthcheck
       tags: []
       responses:
-        "200":
+        '200':
           description: OK
       operationId: healthcheck
       description: Returns a HTTP 200 OK response if the registry service is healthy.
-  /v1alpha1/providers/presignurl:
-    get:
-      summary: PreSignURL
-      tags: []
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/PresignURLResponse"
-      operationId: get-presigned-url
-      description: Returns a presigned PUT URL to Provider Registry Bucket to grant time-limited permission to upload objects.
-      parameters:
-        - schema:
-            type: string
-          in: query
-          name: bucketname
-          required: true
-          description: name of the S3 bucket
-        - schema:
-            type: string
-          in: query
-          name: key
-          description: "key value of the S3 object  "
-          required: true
-    parameters: []
-  /v1alpha1/publisher/provider:
+  /v1alpha1/publish:
     parameters: []
     post:
-      summary: ""
-      operationId: register-new-provider
+      summary: Publish a Provider
+      operationId: user-publish-provider
       responses:
-        "201":
+        '201':
           description: Created
           content:
             application/json:
@@ -171,10 +144,10 @@ paths:
                 type: object
                 properties:
                   provider:
-                    $ref: "#/components/schemas/ProviderDetail"
+                    $ref: '#/components/schemas/ProviderDetail'
                 required:
                   - provider
-        "400":
+        '400':
           description: Bad Request
           content:
             application/json:
@@ -185,18 +158,38 @@ paths:
                     type: string
                 required:
                   - message
-      description: "Register a new Provider "
+      description: |-
+        Publish a new Provider, you may call this API multiple times for the same provider version until you have marked the publishing as complete.
+
+        Once a file has been successfully uploaded, it cannot be overwritten.
+        You will need to publish with a new version number.
+      tags:
+        - Team
       requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                provider:
-                  $ref: "#/components/schemas/ProviderRegisterRequest"
-              required:
-                - provider
-        description: ""
+        $ref: '#/components/requestBodies/PublishProviderRequest'
+  /v1alpha1/publish/complete:
+    parameters: []
+    post:
+      summary: Complete Publishing a Provider
+      operationId: user-complete-publish-provider
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProviderDetail'
+        '400':
+          $ref: '#/components/responses/ErrorResponse'
+        '404':
+          $ref: '#/components/responses/ErrorResponse'
+        '500':
+          $ref: '#/components/responses/ErrorResponse'
+      description: Complete publishing a new provider should be called when uploading is complete.
+      tags:
+        - Team
+      requestBody:
+        $ref: '#/components/requestBodies/PublishProviderRequest'
 components:
   schemas:
     ProviderDetail:
@@ -217,13 +210,13 @@ components:
         cfnTemplateS3Arn:
           type: string
         schema:
-          $ref: "#/components/schemas/Schema"
+          $ref: '#/components/schemas/Schema'
         createdAt:
           type: string
         updatedAt:
           type: string
         meta:
-          $ref: "#/components/schemas/ProviderMetaInfo"
+          $ref: '#/components/schemas/ProviderMetaInfo'
       required:
         - publisher
         - name
@@ -233,30 +226,6 @@ components:
         - schema
         - createdAt
         - updatedAt
-    ProviderRegisterRequest:
-      title: ProviderRegisterRequest
-      type: object
-      description: Request Body to register a Provider
-      x-stoplight:
-        id: b4d9111a1ff26
-      properties:
-        publisher:
-          type: string
-        name:
-          type: string
-        version:
-          type: string
-        schema:
-          $ref: "#/components/schemas/Schema"
-        dev:
-          type: boolean
-        meta:
-          $ref: "#/components/schemas/ProviderMetaInfo"
-      required:
-        - publisher
-        - name
-        - version
-        - schema
     Provider:
       title: Provider
       type: object
@@ -274,18 +243,6 @@ components:
         - publisher
         - name
         - version
-    PresignURLResponse:
-      title: PresignURLResponse
-      type: object
-      description: PresignURL will return time-timited presigned URL for provided bucketname & filename
-      x-stoplight:
-        id: 1bb8b6403eed2
-      x-examples: {}
-      properties:
-        presignedURL:
-          type: string
-      required:
-        - presignedURL
     DiagnosticLog:
       title: DiagnosticLog
       x-stoplight:
@@ -293,7 +250,7 @@ components:
       type: object
       properties:
         level:
-          $ref: "#/components/schemas/LogLevel"
+          $ref: '#/components/schemas/LogLevel'
         msg:
           type: string
       required:
@@ -306,7 +263,7 @@ components:
       type: object
       properties:
         provider:
-          $ref: "#/components/schemas/Provider"
+          $ref: '#/components/schemas/Provider'
         config:
           type: object
         healthy:
@@ -314,9 +271,9 @@ components:
         diagnostics:
           type: array
           items:
-            $ref: "#/components/schemas/DiagnosticLog"
+            $ref: '#/components/schemas/DiagnosticLog'
         schema:
-          $ref: "#/components/schemas/Schema"
+          $ref: '#/components/schemas/Schema'
       required:
         - provider
         - config
@@ -395,8 +352,8 @@ components:
       properties:
         loaders:
           additionalProperties:
-            $ref: "#/components/schemas/Loader"
-          x-go-type: "map[string]Loader"
+            $ref: '#/components/schemas/Loader'
+          x-go-type: 'map[string]Loader'
           title: Loaders
           type: object
         types:
@@ -408,13 +365,13 @@ components:
         - types
       title: Resources
       type: object
-      description: ""
+      description: ''
     Target:
       properties:
         properties:
           additionalProperties:
-            $ref: "#/components/schemas/TargetField"
-          x-go-type: "map[string]TargetField"
+            $ref: '#/components/schemas/TargetField'
+          x-go-type: 'map[string]TargetField'
           description: the actual properties of the target.
           title: Properties
           type: object
@@ -435,7 +392,7 @@ components:
           title: Description
           type: string
         resource:
-          description: "If specified, the type of the resource the field should be populated from."
+          description: 'If specified, the type of the resource the field should be populated from.'
           title: Resource
           type: string
         title:
@@ -459,20 +416,20 @@ components:
           type: string
         config:
           additionalProperties:
-            $ref: "#/components/schemas/Config"
-          x-go-type: "map[string]Config"
+            $ref: '#/components/schemas/Config'
+          x-go-type: 'map[string]Config'
           title: Config
           type: object
         meta:
-          $ref: "#/components/schemas/Meta"
+          $ref: '#/components/schemas/Meta'
         provider:
-          $ref: "#/components/schemas/Provider"
+          $ref: '#/components/schemas/Provider'
         resources:
-          $ref: "#/components/schemas/Resources"
+          $ref: '#/components/schemas/Resources'
         targets:
           additionalProperties:
-            $ref: "#/components/schemas/Target"
-          x-go-type: "map[string]Target"
+            $ref: '#/components/schemas/Target'
+          x-go-type: 'map[string]Target'
           title: Targets
           type: object
       required:
@@ -508,10 +465,34 @@ components:
         displayName:
           type: string
       title: ProviderMetaInfo
-      description: "Metadata from provider.toml file for a Provider "
+      description: 'Metadata from provider.toml file for a Provider '
       x-stoplight:
         id: 1bb8b6403eed2
-  requestBodies: {}
+  requestBodies:
+    PublishProviderRequest:
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              publisher:
+                type: string
+              name:
+                type: string
+              version:
+                type: string
+              roleFiles:
+                type: array
+                description: an array of filenames for role templates to be uploaded
+                items:
+                  type: string
+              dev:
+                type: boolean
+            required:
+              - publisher
+              - name
+              - version
+              - roleFiles
   responses:
     HealthResponse:
       description: Healthcheck response body.
@@ -547,13 +528,34 @@ components:
               providers:
                 type: array
                 items:
-                  $ref: "#/components/schemas/ProviderDetail"
+                  $ref: '#/components/schemas/ProviderDetail'
               next:
                 type: string
                 nullable: true
             required:
               - providers
               - next
+    PublishProviderResponse:
+      description: 'Response contai9ns presigned URLs for uploading provider assets. Once assets have been uploaded, complete publishing provider should be called.'
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              lambdaHandlerUploadUrl:
+                type: string
+              cloudformationTemplateUploadUrl:
+                type: string
+              readmeUploadUrl:
+                type: string
+              roleTemplateUploadURLs:
+                type: object
+                description: filename is the key and value is the upload URL
+            required:
+              - lambdaHandlerUploadUrl
+              - cloudformationTemplateUploadUrl
+              - readmeUploadUrl
+              - roleTemplateUploadURLs
 tags:
   - name: Public
   - name: Team
