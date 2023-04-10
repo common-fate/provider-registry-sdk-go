@@ -3,8 +3,8 @@ package bootstrapper
 import (
 	"context"
 	_ "embed"
+	"io"
 	"net/http"
-	"net/url"
 	"os"
 	"path"
 	"sync"
@@ -27,6 +27,8 @@ import (
 	"github.com/pkg/errors"
 	"github.com/sethvargo/go-retry"
 	"golang.org/x/term"
+
+	"github.com/briandowns/spinner"
 )
 
 //go:embed cloudformation/bootstrap.json
@@ -286,7 +288,8 @@ func (b *Bootstrapper) CopyProviderFiles(ctx context.Context, provider providerr
 	err = b.copyFile(ctx, CopyFileOpts{
 		Bucket:     out.AssetsBucket,
 		Key:        path.Join(assetPath, "handler.zip"),
-		CopySource: url.QueryEscape(provider.LambdaAssetS3Arn),
+		CopySource: path.Join(provider.Publisher, provider.Name, provider.Version, "handler.zip"),
+		Filename:   "handler.zip",
 		Force:      o.ForceCopy,
 	})
 	if err != nil {
@@ -297,7 +300,8 @@ func (b *Bootstrapper) CopyProviderFiles(ctx context.Context, provider providerr
 	err = b.copyFile(ctx, CopyFileOpts{
 		Bucket:     out.AssetsBucket,
 		Key:        path.Join(assetPath, "cloudformation.json"),
-		CopySource: url.QueryEscape(provider.CfnTemplateS3Arn),
+		CopySource: path.Join(provider.Publisher, provider.Name, provider.Version, "cloudformation.json"),
+		Filename:   "cloudformation.json",
 		Force:      o.ForceCopy,
 	})
 	if err != nil {
@@ -310,12 +314,13 @@ func (b *Bootstrapper) CopyProviderFiles(ctx context.Context, provider providerr
 type CopyFileOpts struct {
 	Bucket     string
 	Key        string
-	CopySource string // Presigned URL of the source object
+	CopySource string
+	Filename   string
 	Force      bool
 }
 
 func (b *Bootstrapper) copyFile(ctx context.Context, opts CopyFileOpts) error {
-	//check if asset already exists
+	// check if asset already exists
 	exists, err := AssetsExist(ctx, b.s3Client, opts.Bucket, opts.Key)
 	if err != nil {
 		return err
@@ -332,17 +337,90 @@ func (b *Bootstrapper) copyFile(ctx context.Context, opts CopyFileOpts) error {
 		clio.Infof("Forcing overwrite: %s", fullPath)
 	}
 
-	clio.Debugw("Copying file", "opts", opts)
-	_, err = b.s3Client.CopyObject(ctx, &s3.CopyObjectInput{
-		Bucket:     &opts.Bucket,
-		Key:        &opts.Key,
-		CopySource: &opts.CopySource,
-	})
+	clio.Debugf("Downloading assets file from %s", &opts.CopySource)
+
+	si := spinner.New(spinner.CharSets[14], 100*time.Millisecond, spinner.WithColor("green"))
+	si.Suffix = " Copying Provider Assets..."
+	si.Writer = os.Stderr
+	si.Start()
+
+	filename, err := downloadFile(ctx, opts.CopySource, opts.Filename)
 	if err != nil {
+		si.Stop()
 		return err
 	}
+
+	clio.Debugf("Uploading file %s to %s/%s", filename, opts.Bucket, opts.Key)
+
+	file, err := os.Open(filename)
+	if err != nil {
+		si.Stop()
+		return err
+	}
+	defer file.Close()
+
+	// Upload the file to S3
+	res, err := b.s3Client.PutObject(ctx, &s3.PutObjectInput{
+		Bucket: aws.String(opts.Bucket),
+		Key:    aws.String(opts.Key),
+		Body:   file,
+	})
+	if err != nil {
+		si.Stop()
+		return err
+	}
+
+	si.Stop()
+
+	clio.Debugf("s3 upload output: %v", res.ResultMetadata)
 
 	clio.Infof("Copied %s", fullPath)
 
 	return nil
+}
+
+// return the s3 URL upon which we can make HTTP requests.
+func getRegistryBucketURL() string {
+	var u string
+
+	// the default s3 url is for Production provider registry
+	u = "https://common-fate-registry-public.s3.us-west-2.amazonaws.com"
+
+	if os.Getenv("COMMON_FATE_PROVIDER_REGISTRY_S3_URL") != "" {
+		u = os.Getenv("COMMON_FATE_PROVIDER_REGISTRY_S3_URL")
+	}
+
+	return u
+}
+
+// make HTTP GET request to provider registry s3 URL for provided provider
+// write the output to temporary file
+func downloadFile(ctx context.Context, assetPath string, filename string) (string, error) {
+	// Create the file
+	out, err := os.CreateTemp("", filename)
+	if err != nil {
+		return "", err
+	}
+
+	u := fmt.Sprintf("%s/%s", getRegistryBucketURL(), assetPath)
+
+	// Get the data
+	resp, err := http.Get(u)
+	if err != nil {
+		return "", err
+	}
+	defer resp.Body.Close()
+
+	// Check server response
+	if resp.StatusCode != http.StatusOK {
+		return "", fmt.Errorf("s3 download failed with err: %s", resp.Status)
+	}
+
+	// Writer the body to file
+	_, err = io.Copy(out, resp.Body)
+	if err != nil {
+		return "", err
+	}
+
+	return out.Name(), nil
 }
