@@ -136,16 +136,7 @@ paths:
       operationId: user-publish-provider
       responses:
         '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  provider:
-                    $ref: '#/components/schemas/ProviderDetail'
-                required:
-                  - provider
+          $ref: '#/components/responses/PublishProviderResponse'
         '400':
           $ref: '#/components/responses/ErrorResponse'
         '500':
