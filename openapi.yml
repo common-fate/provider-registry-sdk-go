@@ -455,6 +455,10 @@ components:
                 description: an array of filenames for role templates to be uploaded
                 items:
                   type: string
+              schema:
+                $ref: '#/components/schemas/Schema'
+              meta:
+                $ref: '#/components/schemas/ProviderMetaInfo'
               dev:
                 type: boolean
             required:
@@ -462,6 +466,8 @@ components:
               - name
               - version
               - roleFiles
+              - schema
+              - meta
   responses:
     HealthResponse:
       description: Healthcheck response body.
