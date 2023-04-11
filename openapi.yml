@@ -95,14 +95,7 @@ paths:
       operationId: get-provider-readme
       responses:
         '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  readme:
-                    type: string
+          $ref: '#/components/responses/ProviderReadmeResponse'
         '404':
           $ref: '#/components/responses/ErrorResponse'
         '500':
@@ -549,6 +542,17 @@ components:
               - cloudformationTemplateUploadUrl
               - readmeUploadUrl
               - roleTemplateUploadURLs
+    ProviderReadmeResponse:
+      description: Provider Readme
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              readme:
+                type: string
+            required:
+              - readme
 tags:
   - name: Public
   - name: Team
