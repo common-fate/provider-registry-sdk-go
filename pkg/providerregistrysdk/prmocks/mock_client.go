@@ -36,24 +36,24 @@ func (m *MockClientWithResponsesInterface) EXPECT() *MockClientWithResponsesInte
 	return m.recorder
 }
 
-// GetProviderDocsWithResponse mocks base method.
-func (m *MockClientWithResponsesInterface) GetProviderDocsWithResponse(arg0 context.Context, arg1, arg2, arg3 string, arg4 ...providerregistrysdk.RequestEditorFn) (*providerregistrysdk.GetProviderDocsResponse, error) {
+// GetProviderReadmeWithResponse mocks base method.
+func (m *MockClientWithResponsesInterface) GetProviderReadmeWithResponse(arg0 context.Context, arg1, arg2, arg3 string, arg4 ...providerregistrysdk.RequestEditorFn) (*providerregistrysdk.GetProviderReadmeResponse, error) {
 	m.ctrl.T.Helper()
 	varargs := []interface{}{arg0, arg1, arg2, arg3}
 	for _, a := range arg4 {
 		varargs = append(varargs, a)
 	}
-	ret := m.ctrl.Call(m, "GetProviderDocsWithResponse", varargs...)
-	ret0, _ := ret[0].(*providerregistrysdk.GetProviderDocsResponse)
+	ret := m.ctrl.Call(m, "GetProviderReadmeWithResponse", varargs...)
+	ret0, _ := ret[0].(*providerregistrysdk.GetProviderReadmeResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// GetProviderDocsWithResponse indicates an expected call of GetProviderDocsWithResponse.
-func (mr *MockClientWithResponsesInterfaceMockRecorder) GetProviderDocsWithResponse(arg0, arg1, arg2, arg3 interface{}, arg4 ...interface{}) *gomock.Call {
+// GetProviderReadmeWithResponse indicates an expected call of GetProviderReadmeWithResponse.
+func (mr *MockClientWithResponsesInterfaceMockRecorder) GetProviderReadmeWithResponse(arg0, arg1, arg2, arg3 interface{}, arg4 ...interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	varargs := append([]interface{}{arg0, arg1, arg2, arg3}, arg4...)
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetProviderDocsWithResponse", reflect.TypeOf((*MockClientWithResponsesInterface)(nil).GetProviderDocsWithResponse), varargs...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetProviderReadmeWithResponse", reflect.TypeOf((*MockClientWithResponsesInterface)(nil).GetProviderReadmeWithResponse), varargs...)
 }
 
 // GetProviderVersionsWithResponse mocks base method.

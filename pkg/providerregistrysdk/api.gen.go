@@ -74,11 +74,6 @@ type DiagnosticLog struct {
 	Msg   string   `json:"msg"`
 }
 
-// The Document of a Common Fate Provider.
-type Document struct {
-	Content string `json:"content"`
-}
-
 // A callable function in the provider which can
 // load resources.
 //
@@ -318,8 +313,8 @@ type ClientInterface interface {
 	// GetProvider request
 	GetProvider(ctx context.Context, publisher string, name string, version string, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// GetProviderDocs request
-	GetProviderDocs(ctx context.Context, publisher string, name string, version string, reqEditors ...RequestEditorFn) (*http.Response, error)
+	// GetProviderReadme request
+	GetProviderReadme(ctx context.Context, publisher string, name string, version string, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// UserPublishProvider request with any body
 	UserPublishProviderWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -380,8 +375,8 @@ func (c *Client) GetProvider(ctx context.Context, publisher string, name string,
 	return c.Client.Do(req)
 }
 
-func (c *Client) GetProviderDocs(ctx context.Context, publisher string, name string, version string, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewGetProviderDocsRequest(c.Server, publisher, name, version)
+func (c *Client) GetProviderReadme(ctx context.Context, publisher string, name string, version string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetProviderReadmeRequest(c.Server, publisher, name, version)
 	if err != nil {
 		return nil, err
 	}
@@ -603,8 +598,8 @@ func NewGetProviderRequest(server string, publisher string, name string, version
 	return req, nil
 }
 
-// NewGetProviderDocsRequest generates requests for GetProviderDocs
-func NewGetProviderDocsRequest(server string, publisher string, name string, version string) (*http.Request, error) {
+// NewGetProviderReadmeRequest generates requests for GetProviderReadme
+func NewGetProviderReadmeRequest(server string, publisher string, name string, version string) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
@@ -633,7 +628,7 @@ func NewGetProviderDocsRequest(server string, publisher string, name string, ver
 		return nil, err
 	}
 
-	operationPath := fmt.Sprintf("/v1alpha1/providers/%s/%s/%s/docs", pathParam0, pathParam1, pathParam2)
+	operationPath := fmt.Sprintf("/v1alpha1/providers/%s/%s/%s/readme", pathParam0, pathParam1, pathParam2)
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -786,8 +781,8 @@ type ClientWithResponsesInterface interface {
 	// GetProvider request
 	GetProviderWithResponse(ctx context.Context, publisher string, name string, version string, reqEditors ...RequestEditorFn) (*GetProviderResponse, error)
 
-	// GetProviderDocs request
-	GetProviderDocsWithResponse(ctx context.Context, publisher string, name string, version string, reqEditors ...RequestEditorFn) (*GetProviderDocsResponse, error)
+	// GetProviderReadme request
+	GetProviderReadmeWithResponse(ctx context.Context, publisher string, name string, version string, reqEditors ...RequestEditorFn) (*GetProviderReadmeResponse, error)
 
 	// UserPublishProvider request with any body
 	UserPublishProviderWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UserPublishProviderResponse, error)
@@ -905,14 +900,22 @@ func (r GetProviderResponse) StatusCode() int {
 	return 0
 }
 
-type GetProviderDocsResponse struct {
+type GetProviderReadmeResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON200      *[]Document
+	JSON200      *struct {
+		Readme *string `json:"readme,omitempty"`
+	}
+	JSON404 *struct {
+		Error string `json:"error"`
+	}
+	JSON500 *struct {
+		Error string `json:"error"`
+	}
 }
 
 // Status returns HTTPResponse.Status
-func (r GetProviderDocsResponse) Status() string {
+func (r GetProviderReadmeResponse) Status() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Status
 	}
@@ -920,7 +923,7 @@ func (r GetProviderDocsResponse) Status() string {
 }
 
 // StatusCode returns HTTPResponse.StatusCode
-func (r GetProviderDocsResponse) StatusCode() int {
+func (r GetProviderReadmeResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -1022,13 +1025,13 @@ func (c *ClientWithResponses) GetProviderWithResponse(ctx context.Context, publi
 	return ParseGetProviderResponse(rsp)
 }
 
-// GetProviderDocsWithResponse request returning *GetProviderDocsResponse
-func (c *ClientWithResponses) GetProviderDocsWithResponse(ctx context.Context, publisher string, name string, version string, reqEditors ...RequestEditorFn) (*GetProviderDocsResponse, error) {
-	rsp, err := c.GetProviderDocs(ctx, publisher, name, version, reqEditors...)
+// GetProviderReadmeWithResponse request returning *GetProviderReadmeResponse
+func (c *ClientWithResponses) GetProviderReadmeWithResponse(ctx context.Context, publisher string, name string, version string, reqEditors ...RequestEditorFn) (*GetProviderReadmeResponse, error) {
+	rsp, err := c.GetProviderReadme(ctx, publisher, name, version, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParseGetProviderDocsResponse(rsp)
+	return ParseGetProviderReadmeResponse(rsp)
 }
 
 // UserPublishProviderWithBodyWithResponse request with arbitrary body returning *UserPublishProviderResponse
@@ -1207,26 +1210,46 @@ func ParseGetProviderResponse(rsp *http.Response) (*GetProviderResponse, error) 
 	return response, nil
 }
 
-// ParseGetProviderDocsResponse parses an HTTP response from a GetProviderDocsWithResponse call
-func ParseGetProviderDocsResponse(rsp *http.Response) (*GetProviderDocsResponse, error) {
+// ParseGetProviderReadmeResponse parses an HTTP response from a GetProviderReadmeWithResponse call
+func ParseGetProviderReadmeResponse(rsp *http.Response) (*GetProviderReadmeResponse, error) {
 	bodyBytes, err := ioutil.ReadAll(rsp.Body)
 	defer func() { _ = rsp.Body.Close() }()
 	if err != nil {
 		return nil, err
 	}
 
-	response := &GetProviderDocsResponse{
+	response := &GetProviderReadmeResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
 
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest []Document
+		var dest struct {
+			Readme *string `json:"readme,omitempty"`
+		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
+		var dest struct {
+			Error string `json:"error"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON404 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest struct {
+			Error string `json:"error"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
 
 	}
 
@@ -1338,9 +1361,9 @@ type ServerInterface interface {
 	// Get Provider
 	// (GET /v1alpha1/providers/{publisher}/{name}/{version})
 	GetProvider(w http.ResponseWriter, r *http.Request, publisher string, name string, version string)
-	// Get Provider Docs
-	// (GET /v1alpha1/providers/{publisher}/{name}/{version}/docs)
-	GetProviderDocs(w http.ResponseWriter, r *http.Request, publisher string, name string, version string)
+	// Get Provider Readme
+	// (GET /v1alpha1/providers/{publisher}/{name}/{version}/readme)
+	GetProviderReadme(w http.ResponseWriter, r *http.Request, publisher string, name string, version string)
 	// Publish a Provider
 	// (POST /v1alpha1/publish)
 	UserPublishProvider(w http.ResponseWriter, r *http.Request)
@@ -1483,8 +1506,8 @@ func (siw *ServerInterfaceWrapper) GetProvider(w http.ResponseWriter, r *http.Re
 	handler(w, r.WithContext(ctx))
 }
 
-// GetProviderDocs operation middleware
-func (siw *ServerInterfaceWrapper) GetProviderDocs(w http.ResponseWriter, r *http.Request) {
+// GetProviderReadme operation middleware
+func (siw *ServerInterfaceWrapper) GetProviderReadme(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
 	var err error
@@ -1517,7 +1540,7 @@ func (siw *ServerInterfaceWrapper) GetProviderDocs(w http.ResponseWriter, r *htt
 	}
 
 	var handler = func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.GetProviderDocs(w, r, publisher, name, version)
+		siw.Handler.GetProviderReadme(w, r, publisher, name, version)
 	}
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -1683,7 +1706,7 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 		r.Get(options.BaseURL+"/v1alpha1/providers/{publisher}/{name}/{version}", wrapper.GetProvider)
 	})
 	r.Group(func(r chi.Router) {
-		r.Get(options.BaseURL+"/v1alpha1/providers/{publisher}/{name}/{version}/docs", wrapper.GetProviderDocs)
+		r.Get(options.BaseURL+"/v1alpha1/providers/{publisher}/{name}/{version}/readme", wrapper.GetProviderReadme)
 	})
 	r.Group(func(r chi.Router) {
 		r.Post(options.BaseURL+"/v1alpha1/publish", wrapper.UserPublishProvider)
@@ -1698,47 +1721,46 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"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",
-	"qjPg851JJf6JFby93v43AAD//ybwVSRZKgAA",
+	"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",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file

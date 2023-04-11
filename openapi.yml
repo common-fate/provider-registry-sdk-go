@@ -73,7 +73,7 @@ paths:
       tags:
         - Public
       description: 'pass in a generic published/name combination and get the full list of providers '
-  '/v1alpha1/providers/{publisher}/{name}/{version}/docs':
+  '/v1alpha1/providers/{publisher}/{name}/{version}/readme':
     parameters:
       - schema:
           type: string
@@ -91,19 +91,25 @@ paths:
         in: path
         required: true
     get:
-      summary: Get Provider Docs
-      operationId: get-provider-docs
+      summary: Get Provider Readme
+      operationId: get-provider-readme
       responses:
         '200':
           description: OK
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Document'
+                type: object
+                properties:
+                  readme:
+                    type: string
+        '404':
+          $ref: '#/components/responses/ErrorResponse'
+        '500':
+          $ref: '#/components/responses/ErrorResponse'
       tags:
         - Public
+      description: Returns the readme for this provider
   /v1alpha1/providers:
     get:
       summary: List Providers
@@ -441,17 +447,6 @@ components:
         - $schema
       title: Schema
       type: object
-    Document:
-      description: The Document of a Common Fate Provider.
-      title: Document
-      type: object
-      x-stoplight:
-        id: 3af5c75a5731d
-      properties:
-        content:
-          type: string
-      required:
-        - content
     ProviderMetaInfo:
       type: object
       properties:
