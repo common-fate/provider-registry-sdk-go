@@ -450,12 +450,6 @@ components:
       properties:
         content:
           type: string
-        filename:
-          type: string
-        key:
-          type: string
-        size:
-          type: integer
       required:
         - content
     ProviderMetaInfo:
