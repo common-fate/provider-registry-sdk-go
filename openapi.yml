@@ -135,8 +135,8 @@ paths:
       summary: Publish a Provider
       operationId: user-publish-provider
       responses:
-        '201':
-          description: Created
+        '200':
+          description: OK
           content:
             application/json:
               schema:
@@ -147,16 +147,9 @@ paths:
                 required:
                   - provider
         '400':
-          description: Bad Request
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                required:
-                  - message
+          $ref: '#/components/responses/ErrorResponse'
+        '500':
+          $ref: '#/components/responses/ErrorResponse'
       description: |-
         Publish a new Provider, you may call this API multiple times for the same provider version until you have marked the publishing as complete.
 
