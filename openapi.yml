@@ -471,6 +471,13 @@ components:
       description: 'Metadata from provider.toml file for a Provider '
       x-stoplight:
         id: 1bb8b6403eed2
+    UploadUrls:
+      title: UploadUrls
+      x-stoplight:
+        id: hezwxxklqr4s4
+      type: object
+      additionalProperties:
+        type: string
   requestBodies:
     PublishProviderRequest:
       content:
@@ -552,8 +559,7 @@ components:
               readmeUploadUrl:
                 type: string
               roleTemplateUploadURLs:
-                type: object
-                description: filename is the key and value is the upload URL
+                $ref: '#/components/schemas/UploadUrls'
             required:
               - lambdaHandlerUploadUrl
               - cloudformationTemplateUploadUrl
