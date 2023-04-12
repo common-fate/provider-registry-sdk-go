@@ -262,10 +262,13 @@ components:
       properties:
         publisher:
           type: string
+          pattern: '^[a-z0-9-]+$'
         name:
           type: string
+          pattern: '^[a-z0-9-]+$'
         version:
           type: string
+          pattern: '^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-[\da-z\-]+(?:\.[\da-z\-]+)*)?(?:\+[\da-z\-]+(?:\.[\da-z\-]+)*)?$'
       required:
         - publisher
         - name
@@ -487,6 +490,7 @@ components:
       properties:
         id:
           type: string
+          pattern: '^[a-z0-9-]+$'
       required:
         - id
     User:
@@ -516,10 +520,14 @@ components:
             properties:
               publisher:
                 type: string
+                pattern: '^[a-z0-9-]+$'
               name:
                 type: string
+                pattern: '^[a-z0-9-]+$'
               version:
                 type: string
+                pattern: '^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-[\da-z\-]+(?:\.[\da-z\-]+)*)?(?:\+[\da-z\-]+(?:\.[\da-z\-]+)*)?$'
+                description: Version must follow server format
               roleFiles:
                 type: array
                 description: an array of filenames for role templates to be uploaded
@@ -546,6 +554,7 @@ components:
             properties:
               id:
                 type: string
+                pattern: '^[a-z0-9-]+$'
             required:
               - id
   responses:
