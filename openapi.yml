@@ -55,17 +55,11 @@ paths:
         in: path
         required: true
     get:
-      summary: Get Provider Versions
-      operationId: get-provider-versions
+      summary: List Provider Versions
+      operationId: list-provider-versions
       responses:
         '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/ProviderDetail'
+          $ref: '#/components/responses/ListProvidersResponse'
         '404':
           $ref: '#/components/responses/ErrorResponse'
         '500':
@@ -126,7 +120,7 @@ paths:
       tags: []
       responses:
         '200':
-          description: OK
+          $ref: '#/components/responses/HealthResponse'
       operationId: healthcheck
       description: Returns a HTTP 200 OK response if the registry service is healthy.
   /v1alpha1/publish:
