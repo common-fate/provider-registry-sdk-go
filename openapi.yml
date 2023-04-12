@@ -139,6 +139,8 @@ paths:
           $ref: '#/components/responses/PublishProviderResponse'
         '400':
           $ref: '#/components/responses/ErrorResponse'
+        '401':
+          $ref: '#/components/responses/ErrorResponse'
         '500':
           $ref: '#/components/responses/ErrorResponse'
       description: |-
@@ -164,6 +166,8 @@ paths:
                 $ref: '#/components/schemas/ProviderDetail'
         '400':
           $ref: '#/components/responses/ErrorResponse'
+        '401':
+          $ref: '#/components/responses/ErrorResponse'
         '404':
           $ref: '#/components/responses/ErrorResponse'
         '500':
@@ -176,6 +180,43 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/Provider'
+  /v1alpha1/publishers:
+    post:
+      summary: Create Publisher
+      operationId: user-create-publisher
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Publisher'
+        '400':
+          $ref: '#/components/responses/ErrorResponse'
+        '401':
+          $ref: '#/components/responses/ErrorResponse'
+        '500':
+          $ref: '#/components/responses/ErrorResponse'
+      description: ''
+      requestBody:
+        $ref: '#/components/requestBodies/CreatePublisherRequest'
+  /v1alpha1/me:
+    get:
+      summary: Get Me
+      tags: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '401':
+          $ref: '#/components/responses/ErrorResponse'
+        '500':
+          $ref: '#/components/responses/ErrorResponse'
+      operationId: user-get-me
+      description: describes the current user
 components:
   schemas:
     ProviderDetail:
@@ -437,6 +478,35 @@ components:
       description: 'Metadata from provider.toml file for a Provider '
       x-stoplight:
         id: 1bb8b6403eed2
+    Publisher:
+      title: Publisher
+      x-stoplight:
+        id: h3ifqy9uln5u5
+      type: object
+      description: Publisher
+      properties:
+        id:
+          type: string
+      required:
+        - id
+    User:
+      title: User
+      x-stoplight:
+        id: twwtshp9im1fp
+      type: object
+      properties:
+        id:
+          type: string
+        email:
+          type: string
+        publishers:
+          type: array
+          items:
+            type: string
+      required:
+        - id
+        - email
+        - publishers
   requestBodies:
     PublishProviderRequest:
       content:
@@ -468,6 +538,16 @@ components:
               - roleFiles
               - schema
               - meta
+    CreatePublisherRequest:
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              id:
+                type: string
+            required:
+              - id
   responses:
     HealthResponse:
       description: Healthcheck response body.

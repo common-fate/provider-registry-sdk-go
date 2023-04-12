@@ -130,6 +130,11 @@ type Providers struct {
 	Version   string `json:"version"`
 }
 
+// Publisher
+type Publisher struct {
+	Id string `json:"id"`
+}
+
 // Resources defines model for Resources.
 type Resources struct {
 	Loaders map[string]Loader `json:"loaders"`
@@ -176,6 +181,13 @@ type TargetField struct {
 // TargetFieldType defines model for TargetField.Type.
 type TargetFieldType string
 
+// User defines model for User.
+type User struct {
+	Email      string   `json:"email"`
+	Id         string   `json:"id"`
+	Publishers []string `json:"publishers"`
+}
+
 // ErrorResponse defines model for ErrorResponse.
 type ErrorResponse struct {
 	Error string `json:"error"`
@@ -205,6 +217,11 @@ type PublishProviderResponse struct {
 
 	// filename is the key and value is the upload URL
 	RoleTemplateUploadURLs map[string]string `json:"roleTemplateUploadURLs"`
+}
+
+// CreatePublisherRequest defines model for CreatePublisherRequest.
+type CreatePublisherRequest struct {
+	Id string `json:"id"`
 }
 
 // PublishProviderRequest defines model for PublishProviderRequest.
@@ -238,6 +255,9 @@ type UserPublishProviderJSONRequestBody PublishProviderRequest
 
 // UserCompletePublishProviderJSONRequestBody defines body for UserCompletePublishProvider for application/json ContentType.
 type UserCompletePublishProviderJSONRequestBody = UserCompletePublishProviderJSONBody
+
+// UserCreatePublisherJSONRequestBody defines body for UserCreatePublisher for application/json ContentType.
+type UserCreatePublisherJSONRequestBody CreatePublisherRequest
 
 // RequestEditorFn  is the function signature for the RequestEditor callback function
 type RequestEditorFn func(ctx context.Context, req *http.Request) error
@@ -315,6 +335,9 @@ type ClientInterface interface {
 	// Healthcheck request
 	Healthcheck(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// UserGetMe request
+	UserGetMe(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// ListAllProviders request
 	ListAllProviders(ctx context.Context, params *ListAllProvidersParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -336,10 +359,27 @@ type ClientInterface interface {
 	UserCompletePublishProviderWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	UserCompletePublishProvider(ctx context.Context, body UserCompletePublishProviderJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// UserCreatePublisher request with any body
+	UserCreatePublisherWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	UserCreatePublisher(ctx context.Context, body UserCreatePublisherJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 }
 
 func (c *Client) Healthcheck(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewHealthcheckRequest(c.Server)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) UserGetMe(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUserGetMeRequest(c.Server)
 	if err != nil {
 		return nil, err
 	}
@@ -446,6 +486,30 @@ func (c *Client) UserCompletePublishProvider(ctx context.Context, body UserCompl
 	return c.Client.Do(req)
 }
 
+func (c *Client) UserCreatePublisherWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUserCreatePublisherRequestWithBody(c.Server, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) UserCreatePublisher(ctx context.Context, body UserCreatePublisherJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUserCreatePublisherRequest(c.Server, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 // NewHealthcheckRequest generates requests for Healthcheck
 func NewHealthcheckRequest(server string) (*http.Request, error) {
 	var err error
@@ -456,6 +520,33 @@ func NewHealthcheckRequest(server string) (*http.Request, error) {
 	}
 
 	operationPath := fmt.Sprintf("/v1alpha1/health")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewUserGetMeRequest generates requests for UserGetMe
+func NewUserGetMeRequest(server string) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/v1alpha1/me")
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -737,6 +828,46 @@ func NewUserCompletePublishProviderRequestWithBody(server string, contentType st
 	return req, nil
 }
 
+// NewUserCreatePublisherRequest calls the generic UserCreatePublisher builder with application/json body
+func NewUserCreatePublisherRequest(server string, body UserCreatePublisherJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewUserCreatePublisherRequestWithBody(server, "application/json", bodyReader)
+}
+
+// NewUserCreatePublisherRequestWithBody generates requests for UserCreatePublisher with any type of body
+func NewUserCreatePublisherRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/v1alpha1/publishers")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
 func (c *Client) applyEditors(ctx context.Context, req *http.Request, additionalEditors []RequestEditorFn) error {
 	for _, r := range c.RequestEditors {
 		if err := r(ctx, req); err != nil {
@@ -783,6 +914,9 @@ type ClientWithResponsesInterface interface {
 	// Healthcheck request
 	HealthcheckWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*HealthcheckResponse, error)
 
+	// UserGetMe request
+	UserGetMeWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*UserGetMeResponse, error)
+
 	// ListAllProviders request
 	ListAllProvidersWithResponse(ctx context.Context, params *ListAllProvidersParams, reqEditors ...RequestEditorFn) (*ListAllProvidersResponse, error)
 
@@ -804,6 +938,11 @@ type ClientWithResponsesInterface interface {
 	UserCompletePublishProviderWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UserCompletePublishProviderResponse, error)
 
 	UserCompletePublishProviderWithResponse(ctx context.Context, body UserCompletePublishProviderJSONRequestBody, reqEditors ...RequestEditorFn) (*UserCompletePublishProviderResponse, error)
+
+	// UserCreatePublisher request with any body
+	UserCreatePublisherWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UserCreatePublisherResponse, error)
+
+	UserCreatePublisherWithResponse(ctx context.Context, body UserCreatePublisherJSONRequestBody, reqEditors ...RequestEditorFn) (*UserCreatePublisherResponse, error)
 }
 
 type HealthcheckResponse struct {
@@ -821,6 +960,34 @@ func (r HealthcheckResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r HealthcheckResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type UserGetMeResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *User
+	JSON401      *struct {
+		Error string `json:"error"`
+	}
+	JSON500 *struct {
+		Error string `json:"error"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r UserGetMeResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r UserGetMeResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -955,6 +1122,9 @@ type UserPublishProviderResponse struct {
 	JSON400 *struct {
 		Error string `json:"error"`
 	}
+	JSON401 *struct {
+		Error string `json:"error"`
+	}
 	JSON500 *struct {
 		Error string `json:"error"`
 	}
@@ -983,6 +1153,9 @@ type UserCompletePublishProviderResponse struct {
 	JSON400      *struct {
 		Error string `json:"error"`
 	}
+	JSON401 *struct {
+		Error string `json:"error"`
+	}
 	JSON404 *struct {
 		Error string `json:"error"`
 	}
@@ -1007,6 +1180,37 @@ func (r UserCompletePublishProviderResponse) StatusCode() int {
 	return 0
 }
 
+type UserCreatePublisherResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON201      *Publisher
+	JSON400      *struct {
+		Error string `json:"error"`
+	}
+	JSON401 *struct {
+		Error string `json:"error"`
+	}
+	JSON500 *struct {
+		Error string `json:"error"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r UserCreatePublisherResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r UserCreatePublisherResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 // HealthcheckWithResponse request returning *HealthcheckResponse
 func (c *ClientWithResponses) HealthcheckWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*HealthcheckResponse, error) {
 	rsp, err := c.Healthcheck(ctx, reqEditors...)
@@ -1014,6 +1218,15 @@ func (c *ClientWithResponses) HealthcheckWithResponse(ctx context.Context, reqEd
 		return nil, err
 	}
 	return ParseHealthcheckResponse(rsp)
+}
+
+// UserGetMeWithResponse request returning *UserGetMeResponse
+func (c *ClientWithResponses) UserGetMeWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*UserGetMeResponse, error) {
+	rsp, err := c.UserGetMe(ctx, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseUserGetMeResponse(rsp)
 }
 
 // ListAllProvidersWithResponse request returning *ListAllProvidersResponse
@@ -1086,6 +1299,23 @@ func (c *ClientWithResponses) UserCompletePublishProviderWithResponse(ctx contex
 	return ParseUserCompletePublishProviderResponse(rsp)
 }
 
+// UserCreatePublisherWithBodyWithResponse request with arbitrary body returning *UserCreatePublisherResponse
+func (c *ClientWithResponses) UserCreatePublisherWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UserCreatePublisherResponse, error) {
+	rsp, err := c.UserCreatePublisherWithBody(ctx, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseUserCreatePublisherResponse(rsp)
+}
+
+func (c *ClientWithResponses) UserCreatePublisherWithResponse(ctx context.Context, body UserCreatePublisherJSONRequestBody, reqEditors ...RequestEditorFn) (*UserCreatePublisherResponse, error) {
+	rsp, err := c.UserCreatePublisher(ctx, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseUserCreatePublisherResponse(rsp)
+}
+
 // ParseHealthcheckResponse parses an HTTP response from a HealthcheckWithResponse call
 func ParseHealthcheckResponse(rsp *http.Response) (*HealthcheckResponse, error) {
 	bodyBytes, err := ioutil.ReadAll(rsp.Body)
@@ -1097,6 +1327,50 @@ func ParseHealthcheckResponse(rsp *http.Response) (*HealthcheckResponse, error) 
 	response := &HealthcheckResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseUserGetMeResponse parses an HTTP response from a UserGetMeWithResponse call
+func ParseUserGetMeResponse(rsp *http.Response) (*UserGetMeResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &UserGetMeResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest User
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest struct {
+			Error string `json:"error"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON401 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest struct {
+			Error string `json:"error"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
+
 	}
 
 	return response, nil
@@ -1311,6 +1585,15 @@ func ParseUserPublishProviderResponse(rsp *http.Response) (*UserPublishProviderR
 		}
 		response.JSON400 = &dest
 
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest struct {
+			Error string `json:"error"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON401 = &dest
+
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
 		var dest struct {
 			Error string `json:"error"`
@@ -1355,6 +1638,15 @@ func ParseUserCompletePublishProviderResponse(rsp *http.Response) (*UserComplete
 		}
 		response.JSON400 = &dest
 
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest struct {
+			Error string `json:"error"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON401 = &dest
+
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
 		var dest struct {
 			Error string `json:"error"`
@@ -1378,11 +1670,67 @@ func ParseUserCompletePublishProviderResponse(rsp *http.Response) (*UserComplete
 	return response, nil
 }
 
+// ParseUserCreatePublisherResponse parses an HTTP response from a UserCreatePublisherWithResponse call
+func ParseUserCreatePublisherResponse(rsp *http.Response) (*UserCreatePublisherResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &UserCreatePublisherResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 201:
+		var dest Publisher
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON201 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
+		var dest struct {
+			Error string `json:"error"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON400 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest struct {
+			Error string `json:"error"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON401 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest struct {
+			Error string `json:"error"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
+
+	}
+
+	return response, nil
+}
+
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
 	// Healthcheck
 	// (GET /v1alpha1/health)
 	Healthcheck(w http.ResponseWriter, r *http.Request)
+	// Get Me
+	// (GET /v1alpha1/me)
+	UserGetMe(w http.ResponseWriter, r *http.Request)
 	// List Providers
 	// (GET /v1alpha1/providers)
 	ListAllProviders(w http.ResponseWriter, r *http.Request, params ListAllProvidersParams)
@@ -1401,6 +1749,9 @@ type ServerInterface interface {
 	// Complete Publishing a Provider
 	// (POST /v1alpha1/publish/complete)
 	UserCompletePublishProvider(w http.ResponseWriter, r *http.Request)
+	// Create Publisher
+	// (POST /v1alpha1/publishers)
+	UserCreatePublisher(w http.ResponseWriter, r *http.Request)
 }
 
 // ServerInterfaceWrapper converts contexts to parameters.
@@ -1418,6 +1769,21 @@ func (siw *ServerInterfaceWrapper) Healthcheck(w http.ResponseWriter, r *http.Re
 
 	var handler = func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.Healthcheck(w, r)
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler(w, r.WithContext(ctx))
+}
+
+// UserGetMe operation middleware
+func (siw *ServerInterfaceWrapper) UserGetMe(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	var handler = func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.UserGetMe(w, r)
 	}
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -1611,6 +1977,21 @@ func (siw *ServerInterfaceWrapper) UserCompletePublishProvider(w http.ResponseWr
 	handler(w, r.WithContext(ctx))
 }
 
+// UserCreatePublisher operation middleware
+func (siw *ServerInterfaceWrapper) UserCreatePublisher(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	var handler = func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.UserCreatePublisher(w, r)
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler(w, r.WithContext(ctx))
+}
+
 type UnescapedCookieParamError struct {
 	ParamName string
 	Err       error
@@ -1728,6 +2109,9 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 		r.Get(options.BaseURL+"/v1alpha1/health", wrapper.Healthcheck)
 	})
 	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/v1alpha1/me", wrapper.UserGetMe)
+	})
+	r.Group(func(r chi.Router) {
 		r.Get(options.BaseURL+"/v1alpha1/providers", wrapper.ListAllProviders)
 	})
 	r.Group(func(r chi.Router) {
@@ -1745,6 +2129,9 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 	r.Group(func(r chi.Router) {
 		r.Post(options.BaseURL+"/v1alpha1/publish/complete", wrapper.UserCompletePublishProvider)
 	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/v1alpha1/publishers", wrapper.UserCreatePublisher)
+	})
 
 	return r
 }
@@ -1752,46 +2139,49 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"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",
+	"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",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file
