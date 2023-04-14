@@ -74,14 +74,6 @@ type DiagnosticLog struct {
 	Msg   string   `json:"msg"`
 }
 
-// The Document of a Common Fate Provider.
-type Document struct {
-	Content  string  `json:"content"`
-	Filename *string `json:"filename,omitempty"`
-	Key      *string `json:"key,omitempty"`
-	Size     *int    `json:"size,omitempty"`
-}
-
 // A callable function in the provider which can
 // load resources.
 //
@@ -98,11 +90,6 @@ type LogLevel string
 type Meta struct {
 	// The Provider Developer Kit framework version which published the schema.
 	Framework *string `json:"framework,omitempty"`
-}
-
-// PresignURL will return time-timited presigned URL for provided bucketname & filename
-type PresignURLResponse struct {
-	PresignedURL string `json:"presignedURL"`
 }
 
 // A registered provider version
@@ -136,25 +123,16 @@ type ProviderMetaInfo struct {
 	Source      *string `json:"source,omitempty"`
 }
 
-// Request Body to register a Provider
-type ProviderRegisterRequest struct {
-	Dev *bool `json:"dev,omitempty"`
-
-	// Metadata from provider.toml file for a Provider
-	Meta      *ProviderMetaInfo `json:"meta,omitempty"`
-	Name      string            `json:"name"`
-	Publisher string            `json:"publisher"`
-
-	// The schema for a Common Fate Provider.
-	Schema  Schema `json:"schema"`
-	Version string `json:"version"`
-}
-
 // Providers defines model for Providers.
 type Providers struct {
 	Name      string `json:"name"`
 	Publisher string `json:"publisher"`
 	Version   string `json:"version"`
+}
+
+// Publisher
+type Publisher struct {
+	Id string `json:"id"`
 }
 
 // Resources defines model for Resources.
@@ -203,6 +181,13 @@ type TargetField struct {
 // TargetFieldType defines model for TargetField.Type.
 type TargetFieldType string
 
+// User defines model for User.
+type User struct {
+	Email      string   `json:"email"`
+	Id         string   `json:"id"`
+	Publishers []string `json:"publishers"`
+}
+
 // ErrorResponse defines model for ErrorResponse.
 type ErrorResponse struct {
 	Error string `json:"error"`
@@ -219,29 +204,62 @@ type ListProvidersResponse struct {
 	Providers []ProviderDetail `json:"providers"`
 }
 
+// ProviderReadmeResponse defines model for ProviderReadmeResponse.
+type ProviderReadmeResponse struct {
+	Readme string `json:"readme"`
+}
+
+// PublishProviderResponse defines model for PublishProviderResponse.
+type PublishProviderResponse struct {
+	CloudformationTemplateUploadUrl string `json:"cloudformationTemplateUploadUrl"`
+	LambdaHandlerUploadUrl          string `json:"lambdaHandlerUploadUrl"`
+	ReadmeUploadUrl                 string `json:"readmeUploadUrl"`
+
+	// filename is the key and value is the upload URL
+	RoleTemplateUploadURLs map[string]string `json:"roleTemplateUploadURLs"`
+}
+
+// CreatePublisherRequest defines model for CreatePublisherRequest.
+type CreatePublisherRequest struct {
+	Id string `json:"id"`
+}
+
+// PublishProviderRequest defines model for PublishProviderRequest.
+type PublishProviderRequest struct {
+	Dev *bool `json:"dev,omitempty"`
+
+	// Metadata from provider.toml file for a Provider
+	Meta      ProviderMetaInfo `json:"meta"`
+	Name      string           `json:"name"`
+	Publisher string           `json:"publisher"`
+
+	// an array of filenames for role templates to be uploaded
+	RoleFiles []string `json:"roleFiles"`
+
+	// The schema for a Common Fate Provider.
+	Schema Schema `json:"schema"`
+
+	// Version must follow server format
+	Version string `json:"version"`
+}
+
 // ListAllProvidersParams defines parameters for ListAllProviders.
 type ListAllProvidersParams struct {
 	// withDev flag will return all providers including dev providers
 	WithDev *bool `form:"withDev,omitempty" json:"withDev,omitempty"`
 }
 
-// GetPresignedUrlParams defines parameters for GetPresignedUrl.
-type GetPresignedUrlParams struct {
-	// name of the S3 bucket
-	Bucketname string `form:"bucketname" json:"bucketname"`
+// UserCompletePublishProviderJSONBody defines parameters for UserCompletePublishProvider.
+type UserCompletePublishProviderJSONBody = Provider
 
-	// key value of the S3 object
-	Key string `form:"key" json:"key"`
-}
+// UserPublishProviderJSONRequestBody defines body for UserPublishProvider for application/json ContentType.
+type UserPublishProviderJSONRequestBody PublishProviderRequest
 
-// RegisterNewProviderJSONBody defines parameters for RegisterNewProvider.
-type RegisterNewProviderJSONBody struct {
-	// Request Body to register a Provider
-	Provider ProviderRegisterRequest `json:"provider"`
-}
+// UserCompletePublishProviderJSONRequestBody defines body for UserCompletePublishProvider for application/json ContentType.
+type UserCompletePublishProviderJSONRequestBody = UserCompletePublishProviderJSONBody
 
-// RegisterNewProviderJSONRequestBody defines body for RegisterNewProvider for application/json ContentType.
-type RegisterNewProviderJSONRequestBody RegisterNewProviderJSONBody
+// UserCreatePublisherJSONRequestBody defines body for UserCreatePublisher for application/json ContentType.
+type UserCreatePublisherJSONRequestBody CreatePublisherRequest
 
 // RequestEditorFn  is the function signature for the RequestEditor callback function
 type RequestEditorFn func(ctx context.Context, req *http.Request) error
@@ -319,29 +337,51 @@ type ClientInterface interface {
 	// Healthcheck request
 	Healthcheck(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// UserGetMe request
+	UserGetMe(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// ListAllProviders request
 	ListAllProviders(ctx context.Context, params *ListAllProvidersParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// GetPresignedUrl request
-	GetPresignedUrl(ctx context.Context, params *GetPresignedUrlParams, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	// GetProviderVersions request
-	GetProviderVersions(ctx context.Context, publisher string, name string, reqEditors ...RequestEditorFn) (*http.Response, error)
+	// ListProviderVersions request
+	ListProviderVersions(ctx context.Context, publisher string, name string, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// GetProvider request
 	GetProvider(ctx context.Context, publisher string, name string, version string, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// GetProviderDocs request
-	GetProviderDocs(ctx context.Context, publisher string, name string, version string, reqEditors ...RequestEditorFn) (*http.Response, error)
+	// GetProviderReadme request
+	GetProviderReadme(ctx context.Context, publisher string, name string, version string, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// RegisterNewProvider request with any body
-	RegisterNewProviderWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+	// UserPublishProvider request with any body
+	UserPublishProviderWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	RegisterNewProvider(ctx context.Context, body RegisterNewProviderJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+	UserPublishProvider(ctx context.Context, body UserPublishProviderJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// UserCompletePublishProvider request with any body
+	UserCompletePublishProviderWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	UserCompletePublishProvider(ctx context.Context, body UserCompletePublishProviderJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// UserCreatePublisher request with any body
+	UserCreatePublisherWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	UserCreatePublisher(ctx context.Context, body UserCreatePublisherJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 }
 
 func (c *Client) Healthcheck(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewHealthcheckRequest(c.Server)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) UserGetMe(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUserGetMeRequest(c.Server)
 	if err != nil {
 		return nil, err
 	}
@@ -364,20 +404,8 @@ func (c *Client) ListAllProviders(ctx context.Context, params *ListAllProvidersP
 	return c.Client.Do(req)
 }
 
-func (c *Client) GetPresignedUrl(ctx context.Context, params *GetPresignedUrlParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewGetPresignedUrlRequest(c.Server, params)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) GetProviderVersions(ctx context.Context, publisher string, name string, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewGetProviderVersionsRequest(c.Server, publisher, name)
+func (c *Client) ListProviderVersions(ctx context.Context, publisher string, name string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListProviderVersionsRequest(c.Server, publisher, name)
 	if err != nil {
 		return nil, err
 	}
@@ -400,8 +428,8 @@ func (c *Client) GetProvider(ctx context.Context, publisher string, name string,
 	return c.Client.Do(req)
 }
 
-func (c *Client) GetProviderDocs(ctx context.Context, publisher string, name string, version string, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewGetProviderDocsRequest(c.Server, publisher, name, version)
+func (c *Client) GetProviderReadme(ctx context.Context, publisher string, name string, version string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetProviderReadmeRequest(c.Server, publisher, name, version)
 	if err != nil {
 		return nil, err
 	}
@@ -412,8 +440,8 @@ func (c *Client) GetProviderDocs(ctx context.Context, publisher string, name str
 	return c.Client.Do(req)
 }
 
-func (c *Client) RegisterNewProviderWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewRegisterNewProviderRequestWithBody(c.Server, contentType, body)
+func (c *Client) UserPublishProviderWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUserPublishProviderRequestWithBody(c.Server, contentType, body)
 	if err != nil {
 		return nil, err
 	}
@@ -424,8 +452,56 @@ func (c *Client) RegisterNewProviderWithBody(ctx context.Context, contentType st
 	return c.Client.Do(req)
 }
 
-func (c *Client) RegisterNewProvider(ctx context.Context, body RegisterNewProviderJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewRegisterNewProviderRequest(c.Server, body)
+func (c *Client) UserPublishProvider(ctx context.Context, body UserPublishProviderJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUserPublishProviderRequest(c.Server, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) UserCompletePublishProviderWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUserCompletePublishProviderRequestWithBody(c.Server, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) UserCompletePublishProvider(ctx context.Context, body UserCompletePublishProviderJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUserCompletePublishProviderRequest(c.Server, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) UserCreatePublisherWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUserCreatePublisherRequestWithBody(c.Server, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) UserCreatePublisher(ctx context.Context, body UserCreatePublisherJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUserCreatePublisherRequest(c.Server, body)
 	if err != nil {
 		return nil, err
 	}
@@ -446,6 +522,33 @@ func NewHealthcheckRequest(server string) (*http.Request, error) {
 	}
 
 	operationPath := fmt.Sprintf("/v1alpha1/health")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewUserGetMeRequest generates requests for UserGetMe
+func NewUserGetMeRequest(server string) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/v1alpha1/me")
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -510,63 +613,8 @@ func NewListAllProvidersRequest(server string, params *ListAllProvidersParams) (
 	return req, nil
 }
 
-// NewGetPresignedUrlRequest generates requests for GetPresignedUrl
-func NewGetPresignedUrlRequest(server string, params *GetPresignedUrlParams) (*http.Request, error) {
-	var err error
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/v1alpha1/providers/presignurl")
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	queryValues := queryURL.Query()
-
-	if queryFrag, err := runtime.StyleParamWithLocation("form", true, "bucketname", runtime.ParamLocationQuery, params.Bucketname); err != nil {
-		return nil, err
-	} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
-		return nil, err
-	} else {
-		for k, v := range parsed {
-			for _, v2 := range v {
-				queryValues.Add(k, v2)
-			}
-		}
-	}
-
-	if queryFrag, err := runtime.StyleParamWithLocation("form", true, "key", runtime.ParamLocationQuery, params.Key); err != nil {
-		return nil, err
-	} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
-		return nil, err
-	} else {
-		for k, v := range parsed {
-			for _, v2 := range v {
-				queryValues.Add(k, v2)
-			}
-		}
-	}
-
-	queryURL.RawQuery = queryValues.Encode()
-
-	req, err := http.NewRequest("GET", queryURL.String(), nil)
-	if err != nil {
-		return nil, err
-	}
-
-	return req, nil
-}
-
-// NewGetProviderVersionsRequest generates requests for GetProviderVersions
-func NewGetProviderVersionsRequest(server string, publisher string, name string) (*http.Request, error) {
+// NewListProviderVersionsRequest generates requests for ListProviderVersions
+func NewListProviderVersionsRequest(server string, publisher string, name string) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
@@ -654,8 +702,8 @@ func NewGetProviderRequest(server string, publisher string, name string, version
 	return req, nil
 }
 
-// NewGetProviderDocsRequest generates requests for GetProviderDocs
-func NewGetProviderDocsRequest(server string, publisher string, name string, version string) (*http.Request, error) {
+// NewGetProviderReadmeRequest generates requests for GetProviderReadme
+func NewGetProviderReadmeRequest(server string, publisher string, name string, version string) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
@@ -684,7 +732,7 @@ func NewGetProviderDocsRequest(server string, publisher string, name string, ver
 		return nil, err
 	}
 
-	operationPath := fmt.Sprintf("/v1alpha1/providers/%s/%s/%s/docs", pathParam0, pathParam1, pathParam2)
+	operationPath := fmt.Sprintf("/v1alpha1/providers/%s/%s/%s/readme", pathParam0, pathParam1, pathParam2)
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -702,19 +750,19 @@ func NewGetProviderDocsRequest(server string, publisher string, name string, ver
 	return req, nil
 }
 
-// NewRegisterNewProviderRequest calls the generic RegisterNewProvider builder with application/json body
-func NewRegisterNewProviderRequest(server string, body RegisterNewProviderJSONRequestBody) (*http.Request, error) {
+// NewUserPublishProviderRequest calls the generic UserPublishProvider builder with application/json body
+func NewUserPublishProviderRequest(server string, body UserPublishProviderJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
 	buf, err := json.Marshal(body)
 	if err != nil {
 		return nil, err
 	}
 	bodyReader = bytes.NewReader(buf)
-	return NewRegisterNewProviderRequestWithBody(server, "application/json", bodyReader)
+	return NewUserPublishProviderRequestWithBody(server, "application/json", bodyReader)
 }
 
-// NewRegisterNewProviderRequestWithBody generates requests for RegisterNewProvider with any type of body
-func NewRegisterNewProviderRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
+// NewUserPublishProviderRequestWithBody generates requests for UserPublishProvider with any type of body
+func NewUserPublishProviderRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
 	var err error
 
 	serverURL, err := url.Parse(server)
@@ -722,7 +770,87 @@ func NewRegisterNewProviderRequestWithBody(server string, contentType string, bo
 		return nil, err
 	}
 
-	operationPath := fmt.Sprintf("/v1alpha1/publisher/provider")
+	operationPath := fmt.Sprintf("/v1alpha1/publish")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewUserCompletePublishProviderRequest calls the generic UserCompletePublishProvider builder with application/json body
+func NewUserCompletePublishProviderRequest(server string, body UserCompletePublishProviderJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewUserCompletePublishProviderRequestWithBody(server, "application/json", bodyReader)
+}
+
+// NewUserCompletePublishProviderRequestWithBody generates requests for UserCompletePublishProvider with any type of body
+func NewUserCompletePublishProviderRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/v1alpha1/publish/complete")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewUserCreatePublisherRequest calls the generic UserCreatePublisher builder with application/json body
+func NewUserCreatePublisherRequest(server string, body UserCreatePublisherJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewUserCreatePublisherRequestWithBody(server, "application/json", bodyReader)
+}
+
+// NewUserCreatePublisherRequestWithBody generates requests for UserCreatePublisher with any type of body
+func NewUserCreatePublisherRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/v1alpha1/publishers")
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -788,30 +916,43 @@ type ClientWithResponsesInterface interface {
 	// Healthcheck request
 	HealthcheckWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*HealthcheckResponse, error)
 
+	// UserGetMe request
+	UserGetMeWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*UserGetMeResponse, error)
+
 	// ListAllProviders request
 	ListAllProvidersWithResponse(ctx context.Context, params *ListAllProvidersParams, reqEditors ...RequestEditorFn) (*ListAllProvidersResponse, error)
 
-	// GetPresignedUrl request
-	GetPresignedUrlWithResponse(ctx context.Context, params *GetPresignedUrlParams, reqEditors ...RequestEditorFn) (*GetPresignedUrlResponse, error)
-
-	// GetProviderVersions request
-	GetProviderVersionsWithResponse(ctx context.Context, publisher string, name string, reqEditors ...RequestEditorFn) (*GetProviderVersionsResponse, error)
+	// ListProviderVersions request
+	ListProviderVersionsWithResponse(ctx context.Context, publisher string, name string, reqEditors ...RequestEditorFn) (*ListProviderVersionsResponse, error)
 
 	// GetProvider request
 	GetProviderWithResponse(ctx context.Context, publisher string, name string, version string, reqEditors ...RequestEditorFn) (*GetProviderResponse, error)
 
-	// GetProviderDocs request
-	GetProviderDocsWithResponse(ctx context.Context, publisher string, name string, version string, reqEditors ...RequestEditorFn) (*GetProviderDocsResponse, error)
+	// GetProviderReadme request
+	GetProviderReadmeWithResponse(ctx context.Context, publisher string, name string, version string, reqEditors ...RequestEditorFn) (*GetProviderReadmeResponse, error)
 
-	// RegisterNewProvider request with any body
-	RegisterNewProviderWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*RegisterNewProviderResponse, error)
+	// UserPublishProvider request with any body
+	UserPublishProviderWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UserPublishProviderResponse, error)
 
-	RegisterNewProviderWithResponse(ctx context.Context, body RegisterNewProviderJSONRequestBody, reqEditors ...RequestEditorFn) (*RegisterNewProviderResponse, error)
+	UserPublishProviderWithResponse(ctx context.Context, body UserPublishProviderJSONRequestBody, reqEditors ...RequestEditorFn) (*UserPublishProviderResponse, error)
+
+	// UserCompletePublishProvider request with any body
+	UserCompletePublishProviderWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UserCompletePublishProviderResponse, error)
+
+	UserCompletePublishProviderWithResponse(ctx context.Context, body UserCompletePublishProviderJSONRequestBody, reqEditors ...RequestEditorFn) (*UserCompletePublishProviderResponse, error)
+
+	// UserCreatePublisher request with any body
+	UserCreatePublisherWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UserCreatePublisherResponse, error)
+
+	UserCreatePublisherWithResponse(ctx context.Context, body UserCreatePublisherJSONRequestBody, reqEditors ...RequestEditorFn) (*UserCreatePublisherResponse, error)
 }
 
 type HealthcheckResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
+	JSON200      *struct {
+		Healthy bool `json:"healthy"`
+	}
 }
 
 // Status returns HTTPResponse.Status
@@ -824,6 +965,34 @@ func (r HealthcheckResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r HealthcheckResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type UserGetMeResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *User
+	JSON401      *struct {
+		Error string `json:"error"`
+	}
+	JSON500 *struct {
+		Error string `json:"error"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r UserGetMeResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r UserGetMeResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -858,33 +1027,14 @@ func (r ListAllProvidersResponse) StatusCode() int {
 	return 0
 }
 
-type GetPresignedUrlResponse struct {
+type ListProviderVersionsResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON200      *PresignURLResponse
-}
-
-// Status returns HTTPResponse.Status
-func (r GetPresignedUrlResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
+	JSON200      *struct {
+		Next      *string          `json:"next"`
+		Providers []ProviderDetail `json:"providers"`
 	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r GetPresignedUrlResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
-}
-
-type GetProviderVersionsResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-	JSON200      *[]ProviderDetail
-	JSON404      *struct {
+	JSON404 *struct {
 		Error string `json:"error"`
 	}
 	JSON500 *struct {
@@ -893,7 +1043,7 @@ type GetProviderVersionsResponse struct {
 }
 
 // Status returns HTTPResponse.Status
-func (r GetProviderVersionsResponse) Status() string {
+func (r ListProviderVersionsResponse) Status() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Status
 	}
@@ -901,7 +1051,7 @@ func (r GetProviderVersionsResponse) Status() string {
 }
 
 // StatusCode returns HTTPResponse.StatusCode
-func (r GetProviderVersionsResponse) StatusCode() int {
+func (r ListProviderVersionsResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -936,14 +1086,22 @@ func (r GetProviderResponse) StatusCode() int {
 	return 0
 }
 
-type GetProviderDocsResponse struct {
+type GetProviderReadmeResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON200      *[]Document
+	JSON200      *struct {
+		Readme string `json:"readme"`
+	}
+	JSON404 *struct {
+		Error string `json:"error"`
+	}
+	JSON500 *struct {
+		Error string `json:"error"`
+	}
 }
 
 // Status returns HTTPResponse.Status
-func (r GetProviderDocsResponse) Status() string {
+func (r GetProviderReadmeResponse) Status() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Status
 	}
@@ -951,27 +1109,37 @@ func (r GetProviderDocsResponse) Status() string {
 }
 
 // StatusCode returns HTTPResponse.StatusCode
-func (r GetProviderDocsResponse) StatusCode() int {
+func (r GetProviderReadmeResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
 	return 0
 }
 
-type RegisterNewProviderResponse struct {
+type UserPublishProviderResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON201      *struct {
-		// A registered provider version
-		Provider ProviderDetail `json:"provider"`
+	JSON200      *struct {
+		CloudformationTemplateUploadUrl string `json:"cloudformationTemplateUploadUrl"`
+		LambdaHandlerUploadUrl          string `json:"lambdaHandlerUploadUrl"`
+		ReadmeUploadUrl                 string `json:"readmeUploadUrl"`
+
+		// filename is the key and value is the upload URL
+		RoleTemplateUploadURLs map[string]string `json:"roleTemplateUploadURLs"`
 	}
 	JSON400 *struct {
-		Message string `json:"message"`
+		Error string `json:"error"`
+	}
+	JSON401 *struct {
+		Error string `json:"error"`
+	}
+	JSON500 *struct {
+		Error string `json:"error"`
 	}
 }
 
 // Status returns HTTPResponse.Status
-func (r RegisterNewProviderResponse) Status() string {
+func (r UserPublishProviderResponse) Status() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Status
 	}
@@ -979,7 +1147,72 @@ func (r RegisterNewProviderResponse) Status() string {
 }
 
 // StatusCode returns HTTPResponse.StatusCode
-func (r RegisterNewProviderResponse) StatusCode() int {
+func (r UserPublishProviderResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type UserCompletePublishProviderResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *ProviderDetail
+	JSON400      *struct {
+		Error string `json:"error"`
+	}
+	JSON401 *struct {
+		Error string `json:"error"`
+	}
+	JSON404 *struct {
+		Error string `json:"error"`
+	}
+	JSON500 *struct {
+		Error string `json:"error"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r UserCompletePublishProviderResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r UserCompletePublishProviderResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type UserCreatePublisherResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON201      *Publisher
+	JSON400      *struct {
+		Error string `json:"error"`
+	}
+	JSON401 *struct {
+		Error string `json:"error"`
+	}
+	JSON500 *struct {
+		Error string `json:"error"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r UserCreatePublisherResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r UserCreatePublisherResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -995,6 +1228,15 @@ func (c *ClientWithResponses) HealthcheckWithResponse(ctx context.Context, reqEd
 	return ParseHealthcheckResponse(rsp)
 }
 
+// UserGetMeWithResponse request returning *UserGetMeResponse
+func (c *ClientWithResponses) UserGetMeWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*UserGetMeResponse, error) {
+	rsp, err := c.UserGetMe(ctx, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseUserGetMeResponse(rsp)
+}
+
 // ListAllProvidersWithResponse request returning *ListAllProvidersResponse
 func (c *ClientWithResponses) ListAllProvidersWithResponse(ctx context.Context, params *ListAllProvidersParams, reqEditors ...RequestEditorFn) (*ListAllProvidersResponse, error) {
 	rsp, err := c.ListAllProviders(ctx, params, reqEditors...)
@@ -1004,22 +1246,13 @@ func (c *ClientWithResponses) ListAllProvidersWithResponse(ctx context.Context, 
 	return ParseListAllProvidersResponse(rsp)
 }
 
-// GetPresignedUrlWithResponse request returning *GetPresignedUrlResponse
-func (c *ClientWithResponses) GetPresignedUrlWithResponse(ctx context.Context, params *GetPresignedUrlParams, reqEditors ...RequestEditorFn) (*GetPresignedUrlResponse, error) {
-	rsp, err := c.GetPresignedUrl(ctx, params, reqEditors...)
+// ListProviderVersionsWithResponse request returning *ListProviderVersionsResponse
+func (c *ClientWithResponses) ListProviderVersionsWithResponse(ctx context.Context, publisher string, name string, reqEditors ...RequestEditorFn) (*ListProviderVersionsResponse, error) {
+	rsp, err := c.ListProviderVersions(ctx, publisher, name, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParseGetPresignedUrlResponse(rsp)
-}
-
-// GetProviderVersionsWithResponse request returning *GetProviderVersionsResponse
-func (c *ClientWithResponses) GetProviderVersionsWithResponse(ctx context.Context, publisher string, name string, reqEditors ...RequestEditorFn) (*GetProviderVersionsResponse, error) {
-	rsp, err := c.GetProviderVersions(ctx, publisher, name, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseGetProviderVersionsResponse(rsp)
+	return ParseListProviderVersionsResponse(rsp)
 }
 
 // GetProviderWithResponse request returning *GetProviderResponse
@@ -1031,30 +1264,64 @@ func (c *ClientWithResponses) GetProviderWithResponse(ctx context.Context, publi
 	return ParseGetProviderResponse(rsp)
 }
 
-// GetProviderDocsWithResponse request returning *GetProviderDocsResponse
-func (c *ClientWithResponses) GetProviderDocsWithResponse(ctx context.Context, publisher string, name string, version string, reqEditors ...RequestEditorFn) (*GetProviderDocsResponse, error) {
-	rsp, err := c.GetProviderDocs(ctx, publisher, name, version, reqEditors...)
+// GetProviderReadmeWithResponse request returning *GetProviderReadmeResponse
+func (c *ClientWithResponses) GetProviderReadmeWithResponse(ctx context.Context, publisher string, name string, version string, reqEditors ...RequestEditorFn) (*GetProviderReadmeResponse, error) {
+	rsp, err := c.GetProviderReadme(ctx, publisher, name, version, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParseGetProviderDocsResponse(rsp)
+	return ParseGetProviderReadmeResponse(rsp)
 }
 
-// RegisterNewProviderWithBodyWithResponse request with arbitrary body returning *RegisterNewProviderResponse
-func (c *ClientWithResponses) RegisterNewProviderWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*RegisterNewProviderResponse, error) {
-	rsp, err := c.RegisterNewProviderWithBody(ctx, contentType, body, reqEditors...)
+// UserPublishProviderWithBodyWithResponse request with arbitrary body returning *UserPublishProviderResponse
+func (c *ClientWithResponses) UserPublishProviderWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UserPublishProviderResponse, error) {
+	rsp, err := c.UserPublishProviderWithBody(ctx, contentType, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParseRegisterNewProviderResponse(rsp)
+	return ParseUserPublishProviderResponse(rsp)
 }
 
-func (c *ClientWithResponses) RegisterNewProviderWithResponse(ctx context.Context, body RegisterNewProviderJSONRequestBody, reqEditors ...RequestEditorFn) (*RegisterNewProviderResponse, error) {
-	rsp, err := c.RegisterNewProvider(ctx, body, reqEditors...)
+func (c *ClientWithResponses) UserPublishProviderWithResponse(ctx context.Context, body UserPublishProviderJSONRequestBody, reqEditors ...RequestEditorFn) (*UserPublishProviderResponse, error) {
+	rsp, err := c.UserPublishProvider(ctx, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParseRegisterNewProviderResponse(rsp)
+	return ParseUserPublishProviderResponse(rsp)
+}
+
+// UserCompletePublishProviderWithBodyWithResponse request with arbitrary body returning *UserCompletePublishProviderResponse
+func (c *ClientWithResponses) UserCompletePublishProviderWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UserCompletePublishProviderResponse, error) {
+	rsp, err := c.UserCompletePublishProviderWithBody(ctx, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseUserCompletePublishProviderResponse(rsp)
+}
+
+func (c *ClientWithResponses) UserCompletePublishProviderWithResponse(ctx context.Context, body UserCompletePublishProviderJSONRequestBody, reqEditors ...RequestEditorFn) (*UserCompletePublishProviderResponse, error) {
+	rsp, err := c.UserCompletePublishProvider(ctx, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseUserCompletePublishProviderResponse(rsp)
+}
+
+// UserCreatePublisherWithBodyWithResponse request with arbitrary body returning *UserCreatePublisherResponse
+func (c *ClientWithResponses) UserCreatePublisherWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UserCreatePublisherResponse, error) {
+	rsp, err := c.UserCreatePublisherWithBody(ctx, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseUserCreatePublisherResponse(rsp)
+}
+
+func (c *ClientWithResponses) UserCreatePublisherWithResponse(ctx context.Context, body UserCreatePublisherJSONRequestBody, reqEditors ...RequestEditorFn) (*UserCreatePublisherResponse, error) {
+	rsp, err := c.UserCreatePublisher(ctx, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseUserCreatePublisherResponse(rsp)
 }
 
 // ParseHealthcheckResponse parses an HTTP response from a HealthcheckWithResponse call
@@ -1068,6 +1335,62 @@ func ParseHealthcheckResponse(rsp *http.Response) (*HealthcheckResponse, error) 
 	response := &HealthcheckResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			Healthy bool `json:"healthy"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseUserGetMeResponse parses an HTTP response from a UserGetMeWithResponse call
+func ParseUserGetMeResponse(rsp *http.Response) (*UserGetMeResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &UserGetMeResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest User
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest struct {
+			Error string `json:"error"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON401 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest struct {
+			Error string `json:"error"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
+
 	}
 
 	return response, nil
@@ -1111,48 +1434,25 @@ func ParseListAllProvidersResponse(rsp *http.Response) (*ListAllProvidersRespons
 	return response, nil
 }
 
-// ParseGetPresignedUrlResponse parses an HTTP response from a GetPresignedUrlWithResponse call
-func ParseGetPresignedUrlResponse(rsp *http.Response) (*GetPresignedUrlResponse, error) {
+// ParseListProviderVersionsResponse parses an HTTP response from a ListProviderVersionsWithResponse call
+func ParseListProviderVersionsResponse(rsp *http.Response) (*ListProviderVersionsResponse, error) {
 	bodyBytes, err := ioutil.ReadAll(rsp.Body)
 	defer func() { _ = rsp.Body.Close() }()
 	if err != nil {
 		return nil, err
 	}
 
-	response := &GetPresignedUrlResponse{
+	response := &ListProviderVersionsResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
 
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest PresignURLResponse
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
+		var dest struct {
+			Next      *string          `json:"next"`
+			Providers []ProviderDetail `json:"providers"`
 		}
-		response.JSON200 = &dest
-
-	}
-
-	return response, nil
-}
-
-// ParseGetProviderVersionsResponse parses an HTTP response from a GetProviderVersionsWithResponse call
-func ParseGetProviderVersionsResponse(rsp *http.Response) (*GetProviderVersionsResponse, error) {
-	bodyBytes, err := ioutil.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &GetProviderVersionsResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest []ProviderDetail
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -1225,51 +1525,190 @@ func ParseGetProviderResponse(rsp *http.Response) (*GetProviderResponse, error) 
 	return response, nil
 }
 
-// ParseGetProviderDocsResponse parses an HTTP response from a GetProviderDocsWithResponse call
-func ParseGetProviderDocsResponse(rsp *http.Response) (*GetProviderDocsResponse, error) {
+// ParseGetProviderReadmeResponse parses an HTTP response from a GetProviderReadmeWithResponse call
+func ParseGetProviderReadmeResponse(rsp *http.Response) (*GetProviderReadmeResponse, error) {
 	bodyBytes, err := ioutil.ReadAll(rsp.Body)
 	defer func() { _ = rsp.Body.Close() }()
 	if err != nil {
 		return nil, err
 	}
 
-	response := &GetProviderDocsResponse{
+	response := &GetProviderReadmeResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
 
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest []Document
+		var dest struct {
+			Readme string `json:"readme"`
+		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
+		var dest struct {
+			Error string `json:"error"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON404 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest struct {
+			Error string `json:"error"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
 
 	}
 
 	return response, nil
 }
 
-// ParseRegisterNewProviderResponse parses an HTTP response from a RegisterNewProviderWithResponse call
-func ParseRegisterNewProviderResponse(rsp *http.Response) (*RegisterNewProviderResponse, error) {
+// ParseUserPublishProviderResponse parses an HTTP response from a UserPublishProviderWithResponse call
+func ParseUserPublishProviderResponse(rsp *http.Response) (*UserPublishProviderResponse, error) {
 	bodyBytes, err := ioutil.ReadAll(rsp.Body)
 	defer func() { _ = rsp.Body.Close() }()
 	if err != nil {
 		return nil, err
 	}
 
-	response := &RegisterNewProviderResponse{
+	response := &UserPublishProviderResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			CloudformationTemplateUploadUrl string `json:"cloudformationTemplateUploadUrl"`
+			LambdaHandlerUploadUrl          string `json:"lambdaHandlerUploadUrl"`
+			ReadmeUploadUrl                 string `json:"readmeUploadUrl"`
+
+			// filename is the key and value is the upload URL
+			RoleTemplateUploadURLs map[string]string `json:"roleTemplateUploadURLs"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
+		var dest struct {
+			Error string `json:"error"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON400 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest struct {
+			Error string `json:"error"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON401 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest struct {
+			Error string `json:"error"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseUserCompletePublishProviderResponse parses an HTTP response from a UserCompletePublishProviderWithResponse call
+func ParseUserCompletePublishProviderResponse(rsp *http.Response) (*UserCompletePublishProviderResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &UserCompletePublishProviderResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest ProviderDetail
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
+		var dest struct {
+			Error string `json:"error"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON400 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest struct {
+			Error string `json:"error"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON401 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
+		var dest struct {
+			Error string `json:"error"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON404 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest struct {
+			Error string `json:"error"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseUserCreatePublisherResponse parses an HTTP response from a UserCreatePublisherWithResponse call
+func ParseUserCreatePublisherResponse(rsp *http.Response) (*UserCreatePublisherResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &UserCreatePublisherResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
 
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 201:
-		var dest struct {
-			// A registered provider version
-			Provider ProviderDetail `json:"provider"`
-		}
+		var dest Publisher
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -1277,12 +1716,30 @@ func ParseRegisterNewProviderResponse(rsp *http.Response) (*RegisterNewProviderR
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
 		var dest struct {
-			Message string `json:"message"`
+			Error string `json:"error"`
 		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON400 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest struct {
+			Error string `json:"error"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON401 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest struct {
+			Error string `json:"error"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
 
 	}
 
@@ -1294,24 +1751,30 @@ type ServerInterface interface {
 	// Healthcheck
 	// (GET /v1alpha1/health)
 	Healthcheck(w http.ResponseWriter, r *http.Request)
+	// Get Me
+	// (GET /v1alpha1/me)
+	UserGetMe(w http.ResponseWriter, r *http.Request)
 	// List Providers
 	// (GET /v1alpha1/providers)
 	ListAllProviders(w http.ResponseWriter, r *http.Request, params ListAllProvidersParams)
-	// PreSignURL
-	// (GET /v1alpha1/providers/presignurl)
-	GetPresignedUrl(w http.ResponseWriter, r *http.Request, params GetPresignedUrlParams)
-	// Get Provider Versions
+	// List Provider Versions
 	// (GET /v1alpha1/providers/{publisher}/{name})
-	GetProviderVersions(w http.ResponseWriter, r *http.Request, publisher string, name string)
+	ListProviderVersions(w http.ResponseWriter, r *http.Request, publisher string, name string)
 	// Get Provider
 	// (GET /v1alpha1/providers/{publisher}/{name}/{version})
 	GetProvider(w http.ResponseWriter, r *http.Request, publisher string, name string, version string)
-	// Get Provider Docs
-	// (GET /v1alpha1/providers/{publisher}/{name}/{version}/docs)
-	GetProviderDocs(w http.ResponseWriter, r *http.Request, publisher string, name string, version string)
-
-	// (POST /v1alpha1/publisher/provider)
-	RegisterNewProvider(w http.ResponseWriter, r *http.Request)
+	// Get Provider Readme
+	// (GET /v1alpha1/providers/{publisher}/{name}/{version}/readme)
+	GetProviderReadme(w http.ResponseWriter, r *http.Request, publisher string, name string, version string)
+	// Publish a Provider
+	// (POST /v1alpha1/publish)
+	UserPublishProvider(w http.ResponseWriter, r *http.Request)
+	// Complete Publishing a Provider
+	// (POST /v1alpha1/publish/complete)
+	UserCompletePublishProvider(w http.ResponseWriter, r *http.Request)
+	// Create Publisher
+	// (POST /v1alpha1/publishers)
+	UserCreatePublisher(w http.ResponseWriter, r *http.Request)
 }
 
 // ServerInterfaceWrapper converts contexts to parameters.
@@ -1329,6 +1792,21 @@ func (siw *ServerInterfaceWrapper) Healthcheck(w http.ResponseWriter, r *http.Re
 
 	var handler = func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.Healthcheck(w, r)
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler(w, r.WithContext(ctx))
+}
+
+// UserGetMe operation middleware
+func (siw *ServerInterfaceWrapper) UserGetMe(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	var handler = func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.UserGetMe(w, r)
 	}
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -1369,56 +1847,8 @@ func (siw *ServerInterfaceWrapper) ListAllProviders(w http.ResponseWriter, r *ht
 	handler(w, r.WithContext(ctx))
 }
 
-// GetPresignedUrl operation middleware
-func (siw *ServerInterfaceWrapper) GetPresignedUrl(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
-
-	var err error
-
-	// Parameter object where we will unmarshal all parameters from the context
-	var params GetPresignedUrlParams
-
-	// ------------- Required query parameter "bucketname" -------------
-	if paramValue := r.URL.Query().Get("bucketname"); paramValue != "" {
-
-	} else {
-		siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "bucketname"})
-		return
-	}
-
-	err = runtime.BindQueryParameter("form", true, true, "bucketname", r.URL.Query(), &params.Bucketname)
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "bucketname", Err: err})
-		return
-	}
-
-	// ------------- Required query parameter "key" -------------
-	if paramValue := r.URL.Query().Get("key"); paramValue != "" {
-
-	} else {
-		siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "key"})
-		return
-	}
-
-	err = runtime.BindQueryParameter("form", true, true, "key", r.URL.Query(), &params.Key)
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "key", Err: err})
-		return
-	}
-
-	var handler = func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.GetPresignedUrl(w, r, params)
-	}
-
-	for _, middleware := range siw.HandlerMiddlewares {
-		handler = middleware(handler)
-	}
-
-	handler(w, r.WithContext(ctx))
-}
-
-// GetProviderVersions operation middleware
-func (siw *ServerInterfaceWrapper) GetProviderVersions(w http.ResponseWriter, r *http.Request) {
+// ListProviderVersions operation middleware
+func (siw *ServerInterfaceWrapper) ListProviderVersions(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
 	var err error
@@ -1442,7 +1872,7 @@ func (siw *ServerInterfaceWrapper) GetProviderVersions(w http.ResponseWriter, r 
 	}
 
 	var handler = func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.GetProviderVersions(w, r, publisher, name)
+		siw.Handler.ListProviderVersions(w, r, publisher, name)
 	}
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -1496,8 +1926,8 @@ func (siw *ServerInterfaceWrapper) GetProvider(w http.ResponseWriter, r *http.Re
 	handler(w, r.WithContext(ctx))
 }
 
-// GetProviderDocs operation middleware
-func (siw *ServerInterfaceWrapper) GetProviderDocs(w http.ResponseWriter, r *http.Request) {
+// GetProviderReadme operation middleware
+func (siw *ServerInterfaceWrapper) GetProviderReadme(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
 	var err error
@@ -1530,7 +1960,7 @@ func (siw *ServerInterfaceWrapper) GetProviderDocs(w http.ResponseWriter, r *htt
 	}
 
 	var handler = func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.GetProviderDocs(w, r, publisher, name, version)
+		siw.Handler.GetProviderReadme(w, r, publisher, name, version)
 	}
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -1540,12 +1970,42 @@ func (siw *ServerInterfaceWrapper) GetProviderDocs(w http.ResponseWriter, r *htt
 	handler(w, r.WithContext(ctx))
 }
 
-// RegisterNewProvider operation middleware
-func (siw *ServerInterfaceWrapper) RegisterNewProvider(w http.ResponseWriter, r *http.Request) {
+// UserPublishProvider operation middleware
+func (siw *ServerInterfaceWrapper) UserPublishProvider(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
 	var handler = func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.RegisterNewProvider(w, r)
+		siw.Handler.UserPublishProvider(w, r)
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler(w, r.WithContext(ctx))
+}
+
+// UserCompletePublishProvider operation middleware
+func (siw *ServerInterfaceWrapper) UserCompletePublishProvider(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	var handler = func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.UserCompletePublishProvider(w, r)
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler(w, r.WithContext(ctx))
+}
+
+// UserCreatePublisher operation middleware
+func (siw *ServerInterfaceWrapper) UserCreatePublisher(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	var handler = func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.UserCreatePublisher(w, r)
 	}
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -1672,22 +2132,28 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 		r.Get(options.BaseURL+"/v1alpha1/health", wrapper.Healthcheck)
 	})
 	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/v1alpha1/me", wrapper.UserGetMe)
+	})
+	r.Group(func(r chi.Router) {
 		r.Get(options.BaseURL+"/v1alpha1/providers", wrapper.ListAllProviders)
 	})
 	r.Group(func(r chi.Router) {
-		r.Get(options.BaseURL+"/v1alpha1/providers/presignurl", wrapper.GetPresignedUrl)
-	})
-	r.Group(func(r chi.Router) {
-		r.Get(options.BaseURL+"/v1alpha1/providers/{publisher}/{name}", wrapper.GetProviderVersions)
+		r.Get(options.BaseURL+"/v1alpha1/providers/{publisher}/{name}", wrapper.ListProviderVersions)
 	})
 	r.Group(func(r chi.Router) {
 		r.Get(options.BaseURL+"/v1alpha1/providers/{publisher}/{name}/{version}", wrapper.GetProvider)
 	})
 	r.Group(func(r chi.Router) {
-		r.Get(options.BaseURL+"/v1alpha1/providers/{publisher}/{name}/{version}/docs", wrapper.GetProviderDocs)
+		r.Get(options.BaseURL+"/v1alpha1/providers/{publisher}/{name}/{version}/readme", wrapper.GetProviderReadme)
 	})
 	r.Group(func(r chi.Router) {
-		r.Post(options.BaseURL+"/v1alpha1/publisher/provider", wrapper.RegisterNewProvider)
+		r.Post(options.BaseURL+"/v1alpha1/publish", wrapper.UserPublishProvider)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/v1alpha1/publish/complete", wrapper.UserCompletePublishProvider)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/v1alpha1/publishers", wrapper.UserCreatePublisher)
 	})
 
 	return r
@@ -1696,44 +2162,51 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"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",
+	"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",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file
