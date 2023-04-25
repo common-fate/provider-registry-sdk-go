@@ -37,7 +37,7 @@ func (l Local) Execute(ctx context.Context, request msg.Request) (*msg.Result, e
 		return nil, err
 	}
 
-	cmd := exec.Command(".venv/bin/commonfate-provider-py", "run", string(payloadbytes))
+	cmd := exec.Command(".venv/bin/provider", "run", string(payloadbytes))
 	cmd.Env = l.Env
 	cmd.Dir = l.Dir
 	cmd.Stderr = stderr
